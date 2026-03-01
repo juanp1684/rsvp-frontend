@@ -20,6 +20,11 @@ export default function RsvpPage() {
     retry: false,
   })
 
+  const { data: event } = useQuery({
+    queryKey: ['event'],
+    queryFn: () => api.get('/event').then((r) => r.data),
+  })
+
   const mutation = useMutation({
     mutationFn: (payload) => api.post(`/rsvp/${code}`, payload),
     onSuccess: () => setStep('confirmed'),
@@ -110,7 +115,50 @@ export default function RsvpPage() {
           <h1 className="text-2xl font-semibold">{invitee.full_name}</h1>
         </div>
 
-        <form onSubmit={handleSubmit} className="flex flex-col gap-6">
+        {event && (
+          <div className="flex flex-col gap-2 text-sm border rounded-lg p-4">
+            {event.name && <p className="font-semibold text-base text-center">{event.name}</p>}
+            {event.ceremony_at && (
+              <div>
+                <p className="font-medium">Ceremonia</p>
+                <p className="text-muted-foreground">{new Date(event.ceremony_at).toLocaleString('es-MX', { dateStyle: 'long', timeStyle: 'short' })}</p>
+                {event.ceremony_url
+                  ? <a href={event.ceremony_url} target="_blank" rel="noopener noreferrer" className="text-primary underline">{event.ceremony_location}</a>
+                  : <p className="text-muted-foreground">{event.ceremony_location}</p>}
+              </div>
+            )}
+            {event.reception_at && (
+              <div>
+                <p className="font-medium">Recepción</p>
+                <p className="text-muted-foreground">{new Date(event.reception_at).toLocaleString('es-MX', { dateStyle: 'long', timeStyle: 'short' })}</p>
+                {event.reception_url
+                  ? <a href={event.reception_url} target="_blank" rel="noopener noreferrer" className="text-primary underline">{event.reception_location}</a>
+                  : <p className="text-muted-foreground">{event.reception_location}</p>}
+              </div>
+            )}
+            {event.dress_code && (
+              <div>
+                <p className="font-medium">Vestimenta</p>
+                <p className="text-muted-foreground">{event.dress_code}</p>
+              </div>
+            )}
+            {event.rsvp_deadline && (
+              <div>
+                <p className="font-medium">Confirmar antes del</p>
+                <p className="text-muted-foreground">{new Date(event.rsvp_deadline).toLocaleDateString('es-MX', { dateStyle: 'long' })}</p>
+              </div>
+            )}
+          </div>
+        )}
+
+        {event?.deadline_passed && (
+          <p className="text-sm text-center text-muted-foreground">
+            El plazo para confirmar asistencia ha vencido. Para registrar tu respuesta comunícate directamente con los comprometidos.
+          </p>
+        )}
+
+
+        {!event?.deadline_passed && <form onSubmit={handleSubmit} className="flex flex-col gap-6">
           {/* Attendance */}
           <div className="flex flex-col gap-2">
             <p className="text-sm font-medium text-center">¿Asistirás a nuestra boda?</p>
@@ -191,7 +239,7 @@ export default function RsvpPage() {
               Ocurrió un error. Intenta de nuevo.
             </p>
           )}
-        </form>
+        </form>}
       </div>
     </Screen>
   )
