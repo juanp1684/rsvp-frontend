@@ -152,6 +152,7 @@ export default function RsvpPage() {
                       placeholder="Nombre completo"
                       value={c.full_name}
                       onChange={(e) => handleCompanionName(i, e.target.value)}
+                      maxLength={255}
                       required
                     />
                   </div>
