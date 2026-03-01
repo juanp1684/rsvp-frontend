@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import api from '@/lib/api'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -11,6 +12,8 @@ const statCards = [
 ]
 
 export default function DashboardPage() {
+  useEffect(() => { document.title = 'RSVP Admin | Dashboard' }, [])
+
   const { data: invitees = [], isLoading } = useQuery({
     queryKey: ['invitees'],
     queryFn: () => api.get('/invitees').then((r) => r.data),

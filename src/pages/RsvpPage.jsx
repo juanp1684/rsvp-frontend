@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useParams } from 'react-router-dom'
 import { useQuery, useMutation } from '@tanstack/react-query'
 import api from '@/lib/api'
@@ -7,6 +7,8 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 
 export default function RsvpPage() {
+  useEffect(() => { document.title = 'RSVP' }, [])
+
   const { code } = useParams()
   const [step, setStep] = useState('form') // 'form' | 'confirmed'
   const [status, setStatus] = useState(null) // 'attending' | 'declined'
