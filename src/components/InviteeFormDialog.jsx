@@ -73,12 +73,13 @@ export default function InviteeFormDialog({ open, onOpenChange, invitee }) {
               id="full_name"
               value={form.full_name}
               onChange={set('full_name')}
+              maxLength={255}
               required
             />
           </div>
           <div className="flex flex-col gap-1.5">
             <Label htmlFor="phone">Phone</Label>
-            <Input id="phone" value={form.phone} onChange={set('phone')} />
+            <Input id="phone" value={form.phone} onChange={set('phone')} maxLength={50} />
           </div>
           <div className="flex flex-col gap-1.5">
             <Label>Companions allowed</Label>
@@ -90,7 +91,7 @@ export default function InviteeFormDialog({ open, onOpenChange, invitee }) {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                {[0, 1, 2, 3, 4, 5].map((n) => (
+                {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((n) => (
                   <SelectItem key={n} value={String(n)}>
                     {n === 0 ? 'None' : `+${n}`}
                   </SelectItem>
@@ -100,7 +101,7 @@ export default function InviteeFormDialog({ open, onOpenChange, invitee }) {
           </div>
           <div className="flex flex-col gap-1.5">
             <Label htmlFor="notes">Notes</Label>
-            <Input id="notes" value={form.notes} onChange={set('notes')} />
+            <Input id="notes" value={form.notes} onChange={set('notes')} maxLength={500} />
           </div>
           <DialogFooter className="pt-2">
             <Button type="submit" className="w-full" disabled={mutation.isPending}>
