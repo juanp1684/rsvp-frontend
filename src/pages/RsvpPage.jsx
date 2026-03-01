@@ -25,6 +25,16 @@ export default function RsvpPage() {
     queryFn: () => api.get('/event').then((r) => r.data),
   })
 
+  const isEditing = invitee?.status !== 'pending'
+
+  useEffect(() => {
+    if (!invitee || invitee.status === 'pending') return
+    setStatus(invitee.status)
+    if (invitee.status === 'attending') {
+      setCompanions(invitee.companions.map((c) => ({ full_name: c.full_name })))
+    }
+  }, [invitee])
+
   const mutation = useMutation({
     mutationFn: (payload) => api.post(`/rsvp/${code}`, payload),
     onSuccess: () => setStep('confirmed'),
@@ -69,19 +79,6 @@ export default function RsvpPage() {
         <p className="text-lg font-semibold">Invitación no encontrada</p>
         <p className="text-muted-foreground text-sm mt-1">
           Verifica que el enlace sea correcto.
-        </p>
-      </Screen>
-    )
-  }
-
-  if (invitee.status !== 'pending') {
-    return (
-      <Screen>
-        <p className="text-lg font-semibold">Ya recibimos tu respuesta</p>
-        <p className="text-muted-foreground text-sm mt-1">
-          {invitee.status === 'attending'
-            ? '¡Nos alegra que puedas acompañarnos!'
-            : 'Lamentamos que no puedas asistir.'}
         </p>
       </Screen>
     )
@@ -151,12 +148,30 @@ export default function RsvpPage() {
           </div>
         )}
 
-        {event?.deadline_passed && (
+        {event?.deadline_passed && isEditing && (
+          <div className="flex flex-col gap-1 text-sm text-center text-muted-foreground">
+            <p>Tu respuesta ya fue registrada. El plazo para hacer cambios ha vencido.</p>
+            <p>
+              {invitee.status === 'attending'
+                ? '¡Nos alegra que puedas acompañarnos!'
+                : 'Lamentamos que no puedas asistir.'}
+            </p>
+            <p>Si necesitas hacer algún cambio, comunícate directamente con los comprometidos.</p>
+          </div>
+        )}
+
+        {event?.deadline_passed && !isEditing && (
           <p className="text-sm text-center text-muted-foreground">
-            El plazo para confirmar asistencia ha vencido. Para registrar tu respuesta comunícate directamente con los comprometidos.
+            El plazo para confirmar asistencia ha vencido. Comunícate directamente con los comprometidos.
           </p>
         )}
 
+        {!event?.deadline_passed && isEditing && event?.rsvp_deadline && (
+          <p className="text-sm text-center text-muted-foreground">
+            Puedes actualizar tu respuesta hasta el{' '}
+            {new Date(event.rsvp_deadline).toLocaleDateString('es-MX', { dateStyle: 'long' })}.
+          </p>
+        )}
 
         {!event?.deadline_passed && <form onSubmit={handleSubmit} className="flex flex-col gap-6">
           {/* Attendance */}
@@ -181,6 +196,12 @@ export default function RsvpPage() {
               </Button>
             </div>
           </div>
+
+          {status === 'declined' && invitee.companions.length > 0 && (
+            <p className="text-sm text-center text-muted-foreground">
+              Al seleccionar "No podré ir" se eliminarán los acompañantes registrados.
+            </p>
+          )}
 
           {/* Companions */}
           {status === 'attending' && invitee.allowed_companions > 0 && (
@@ -230,7 +251,7 @@ export default function RsvpPage() {
 
           {status && (
             <Button type="submit" className="w-full" disabled={mutation.isPending}>
-              {mutation.isPending ? 'Enviando…' : 'Confirmar'}
+              {mutation.isPending ? 'Enviando…' : isEditing ? 'Actualizar respuesta' : 'Confirmar'}
             </Button>
           )}
 
