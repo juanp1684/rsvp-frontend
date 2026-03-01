@@ -5,7 +5,7 @@ import { Slot } from "radix-ui"
 import { cn } from "@/lib/utils"
 
 const buttonVariants = cva(
-  "cursor-pointer inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive",
+  "relative overflow-hidden cursor-pointer inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive",
   {
     variants: {
       variant: {
@@ -43,16 +43,35 @@ function Button({
   variant = "default",
   size = "default",
   asChild = false,
+  onClick,
   ...props
 }) {
   const Comp = asChild ? Slot.Root : "button"
+  const ref = React.useRef(null)
+
+  const handleClick = (e) => {
+    const btn = ref.current
+    if (btn) {
+      const rect = btn.getBoundingClientRect()
+      const diameter = Math.max(rect.width, rect.height) * 2
+      const x = e.clientX - rect.left - diameter / 2
+      const y = e.clientY - rect.top - diameter / 2
+      const ripple = document.createElement('span')
+      ripple.style.cssText = `position:absolute;width:${diameter}px;height:${diameter}px;left:${x}px;top:${y}px;border-radius:50%;background:currentColor;opacity:0.15;transform:scale(0);animation:ripple 500ms ease-out forwards;pointer-events:none;`
+      btn.appendChild(ripple)
+      ripple.addEventListener('animationend', () => ripple.remove())
+    }
+    onClick?.(e)
+  }
 
   return (
     <Comp
+      ref={ref}
       data-slot="button"
       data-variant={variant}
       data-size={size}
       className={cn(buttonVariants({ variant, size, className }))}
+      onClick={handleClick}
       {...props} />
   );
 }
