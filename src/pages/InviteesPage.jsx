@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
+import * as XLSX from 'xlsx'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import api from '@/lib/api'
@@ -15,6 +16,13 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from '@/components/ui/dialog'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -36,12 +44,16 @@ const statusVariant = {
 const statusCycle = ['attending', 'pending', 'declined']
 
 export default function InviteesPage() {
+  useEffect(() => { document.title = 'RSVP Admin | Invitees' }, [])
+
   const qc = useQueryClient()
   const [search, setSearch] = useState('')
   const [formOpen, setFormOpen] = useState(false)
   const [editInvitee, setEditInvitee] = useState(null)
   const [deleteTarget, setDeleteTarget] = useState(null)
   const [qrInvitee, setQrInvitee] = useState(null)
+  const [importOpen, setImportOpen] = useState(false)
+  const fileInputRef = useRef(null)
   const [sort, setSort] = useState({ field: 'full_name', dir: 'asc' })
 
   const { data: invitees = [], isLoading } = useQuery({
@@ -117,9 +129,11 @@ export default function InviteesPage() {
     setFormOpen(true)
   }
 
-  const handleExport = async () => {
-    const { data } = await api.get('/invitees/export')
-    const headers = ['type', 'invitee_id', 'full_name', 'phone', 'status']
+  const fetchExportData = () => api.get('/invitees/export').then((r) => r.data)
+
+  const handleExportCsv = async () => {
+    const data = await fetchExportData()
+    const headers = ['type', 'full_name', 'phone', 'status']
     const rows = data.map((r) => headers.map((h) => r[h] ?? '').join(','))
     const csv = [headers.join(','), ...rows].join('\n')
     const blob = new Blob([csv], { type: 'text/csv' })
@@ -131,9 +145,36 @@ export default function InviteesPage() {
     URL.revokeObjectURL(url)
   }
 
+  const handleExportExcel = async () => {
+    const data = await fetchExportData()
+    const ws = XLSX.utils.json_to_sheet(
+      data.map((r) => ({
+        Type: r.type ?? '',
+        'Full Name': r.full_name ?? '',
+        Phone: r.phone ?? '',
+        Status: r.status ?? '',
+      }))
+    )
+    const wb = XLSX.utils.book_new()
+    XLSX.utils.book_append_sheet(wb, ws, 'Guest List')
+    XLSX.writeFile(wb, 'guest-list.xlsx')
+  }
+
+  const handleTemplateDownload = () => {
+    const csv = 'full_name,phone,allowed_companions,notes\nJuan García,+52 55 1234 5678,1,\n'
+    const blob = new Blob([csv], { type: 'text/csv' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = 'invitees-template.csv'
+    a.click()
+    URL.revokeObjectURL(url)
+  }
+
   const handleImport = (e) => {
     const file = e.target.files?.[0]
     if (!file) return
+    setImportOpen(false)
     const formData = new FormData()
     formData.append('file', file)
     api
@@ -186,24 +227,25 @@ export default function InviteesPage() {
           </Button>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" size="sm" onClick={handleExport}>
+          <Button variant="outline" size="sm" onClick={handleExportCsv}>
             <Download className="h-4 w-4 mr-1" />
-            Export
+            CSV
           </Button>
-          <label>
-            <Button variant="outline" size="sm" asChild>
-              <span>
-                <Upload className="h-4 w-4 mr-1" />
-                Import
-              </span>
-            </Button>
-            <input
-              type="file"
-              accept=".csv,.xlsx,.xls"
-              className="hidden"
-              onChange={handleImport}
-            />
-          </label>
+          <Button variant="outline" size="sm" onClick={handleExportExcel}>
+            <Download className="h-4 w-4 mr-1" />
+            Excel
+          </Button>
+          <Button variant="outline" size="sm" onClick={() => setImportOpen(true)}>
+            <Upload className="h-4 w-4 mr-1" />
+            Import
+          </Button>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".csv,.xlsx,.xls"
+            className="hidden"
+            onChange={handleImport}
+          />
         </div>
       </div>
 
@@ -377,6 +419,49 @@ export default function InviteesPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <Dialog open={importOpen} onOpenChange={setImportOpen}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Import invitees</DialogTitle>
+          </DialogHeader>
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b">
+                <th className="text-left py-1.5 font-medium">Column</th>
+                <th className="text-left py-1.5 font-medium">Required?</th>
+              </tr>
+            </thead>
+            <tbody>
+              {[
+                { col: 'full_name', required: true },
+                { col: 'phone', required: false },
+                { col: 'allowed_companions', required: false },
+                { col: 'notes', required: false },
+              ].map(({ col, required }) => (
+                <tr key={col} className="border-b last:border-0">
+                  <td className="py-1.5 font-mono text-xs">{col}</td>
+                  <td className="py-1.5">
+                    {required
+                      ? <span className="text-green-600 font-medium">Required</span>
+                      : <span className="text-muted-foreground">Optional</span>}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          <DialogFooter className="flex-col gap-2 sm:flex-col">
+            <Button variant="outline" className="w-full" onClick={handleTemplateDownload}>
+              <Download className="h-4 w-4 mr-1" />
+              Download template
+            </Button>
+            <Button className="w-full" onClick={() => fileInputRef.current?.click()}>
+              <Upload className="h-4 w-4 mr-1" />
+              Choose file…
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
