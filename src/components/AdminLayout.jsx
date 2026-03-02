@@ -9,6 +9,7 @@ import { Menu, Moon, Sun } from 'lucide-react'
 const navItems = [
   { to: '/', label: 'Dashboard' },
   { to: '/invitees', label: 'Invitees' },
+  { to: '/event', label: 'Event' },
 ]
 
 function NavLinks({ onNavigate, itemClassName = '' }) {

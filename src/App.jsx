@@ -5,6 +5,7 @@ import AdminLayout from '@/components/AdminLayout'
 import ProtectedRoute from '@/components/ProtectedRoute'
 import LoginPage from '@/pages/LoginPage'
 import DashboardPage from '@/pages/DashboardPage'
+import EventPage from '@/pages/EventPage'
 import InviteesPage from '@/pages/InviteesPage'
 import RsvpPage from '@/pages/RsvpPage'
 
@@ -26,6 +27,7 @@ export default function App() {
           >
             <Route index element={<DashboardPage />} />
             <Route path="invitees" element={<InviteesPage />} />
+            <Route path="event" element={<EventPage />} />
           </Route>
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
