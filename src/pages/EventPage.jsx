@@ -6,10 +6,10 @@ import { Button } from '@/components/ui/button'
 import { Upload, ImageIcon } from 'lucide-react'
 
 const IMAGE_SLOTS = [
-  { key: 'couple',     label: 'Couple Photo',     aspect: 'aspect-[4/5]' },
-  { key: 'ceremony',   label: 'Ceremony',          aspect: 'aspect-video' },
-  { key: 'reception',  label: 'Reception',         aspect: 'aspect-video' },
-  { key: 'invitation', label: 'Invitation Card',   aspect: 'aspect-[3/4]' },
+  { key: 'couple',     label: 'Couple Photo',     aspect: 'aspect-[4/5]',  ratio: '4:5' },
+  { key: 'ceremony',   label: 'Ceremony',          aspect: 'aspect-video',  ratio: '16:9' },
+  { key: 'reception',  label: 'Reception',         aspect: 'aspect-video',  ratio: '16:9' },
+  { key: 'invitation', label: 'Invitation Card',   aspect: 'aspect-[3/4]',  ratio: '3:4' },
 ]
 
 const fmt = (iso, opts) => new Date(iso).toLocaleString('en-US', opts)
@@ -82,11 +82,14 @@ export default function EventPage() {
       <div>
         <h2 className="text-base font-medium mb-4">Images</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-          {IMAGE_SLOTS.map(({ key, label, aspect }) => {
+          {IMAGE_SLOTS.map(({ key, label, aspect, ratio }) => {
             const url = event[`${key}_image_url`]
             return (
               <div key={key} className="flex flex-col gap-2">
-                <p className="text-sm font-medium">{label}</p>
+                <div className="flex items-baseline gap-2">
+                  <p className="text-sm font-medium">{label}</p>
+                  <p className="text-xs text-muted-foreground font-mono">{ratio}</p>
+                </div>
 
                 {/* Preview */}
                 <div className={`w-full ${aspect} bg-muted rounded-xl overflow-hidden`}>

@@ -4,11 +4,10 @@ import api from '@/lib/api'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 
 const statCards = [
-  { key: 'total', label: 'Total invited' },
+  { key: 'total',    label: 'Total invited' },
   { key: 'attending', label: 'Attending' },
   { key: 'declined', label: 'Declined' },
-  { key: 'pending', label: 'Pending' },
-  { key: 'totalGuests', label: 'Total guests' },
+  { key: 'pending',  label: 'Pending' },
 ]
 
 export default function DashboardPage() {
@@ -19,14 +18,14 @@ export default function DashboardPage() {
     queryFn: () => api.get('/invitees').then((r) => r.data),
   })
 
+  const capacity = (list) => list.reduce((sum, i) => sum + 1 + (i.allowed_companions ?? 0), 0)
+
   const stats = {
-    total: invitees.length,
-    attending: invitees.filter((i) => i.status === 'attending').length,
-    declined: invitees.filter((i) => i.status === 'declined').length,
-    pending: invitees.filter((i) => i.status === 'pending').length,
-    totalGuests: invitees
-      .filter((i) => i.status === 'attending')
-      .reduce((sum, i) => sum + 1 + (i.companions_count ?? 0), 0),
+    total:    capacity(invitees),
+    attending: invitees.filter((i) => i.status === 'attending')
+      .reduce((sum, i) => sum + 1 + (i.companions?.length ?? 0), 0),
+    declined: capacity(invitees.filter((i) => i.status === 'declined')),
+    pending:  capacity(invitees.filter((i) => i.status === 'pending')),
   }
 
   return (
@@ -36,7 +35,7 @@ export default function DashboardPage() {
       {isLoading ? (
         <p className="text-muted-foreground text-sm">Loading…</p>
       ) : (
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-5">
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
           {statCards.map(({ key, label }) => (
             <Card key={key}>
               <CardHeader className="pb-1 pt-4 px-4">
