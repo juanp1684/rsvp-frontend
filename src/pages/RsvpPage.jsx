@@ -5,6 +5,7 @@ import api from '@/lib/api'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { ImageIcon } from 'lucide-react'
 
 export default function RsvpPage() {
   useEffect(() => { document.title = 'RSVP' }, [])
@@ -103,51 +104,109 @@ export default function RsvpPage() {
   }
 
   return (
-    <Screen>
-      <div className="w-full max-w-sm flex flex-col gap-6">
+    <div className="min-h-screen flex flex-col">
+
+      {/* Hero — couple photo */}
+      <div className="w-full aspect-[4/5] md:aspect-video bg-muted overflow-hidden">
+        {event?.couple_image_url
+          ? <img src={event.couple_image_url} alt="Foto de la pareja" className="w-full h-full object-cover" />
+          : <div className="w-full h-full flex flex-col items-center justify-center gap-3">
+              <ImageIcon className="h-16 w-16 text-muted-foreground/25" />
+              <p className="text-xs text-muted-foreground/40 uppercase tracking-widest">Foto de la pareja</p>
+            </div>
+        }
+      </div>
+
+      <div className="flex flex-col items-center gap-10 px-6 py-12 w-full max-w-2xl mx-auto">
+
+        {/* Invitee name + event title */}
         <div className="text-center">
-          <p className="text-muted-foreground text-sm uppercase tracking-widest mb-1">
-            Invitación
-          </p>
-          <h1 className="text-2xl font-semibold">{invitee.full_name}</h1>
+          <p className="text-muted-foreground text-xs uppercase tracking-widest mb-2">Invitación</p>
+          <h1 className="text-3xl font-semibold">{invitee.full_name}</h1>
+          {event?.name && (
+            <p className="text-lg text-muted-foreground mt-1">{event.name}</p>
+          )}
         </div>
 
-        {event && (
-          <div className="flex flex-col gap-2 text-sm border rounded-lg p-4">
-            {event.name && <p className="font-semibold text-base text-center">{event.name}</p>}
-            {event.ceremony_at && (
-              <div>
-                <p className="font-medium">Ceremonia</p>
-                <p className="text-muted-foreground">{new Date(event.ceremony_at).toLocaleString('es-MX', { dateStyle: 'long', timeStyle: 'short' })}</p>
-                {event.ceremony_url
-                  ? <a href={event.ceremony_url} target="_blank" rel="noopener noreferrer" className="text-primary underline">{event.ceremony_location}</a>
-                  : <p className="text-muted-foreground">{event.ceremony_location}</p>}
+        {/* Ceremony + Reception */}
+        {(event?.ceremony_at || event?.reception_at) && (
+          <div className="w-full grid grid-cols-1 md:grid-cols-2 gap-8">
+            {event?.ceremony_at && (
+              <div className="flex flex-col gap-3">
+                <div className="w-full aspect-video bg-muted rounded-xl overflow-hidden">
+                  {event.ceremony_image_url
+                    ? <img src={event.ceremony_image_url} alt="Ceremonia" className="w-full h-full object-cover" />
+                    : <div className="w-full h-full flex flex-col items-center justify-center gap-2">
+                        <ImageIcon className="h-10 w-10 text-muted-foreground/25" />
+                        <p className="text-xs text-muted-foreground/40 uppercase tracking-widest">Ceremonia</p>
+                      </div>
+                  }
+                </div>
+                <div className="flex flex-col gap-0.5">
+                  <p className="font-semibold">Ceremonia</p>
+                  <p className="text-sm text-muted-foreground">
+                    {new Date(event.ceremony_at).toLocaleString('es-MX', { dateStyle: 'long', timeStyle: 'short' })}
+                  </p>
+                  {event.ceremony_url
+                    ? <a href={event.ceremony_url} target="_blank" rel="noopener noreferrer" className="text-sm text-primary underline">{event.ceremony_location}</a>
+                    : <p className="text-sm text-muted-foreground">{event.ceremony_location}</p>}
+                </div>
               </div>
             )}
-            {event.reception_at && (
-              <div>
-                <p className="font-medium">Recepción</p>
-                <p className="text-muted-foreground">{new Date(event.reception_at).toLocaleString('es-MX', { dateStyle: 'long', timeStyle: 'short' })}</p>
-                {event.reception_url
-                  ? <a href={event.reception_url} target="_blank" rel="noopener noreferrer" className="text-primary underline">{event.reception_location}</a>
-                  : <p className="text-muted-foreground">{event.reception_location}</p>}
-              </div>
-            )}
-            {event.dress_code && (
-              <div>
-                <p className="font-medium">Vestimenta</p>
-                <p className="text-muted-foreground">{event.dress_code}</p>
-              </div>
-            )}
-            {event.rsvp_deadline && (
-              <div>
-                <p className="font-medium">Confirmar antes del</p>
-                <p className="text-muted-foreground">{new Date(event.rsvp_deadline).toLocaleDateString('es-MX', { dateStyle: 'long' })}</p>
+            {event?.reception_at && (
+              <div className="flex flex-col gap-3">
+                <div className="w-full aspect-video bg-muted rounded-xl overflow-hidden">
+                  {event.reception_image_url
+                    ? <img src={event.reception_image_url} alt="Recepción" className="w-full h-full object-cover" />
+                    : <div className="w-full h-full flex flex-col items-center justify-center gap-2">
+                        <ImageIcon className="h-10 w-10 text-muted-foreground/25" />
+                        <p className="text-xs text-muted-foreground/40 uppercase tracking-widest">Recepción</p>
+                      </div>
+                  }
+                </div>
+                <div className="flex flex-col gap-0.5">
+                  <p className="font-semibold">Recepción</p>
+                  <p className="text-sm text-muted-foreground">
+                    {new Date(event.reception_at).toLocaleString('es-MX', { dateStyle: 'long', timeStyle: 'short' })}
+                  </p>
+                  {event.reception_url
+                    ? <a href={event.reception_url} target="_blank" rel="noopener noreferrer" className="text-sm text-primary underline">{event.reception_location}</a>
+                    : <p className="text-sm text-muted-foreground">{event.reception_location}</p>}
+                </div>
               </div>
             )}
           </div>
         )}
 
+        {/* Invitation card image */}
+        <div className="w-full max-w-xs mx-auto aspect-[3/4] bg-muted rounded-2xl shadow-sm overflow-hidden">
+          {event?.invitation_image_url
+            ? <img src={event.invitation_image_url} alt="Invitación" className="w-full h-full object-cover" />
+            : <div className="w-full h-full flex flex-col items-center justify-center gap-3">
+                <ImageIcon className="h-12 w-12 text-muted-foreground/25" />
+                <p className="text-xs text-muted-foreground/40 uppercase tracking-widest">Invitación</p>
+              </div>
+          }
+        </div>
+
+        {/* Dress code + deadline */}
+        {event && (event.dress_code || event.rsvp_deadline) && (
+          <div className="text-center flex flex-col gap-1.5">
+            {event.dress_code && (
+              <p className="text-sm text-muted-foreground">
+                Vestimenta: <span className="text-foreground font-medium">{event.dress_code}</span>
+              </p>
+            )}
+            {event.rsvp_deadline && (
+              <p className="text-sm text-muted-foreground">
+                Confirmar antes del{' '}
+                {new Date(event.rsvp_deadline).toLocaleDateString('es-MX', { dateStyle: 'long' })}
+              </p>
+            )}
+          </div>
+        )}
+
+        {/* Status messages */}
         {event?.deadline_passed && isEditing && (
           <div className="flex flex-col gap-1 text-sm text-center text-muted-foreground">
             <p>Tu respuesta ya fue registrada. El plazo para hacer cambios ha vencido.</p>
@@ -173,96 +232,101 @@ export default function RsvpPage() {
           </p>
         )}
 
-        {!event?.deadline_passed && <form onSubmit={handleSubmit} className="flex flex-col gap-6">
-          {/* Attendance */}
-          <div className="flex flex-col gap-2">
-            <p className="text-sm font-medium text-center">¿Asistirás a nuestra boda?</p>
-            <div className="grid grid-cols-2 gap-3">
-              <Button
-                type="button"
-                variant={status === 'attending' ? 'default' : 'outline'}
-                onClick={() => handleStatusSelect('attending')}
-                className="w-full"
-              >
-                Sí, asistiré
-              </Button>
-              <Button
-                type="button"
-                variant={status === 'declined' ? 'default' : 'outline'}
-                onClick={() => handleStatusSelect('declined')}
-                className="w-full"
-              >
-                No podré ir
-              </Button>
-            </div>
-          </div>
+        {/* RSVP form */}
+        {!event?.deadline_passed && (
+          <form onSubmit={handleSubmit} className="w-full max-w-sm flex flex-col gap-6">
 
-          {status === 'declined' && invitee.companions.length > 0 && (
-            <p className="text-sm text-center text-muted-foreground">
-              Al seleccionar "No podré ir" se eliminarán los acompañantes registrados.
-            </p>
-          )}
-
-          {/* Companions */}
-          {status === 'attending' && invitee.allowed_companions > 0 && (
-            <div className="flex flex-col gap-3">
-              <p className="text-sm font-medium">
-                ¿Llevarás acompañantes?{' '}
-                <span className="text-muted-foreground font-normal">
-                  (máx. {invitee.allowed_companions})
-                </span>
-              </p>
-              {companions.map((c, i) => (
-                <div key={i} className="flex gap-2 items-center">
-                  <div className="flex flex-col gap-1.5 flex-1">
-                    <Label htmlFor={`companion-${i}`}>Acompañante {i + 1}</Label>
-                    <Input
-                      id={`companion-${i}`}
-                      placeholder="Nombre completo"
-                      value={c.full_name}
-                      onChange={(e) => handleCompanionName(i, e.target.value)}
-                      maxLength={255}
-                      required
-                    />
-                  </div>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    className="mt-6 shrink-0 text-muted-foreground"
-                    onClick={() => handleRemoveCompanion(i)}
-                  >
-                    ✕
-                  </Button>
-                </div>
-              ))}
-              {companions.length < invitee.allowed_companions && (
+            {/* Attendance */}
+            <div className="flex flex-col gap-2">
+              <p className="text-sm font-medium text-center">¿Asistirás a nuestra boda?</p>
+              <div className="grid grid-cols-2 gap-3">
                 <Button
                   type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={handleAddCompanion}
+                  variant={status === 'attending' ? 'default' : 'outline'}
+                  onClick={() => handleStatusSelect('attending')}
+                  className="w-full"
                 >
-                  + Agregar acompañante
+                  Sí, asistiré
                 </Button>
-              )}
+                <Button
+                  type="button"
+                  variant={status === 'declined' ? 'default' : 'outline'}
+                  onClick={() => handleStatusSelect('declined')}
+                  className="w-full"
+                >
+                  No podré ir
+                </Button>
+              </div>
             </div>
-          )}
 
-          {status && (
-            <Button type="submit" className="w-full" disabled={mutation.isPending}>
-              {mutation.isPending ? 'Enviando…' : isEditing ? 'Actualizar respuesta' : 'Confirmar'}
-            </Button>
-          )}
+            {status === 'declined' && invitee.companions.length > 0 && (
+              <p className="text-sm text-center text-muted-foreground">
+                Al seleccionar "No podré ir" se eliminarán los acompañantes registrados.
+              </p>
+            )}
 
-          {mutation.isError && (
-            <p className="text-sm text-destructive text-center">
-              Ocurrió un error. Intenta de nuevo.
-            </p>
-          )}
-        </form>}
+            {/* Companions */}
+            {status === 'attending' && invitee.allowed_companions > 0 && (
+              <div className="flex flex-col gap-3">
+                <p className="text-sm font-medium">
+                  ¿Llevarás acompañantes?{' '}
+                  <span className="text-muted-foreground font-normal">
+                    (máx. {invitee.allowed_companions})
+                  </span>
+                </p>
+                {companions.map((c, i) => (
+                  <div key={i} className="flex gap-2 items-center">
+                    <div className="flex flex-col gap-1.5 flex-1">
+                      <Label htmlFor={`companion-${i}`}>Acompañante {i + 1}</Label>
+                      <Input
+                        id={`companion-${i}`}
+                        placeholder="Nombre completo"
+                        value={c.full_name}
+                        onChange={(e) => handleCompanionName(i, e.target.value)}
+                        maxLength={255}
+                        required
+                      />
+                    </div>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="mt-6 shrink-0 text-muted-foreground"
+                      onClick={() => handleRemoveCompanion(i)}
+                    >
+                      ✕
+                    </Button>
+                  </div>
+                ))}
+                {companions.length < invitee.allowed_companions && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={handleAddCompanion}
+                  >
+                    + Agregar acompañante
+                  </Button>
+                )}
+              </div>
+            )}
+
+            {status && (
+              <Button type="submit" className="w-full" disabled={mutation.isPending}>
+                {mutation.isPending ? 'Enviando…' : isEditing ? 'Actualizar respuesta' : 'Confirmar'}
+              </Button>
+            )}
+
+            {mutation.isError && (
+              <p className="text-sm text-destructive text-center">
+                Ocurrió un error. Intenta de nuevo.
+              </p>
+            )}
+          </form>
+        )}
+
       </div>
-    </Screen>
+    </div>
   )
 }
 
