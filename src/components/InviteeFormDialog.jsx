@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import api from '@/lib/api'
+import { useAuthStore } from '@/store/authStore'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -25,6 +26,7 @@ const empty = { full_name: '', phone: '', allowed_companions: '0', notes: '' }
 export default function InviteeFormDialog({ open, onOpenChange, invitee }) {
   const isEdit = !!invitee
   const qc = useQueryClient()
+  const activeEvent = useAuthStore((s) => s.activeEvent)
   const [form, setForm] = useState(empty)
 
   useEffect(() => {
@@ -45,10 +47,10 @@ export default function InviteeFormDialog({ open, onOpenChange, invitee }) {
   const mutation = useMutation({
     mutationFn: (data) =>
       isEdit
-        ? api.put(`/invitees/${invitee.id}`, data)
-        : api.post('/invitees', data),
+        ? api.put(`/events/${activeEvent.id}/invitees/${invitee.id}`, data)
+        : api.post(`/events/${activeEvent.id}/invitees`, data),
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['invitees'] })
+      qc.invalidateQueries({ queryKey: ['invitees', activeEvent?.id] })
       toast.success(isEdit ? 'Invitee updated.' : 'Invitee created.')
       onOpenChange(false)
     },

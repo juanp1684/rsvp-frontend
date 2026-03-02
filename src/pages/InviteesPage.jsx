@@ -80,14 +80,15 @@ export default function InviteesPage() {
   const [sort, setSort] = useState({ field: 'full_name', dir: 'asc' })
 
   const { data: invitees = [], isLoading } = useQuery({
-    queryKey: ['invitees'],
-    queryFn: () => api.get('/invitees').then((r) => r.data),
+    queryKey: ['invitees', activeEvent?.id],
+    queryFn: () => api.get(`/events/${activeEvent.id}/invitees`).then((r) => r.data),
+    enabled: !!activeEvent?.id,
   })
 
   const deleteMutation = useMutation({
-    mutationFn: (id) => api.delete(`/invitees/${id}`),
+    mutationFn: (id) => api.delete(`/events/${activeEvent.id}/invitees/${id}`),
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['invitees'] })
+      qc.invalidateQueries({ queryKey: ['invitees', activeEvent?.id] })
       toast.success('Invitee deleted.')
       setDeleteTarget(null)
     },
@@ -215,11 +216,11 @@ export default function InviteesPage() {
     const formData = new FormData()
     formData.append('file', file)
     api
-      .post('/invitees/import', formData, {
+      .post(`/events/${activeEvent.id}/invitees/import`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
       })
       .then(({ data }) => {
-        qc.invalidateQueries({ queryKey: ['invitees'] })
+        qc.invalidateQueries({ queryKey: ['invitees', activeEvent?.id] })
         toast.success(`Imported ${data.imported} invitees.`)
       })
       .catch(() => toast.error('Import failed. Check your file format.'))

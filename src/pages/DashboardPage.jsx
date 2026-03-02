@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import api from '@/lib/api'
+import { useAuthStore } from '@/store/authStore'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 
 const statCards = [
@@ -13,9 +14,12 @@ const statCards = [
 export default function DashboardPage() {
   useEffect(() => { document.title = 'RSVP Admin | Dashboard' }, [])
 
+  const activeEvent = useAuthStore((s) => s.activeEvent)
+
   const { data: invitees = [], isLoading } = useQuery({
-    queryKey: ['invitees'],
-    queryFn: () => api.get('/invitees').then((r) => r.data),
+    queryKey: ['invitees', activeEvent?.id],
+    queryFn: () => api.get(`/events/${activeEvent.id}/invitees`).then((r) => r.data),
+    enabled: !!activeEvent?.id,
   })
 
   const capacity = (list) => list.reduce((sum, i) => sum + 1 + (i.allowed_companions ?? 0), 0)
