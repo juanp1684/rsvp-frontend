@@ -118,9 +118,10 @@ export default function RsvpPage() {
       </div>
 
       {/* Gold divider */}
-      <div className="w-full h-px bg-gradient-to-r from-transparent via-amber-400/50 to-transparent" />
+      <div className="w-full h-px bg-gradient-to-r from-transparent via-amber-400/60 to-transparent" />
 
-      <div className="flex flex-col items-center gap-10 px-6 py-12 w-full max-w-2xl mx-auto">
+      <div className="w-full max-w-2xl mx-auto px-4 md:px-8 py-10">
+      <div className="flex flex-col items-center gap-10 bg-white/75 backdrop-blur-sm rounded-3xl shadow-xl shadow-amber-900/10 border border-amber-200/50 px-6 md:px-10 py-12">
 
         {/* Invitee name + event title */}
         <div className="text-center">
@@ -146,12 +147,12 @@ export default function RsvpPage() {
                   }
                 </div>
                 <div className="flex flex-col gap-0.5">
-                  <p className="font-semibold">Ceremonia</p>
+                  <p className="font-semibold text-amber-800">Ceremonia</p>
                   <p className="text-sm text-muted-foreground">
                     {new Date(event.ceremony_at).toLocaleString('es-MX', { dateStyle: 'long', timeStyle: 'short' })}
                   </p>
                   {event.ceremony_url
-                    ? <a href={event.ceremony_url} target="_blank" rel="noopener noreferrer" className="text-sm text-primary underline">{event.ceremony_location}</a>
+                    ? <a href={event.ceremony_url} target="_blank" rel="noopener noreferrer" className="text-sm text-amber-700 underline">{event.ceremony_location}</a>
                     : <p className="text-sm text-muted-foreground">{event.ceremony_location}</p>}
                 </div>
               </div>
@@ -168,12 +169,12 @@ export default function RsvpPage() {
                   }
                 </div>
                 <div className="flex flex-col gap-0.5">
-                  <p className="font-semibold">Recepción</p>
+                  <p className="font-semibold text-amber-800">Recepción</p>
                   <p className="text-sm text-muted-foreground">
                     {new Date(event.reception_at).toLocaleString('es-MX', { dateStyle: 'long', timeStyle: 'short' })}
                   </p>
                   {event.reception_url
-                    ? <a href={event.reception_url} target="_blank" rel="noopener noreferrer" className="text-sm text-primary underline">{event.reception_location}</a>
+                    ? <a href={event.reception_url} target="_blank" rel="noopener noreferrer" className="text-sm text-amber-700 underline">{event.reception_location}</a>
                     : <p className="text-sm text-muted-foreground">{event.reception_location}</p>}
                 </div>
               </div>
@@ -328,6 +329,7 @@ export default function RsvpPage() {
           </form>
         )}
 
+      </div>
       </div>
     </div>
   )
