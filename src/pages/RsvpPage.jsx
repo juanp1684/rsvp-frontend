@@ -104,7 +104,7 @@ export default function RsvpPage() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col bg-gradient-to-b from-amber-50 via-[#fdf8ef] to-amber-50/30">
 
       {/* Hero — couple photo */}
       <div className="w-full aspect-[4/5] md:aspect-video bg-muted overflow-hidden">
@@ -117,11 +117,14 @@ export default function RsvpPage() {
         }
       </div>
 
+      {/* Gold divider */}
+      <div className="w-full h-px bg-gradient-to-r from-transparent via-amber-400/50 to-transparent" />
+
       <div className="flex flex-col items-center gap-10 px-6 py-12 w-full max-w-2xl mx-auto">
 
         {/* Invitee name + event title */}
         <div className="text-center">
-          <p className="text-muted-foreground text-xs uppercase tracking-widest mb-2">Invitación</p>
+          <p className="text-amber-700/60 text-xs uppercase tracking-widest mb-2">Invitación</p>
           <h1 className="text-3xl font-semibold">{invitee.full_name}</h1>
           {event?.name && (
             <p className="text-lg text-muted-foreground mt-1">{event.name}</p>
@@ -332,7 +335,7 @@ export default function RsvpPage() {
 
 function Screen({ children }) {
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-6 text-center">
+    <div className="min-h-screen flex flex-col items-center justify-center p-6 text-center bg-gradient-to-b from-amber-50 via-[#fdf8ef] to-amber-50/30">
       {children}
     </div>
   )
