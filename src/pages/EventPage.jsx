@@ -2,6 +2,7 @@ import { useRef, useState } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import api from '@/lib/api'
+import { useAuthStore } from '@/store/authStore'
 import { Button } from '@/components/ui/button'
 import { Upload, ImageIcon } from 'lucide-react'
 
@@ -18,10 +19,12 @@ export default function EventPage() {
   const qc = useQueryClient()
   const [uploading, setUploading] = useState({})
   const fileRefs = useRef({})
+  const activeEvent = useAuthStore((s) => s.activeEvent)
 
   const { data: event, isLoading } = useQuery({
-    queryKey: ['event'],
-    queryFn: () => api.get('/event').then((r) => r.data),
+    queryKey: ['event', activeEvent?.slug],
+    queryFn: () => api.get(`/event/${activeEvent.slug}`).then((r) => r.data),
+    enabled: !!activeEvent?.slug,
   })
 
   const handleUpload = async (type, e) => {

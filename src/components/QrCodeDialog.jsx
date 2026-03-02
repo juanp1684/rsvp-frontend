@@ -8,12 +8,14 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { Download } from 'lucide-react'
+import { useAuthStore } from '@/store/authStore'
 
 export default function QrCodeDialog({ open, onOpenChange, invitee }) {
   const canvasRef = useRef(null)
+  const activeEvent = useAuthStore((s) => s.activeEvent)
 
-  const rsvpUrl = invitee
-    ? `${window.location.origin}/rsvp/${invitee.code}`
+  const rsvpUrl = invitee && activeEvent
+    ? `${window.location.origin}/rsvp/${activeEvent.slug}/${invitee.code}`
     : ''
 
   const handleDownload = () => {
@@ -55,7 +57,7 @@ export default function QrCodeDialog({ open, onOpenChange, invitee }) {
         </DialogHeader>
         <div className="flex flex-col items-center gap-4 py-2">
           <div ref={canvasRef} className="p-3 bg-white rounded-lg">
-            {invitee && (
+            {invitee && rsvpUrl && (
               <QRCodeCanvas
                 value={rsvpUrl}
                 size={200}

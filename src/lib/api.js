@@ -8,6 +8,8 @@ const api = axios.create({
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem('token')
   if (token) config.headers.Authorization = `Bearer ${token}`
+  const activeEvent = JSON.parse(localStorage.getItem('activeEvent') ?? 'null')
+  if (activeEvent?.id) config.headers['X-Event-Id'] = activeEvent.id
   return config
 })
 

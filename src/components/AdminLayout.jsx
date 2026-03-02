@@ -4,7 +4,7 @@ import { useAuthStore } from '@/store/authStore'
 import { useThemeStore } from '@/store/themeStore'
 import { Button } from '@/components/ui/button'
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet'
-import { Menu, Moon, Sun } from 'lucide-react'
+import { Menu, Moon, Sun, ArrowLeftRight } from 'lucide-react'
 
 const navItems = [
   { to: '/', label: 'Dashboard' },
@@ -32,9 +32,11 @@ export default function AdminLayout() {
   const [mobileOpen, setMobileOpen] = useState(false)
   const logout = useAuthStore((s) => s.logout)
   const user = useAuthStore((s) => s.user)
+  const activeEvent = useAuthStore((s) => s.activeEvent)
   const navigate = useNavigate()
   const dark = useThemeStore((s) => s.dark)
   const toggleTheme = useThemeStore((s) => s.toggle)
+  const isSuperAdmin = user?.role === 'super_admin'
 
   const handleLogout = async () => {
     await logout()
@@ -58,6 +60,12 @@ export default function AdminLayout() {
               </nav>
               <div className="mt-auto flex flex-col gap-3">
                 {user && <p className="text-sm text-muted-foreground">{user.name}</p>}
+                {isSuperAdmin && (
+                  <Button variant="outline" className="w-full" onClick={() => { setMobileOpen(false); navigate('/events') }}>
+                    <ArrowLeftRight className="h-4 w-4 mr-2" />
+                    Switch event
+                  </Button>
+                )}
                 <Button variant="outline" className="w-full" onClick={toggleTheme}>
                   {dark ? <Sun className="h-4 w-4 mr-2" /> : <Moon className="h-4 w-4 mr-2" />}
                   {dark ? 'Light mode' : 'Dark mode'}
@@ -69,7 +77,12 @@ export default function AdminLayout() {
             </SheetContent>
           </Sheet>
 
-          <span className="font-semibold text-sm">RSVP Admin</span>
+          <div className="flex flex-col">
+            <span className="font-semibold text-sm">RSVP Admin</span>
+            {activeEvent && (
+              <span className="text-xs text-muted-foreground leading-none">{activeEvent.name}</span>
+            )}
+          </div>
 
           {/* Desktop nav */}
           <nav className="hidden md:flex gap-5 ml-4">
@@ -80,6 +93,12 @@ export default function AdminLayout() {
         {/* Desktop user + logout */}
         <div className="hidden md:flex items-center gap-3">
           {user && <span className="text-sm text-muted-foreground">{user.name}</span>}
+          {isSuperAdmin && (
+            <Button variant="ghost" size="sm" onClick={() => navigate('/events')}>
+              <ArrowLeftRight className="h-4 w-4 mr-1" />
+              Switch
+            </Button>
+          )}
           <Button variant="ghost" size="icon" onClick={toggleTheme}>
             {dark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
           </Button>

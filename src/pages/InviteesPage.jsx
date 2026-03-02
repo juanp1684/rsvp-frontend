@@ -3,6 +3,7 @@ import * as XLSX from 'xlsx'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import api from '@/lib/api'
+import { useAuthStore } from '@/store/authStore'
 import InviteeFormDialog from '@/components/InviteeFormDialog'
 import QrCodeDialog from '@/components/QrCodeDialog'
 import { Button } from '@/components/ui/button'
@@ -43,9 +44,12 @@ function WhatsAppIcon({ className }) {
   )
 }
 
-const getWhatsAppUrl = (invitee) => {
+const getRsvpUrl = (invitee, eventSlug) =>
+  `${window.location.origin}/rsvp/${eventSlug}/${invitee.code}`
+
+const getWhatsAppUrl = (invitee, eventSlug) => {
   const phone = invitee.phone.replace(/\D/g, '')
-  const rsvpUrl = `${window.location.origin}/rsvp/${invitee.code}`
+  const rsvpUrl = getRsvpUrl(invitee, eventSlug)
   const message = encodeURIComponent(
     `Hola ${invitee.full_name}, te compartimos el enlace para confirmar tu asistencia a nuestra boda: ${rsvpUrl}`
   )
@@ -64,6 +68,7 @@ export default function InviteesPage() {
   useEffect(() => { document.title = 'RSVP Admin | Invitees' }, [])
 
   const qc = useQueryClient()
+  const activeEvent = useAuthStore((s) => s.activeEvent)
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState('all')
   const [formOpen, setFormOpen] = useState(false)
@@ -326,7 +331,7 @@ export default function InviteesPage() {
                   <div className="flex gap-1 shrink-0">
                     {invitee.phone && (
                       <Button variant="ghost" size="icon" asChild>
-                        <a href={getWhatsAppUrl(invitee)} target="_blank" rel="noopener noreferrer" className="text-green-600">
+                        <a href={getWhatsAppUrl(invitee, activeEvent?.slug ?? '')} target="_blank" rel="noopener noreferrer" className="text-green-600">
                           <WhatsAppIcon className="h-4 w-4" />
                         </a>
                       </Button>
@@ -403,7 +408,7 @@ export default function InviteesPage() {
                       <TableCell className="text-right">
                         {invitee.phone && (
                           <Button variant="ghost" size="icon" asChild>
-                            <a href={getWhatsAppUrl(invitee)} target="_blank" rel="noopener noreferrer" className="text-green-600">
+                            <a href={getWhatsAppUrl(invitee, activeEvent?.slug ?? '')} target="_blank" rel="noopener noreferrer" className="text-green-600">
                               <WhatsAppIcon className="h-4 w-4" />
                             </a>
                           </Button>

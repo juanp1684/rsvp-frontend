@@ -10,20 +10,20 @@ import { ImageIcon } from 'lucide-react'
 export default function RsvpPage() {
   useEffect(() => { document.title = 'RSVP' }, [])
 
-  const { code } = useParams()
+  const { eventSlug, code } = useParams()
   const [step, setStep] = useState('form') // 'form' | 'confirmed'
   const [status, setStatus] = useState(null) // 'attending' | 'declined'
   const [companions, setCompanions] = useState([])
 
   const { data: invitee, isLoading, isError } = useQuery({
-    queryKey: ['rsvp', code],
-    queryFn: () => api.get(`/rsvp/${code}`).then((r) => r.data),
+    queryKey: ['rsvp', eventSlug, code],
+    queryFn: () => api.get(`/rsvp/${eventSlug}/${code}`).then((r) => r.data),
     retry: false,
   })
 
   const { data: event } = useQuery({
-    queryKey: ['event'],
-    queryFn: () => api.get('/event').then((r) => r.data),
+    queryKey: ['event', eventSlug],
+    queryFn: () => api.get(`/event/${eventSlug}`).then((r) => r.data),
   })
 
   const isEditing = invitee?.status !== 'pending'
@@ -37,7 +37,7 @@ export default function RsvpPage() {
   }, [invitee])
 
   const mutation = useMutation({
-    mutationFn: (payload) => api.post(`/rsvp/${code}`, payload),
+    mutationFn: (payload) => api.post(`/rsvp/${eventSlug}/${code}`, payload),
     onSuccess: () => setStep('confirmed'),
   })
 
