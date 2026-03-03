@@ -39,8 +39,16 @@ export default function EventPage() {
       })
       qc.invalidateQueries({ queryKey: ['event'] })
       toast.success('Image updated.')
-    } catch {
-      toast.error('Upload failed.')
+    } catch (err) {
+      const status = err?.response?.status
+      if (status === 413) {
+        toast.error('Image too large. Maximum size is 10 MB.')
+      } else if (status === 422) {
+        const msg = err?.response?.data?.errors?.image?.[0]
+        toast.error(msg ?? 'Invalid image. Use JPG, PNG or WebP, max 10 MB.')
+      } else {
+        toast.error('Upload failed. Please try again.')
+      }
     } finally {
       setUploading((prev) => ({ ...prev, [type]: false }))
       e.target.value = ''
