@@ -118,7 +118,14 @@ export default function RsvpPage() {
       {/* Hero — couple photo */}
       <div className="w-full aspect-[4/5] md:aspect-[10/6] bg-muted overflow-hidden">
         {event?.couple_image_url
-          ? <img src={event.couple_image_url} alt="Foto de la pareja" className="w-full h-full object-cover object-top" />
+          ? <picture className="w-full h-full">
+              <source media="(min-width: 768px)" srcSet={event.couple_image_url} />
+              <img
+                src={event.couple_mobile_image_url ?? event.couple_image_url}
+                alt="Foto de la pareja"
+                className="w-full h-full object-cover object-top"
+              />
+            </picture>
           : <div className="w-full h-full flex flex-col items-center justify-center gap-3">
               <ImageIcon className="h-16 w-16 text-muted-foreground/25" />
               <p className="text-xs text-muted-foreground/40 uppercase tracking-widest">Foto de la pareja</p>

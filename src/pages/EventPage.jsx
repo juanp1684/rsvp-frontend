@@ -4,13 +4,14 @@ import { toast } from 'sonner'
 import api from '@/lib/api'
 import { useAuthStore } from '@/store/authStore'
 import { Button } from '@/components/ui/button'
-import { Upload, ImageIcon } from 'lucide-react'
+import { Upload, Trash2, ImageIcon } from 'lucide-react'
 
 const IMAGE_SLOTS = [
-  { key: 'ceremony',   label: 'Ceremony',          aspect: 'aspect-video',   ratio: '16:9' },
-  { key: 'reception',  label: 'Reception',         aspect: 'aspect-video',   ratio: '16:9' },
-  { key: 'couple',     label: 'Couple Photo',      aspect: 'aspect-[10/6]',  ratio: '10:6' },
-  { key: 'invitation', label: 'Invitation Card',   aspect: 'aspect-[3/4]',   ratio: '3:4' },
+  { key: 'ceremony',      label: 'Ceremony',               aspect: 'aspect-video',   ratio: '16:9' },
+  { key: 'reception',     label: 'Reception',              aspect: 'aspect-video',   ratio: '16:9' },
+  { key: 'couple',        label: 'Couple Photo',           aspect: 'aspect-[10/6]',  ratio: '10:6' },
+  { key: 'couple_mobile', label: 'Couple Photo (Mobile)',  aspect: 'aspect-[4/5]',   ratio: '4:5', optional: true },
+  { key: 'invitation',    label: 'Invitation Card',        aspect: 'aspect-[3/4]',   ratio: '3:4' },
 ]
 
 const fmt = (iso, opts) => new Date(iso).toLocaleString('en-US', opts)
@@ -26,6 +27,16 @@ export default function EventPage() {
     queryFn: () => api.get(`/event/${activeEvent.slug}`).then((r) => r.data),
     enabled: !!activeEvent?.slug,
   })
+
+  const handleRemove = async (type) => {
+    try {
+      await api.delete(`/events/${event.id}/images/${type}`)
+      qc.invalidateQueries({ queryKey: ['event'] })
+      toast.success('Image removed.')
+    } catch {
+      toast.error('Could not remove image.')
+    }
+  }
 
   const handleUpload = async (type, e) => {
     const file = e.target.files?.[0]
@@ -93,13 +104,16 @@ export default function EventPage() {
       <div>
         <h2 className="text-base font-medium mb-4">Images</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-          {IMAGE_SLOTS.map(({ key, label, aspect, ratio }) => {
+          {IMAGE_SLOTS.map(({ key, label, aspect, ratio, optional }) => {
             const url = event[`${key}_image_url`]
             return (
               <div key={key} className="flex flex-col gap-2">
                 <div className="flex items-baseline gap-2">
                   <p className="text-sm font-medium">{label}</p>
                   <p className="text-xs text-muted-foreground font-mono">{ratio}</p>
+                  {optional && (
+                    <p className="text-xs text-muted-foreground italic">optional</p>
+                  )}
                 </div>
 
                 {/* Preview */}
@@ -113,7 +127,7 @@ export default function EventPage() {
                   }
                 </div>
 
-                {/* Upload */}
+                {/* Upload / Remove */}
                 <input
                   ref={(el) => (fileRefs.current[key] = el)}
                   type="file"
@@ -121,15 +135,28 @@ export default function EventPage() {
                   className="hidden"
                   onChange={(e) => handleUpload(key, e)}
                 />
-                <Button
-                  variant="outline"
-                  size="sm"
-                  disabled={uploading[key]}
-                  onClick={() => fileRefs.current[key]?.click()}
-                >
-                  <Upload className="h-4 w-4 mr-1" />
-                  {uploading[key] ? 'Uploading…' : url ? 'Replace' : 'Upload'}
-                </Button>
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    disabled={uploading[key]}
+                    onClick={() => fileRefs.current[key]?.click()}
+                  >
+                    <Upload className="h-4 w-4 mr-1" />
+                    {uploading[key] ? 'Uploading…' : url ? 'Replace' : 'Upload'}
+                  </Button>
+                  {url && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="text-destructive hover:text-destructive"
+                      onClick={() => handleRemove(key)}
+                    >
+                      <Trash2 className="h-4 w-4 mr-1" />
+                      Remove
+                    </Button>
+                  )}
+                </div>
               </div>
             )
           })}
