@@ -20,6 +20,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { Check, Pencil, Trash2, X } from 'lucide-react'
 
 const empty = { full_name: '', phone: '', allowed_companions: '0', notes: '' }
 
@@ -28,6 +29,10 @@ export default function InviteeFormDialog({ open, onOpenChange, invitee }) {
   const qc = useQueryClient()
   const activeEvent = useAuthStore((s) => s.activeEvent)
   const [form, setForm] = useState(empty)
+  const [editingId, setEditingId] = useState(null)
+  const [editingName, setEditingName] = useState('')
+  const [isAdding, setIsAdding] = useState(false)
+  const [addingName, setAddingName] = useState('')
 
   useEffect(() => {
     setForm(
@@ -40,6 +45,9 @@ export default function InviteeFormDialog({ open, onOpenChange, invitee }) {
           }
         : empty
     )
+    setEditingId(null)
+    setIsAdding(false)
+    setAddingName('')
   }, [invitee, open])
 
   const set = (field) => (e) => setForm((f) => ({ ...f, [field]: e.target.value }))
@@ -57,10 +65,43 @@ export default function InviteeFormDialog({ open, onOpenChange, invitee }) {
     onError: () => toast.error('Something went wrong.'),
   })
 
+  const addCompanionMutation = useMutation({
+    mutationFn: (name) =>
+      api.post(`/events/${activeEvent.id}/invitees/${invitee.id}/companions`, { full_name: name }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['invitees', activeEvent?.id] })
+      setIsAdding(false)
+      setAddingName('')
+    },
+    onError: () => toast.error('Could not add companion.'),
+  })
+
+  const updateCompanionMutation = useMutation({
+    mutationFn: ({ id, name }) =>
+      api.put(`/events/${activeEvent.id}/invitees/${invitee.id}/companions/${id}`, { full_name: name }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['invitees', activeEvent?.id] })
+      setEditingId(null)
+    },
+    onError: () => toast.error('Could not update companion.'),
+  })
+
+  const deleteCompanionMutation = useMutation({
+    mutationFn: (id) =>
+      api.delete(`/events/${activeEvent.id}/invitees/${invitee.id}/companions/${id}`),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['invitees', activeEvent?.id] })
+    },
+    onError: () => toast.error('Could not remove companion.'),
+  })
+
   const handleSubmit = (e) => {
     e.preventDefault()
     mutation.mutate({ ...form, allowed_companions: Number(form.allowed_companions) })
   }
+
+  const showCompanions =
+    isEdit && invitee.status === 'attending' && invitee.allowed_companions > 0
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -105,6 +146,137 @@ export default function InviteeFormDialog({ open, onOpenChange, invitee }) {
             <Label htmlFor="notes">Notes</Label>
             <Input id="notes" value={form.notes} onChange={set('notes')} maxLength={500} />
           </div>
+
+          {showCompanions && (
+            <div className="flex flex-col gap-2 border-t pt-3">
+              <div className="flex items-center justify-between">
+                <Label>
+                  Companions{' '}
+                  <span className="text-muted-foreground font-normal">
+                    ({invitee.companions.length}/{invitee.allowed_companions})
+                  </span>
+                </Label>
+                {!isAdding && invitee.companions.length < invitee.allowed_companions && (
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    onClick={() => setIsAdding(true)}
+                  >
+                    + Add
+                  </Button>
+                )}
+              </div>
+
+              {invitee.companions.map((c) => (
+                <div key={c.id} className="flex items-center gap-2">
+                  {editingId === c.id ? (
+                    <>
+                      <Input
+                        className="h-8 text-sm flex-1"
+                        value={editingName}
+                        onChange={(e) => setEditingName(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault()
+                            if (editingName.trim())
+                              updateCompanionMutation.mutate({ id: c.id, name: editingName.trim() })
+                          }
+                          if (e.key === 'Escape') setEditingId(null)
+                        }}
+                        maxLength={255}
+                        autoFocus
+                      />
+                      <Button
+                        type="button"
+                        size="icon"
+                        variant="ghost"
+                        className="h-8 w-8 shrink-0"
+                        disabled={!editingName.trim() || updateCompanionMutation.isPending}
+                        onClick={() =>
+                          updateCompanionMutation.mutate({ id: c.id, name: editingName.trim() })
+                        }
+                      >
+                        <Check className="h-3.5 w-3.5" />
+                      </Button>
+                      <Button
+                        type="button"
+                        size="icon"
+                        variant="ghost"
+                        className="h-8 w-8 shrink-0 text-muted-foreground"
+                        onClick={() => setEditingId(null)}
+                      >
+                        <X className="h-3.5 w-3.5" />
+                      </Button>
+                    </>
+                  ) : (
+                    <>
+                      <span className="text-sm flex-1 truncate">{c.full_name}</span>
+                      <Button
+                        type="button"
+                        size="icon"
+                        variant="ghost"
+                        className="h-8 w-8 shrink-0 text-muted-foreground"
+                        onClick={() => { setEditingId(c.id); setEditingName(c.full_name) }}
+                      >
+                        <Pencil className="h-3.5 w-3.5" />
+                      </Button>
+                      <Button
+                        type="button"
+                        size="icon"
+                        variant="ghost"
+                        className="h-8 w-8 shrink-0 text-destructive"
+                        disabled={deleteCompanionMutation.isPending}
+                        onClick={() => deleteCompanionMutation.mutate(c.id)}
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </Button>
+                    </>
+                  )}
+                </div>
+              ))}
+
+              {isAdding && (
+                <div className="flex items-center gap-2">
+                  <Input
+                    className="h-8 text-sm flex-1"
+                    placeholder="Full name"
+                    value={addingName}
+                    onChange={(e) => setAddingName(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault()
+                        if (addingName.trim()) addCompanionMutation.mutate(addingName.trim())
+                      }
+                      if (e.key === 'Escape') { setIsAdding(false); setAddingName('') }
+                    }}
+                    maxLength={255}
+                    autoFocus
+                  />
+                  <Button
+                    type="button"
+                    size="icon"
+                    variant="ghost"
+                    className="h-8 w-8 shrink-0"
+                    disabled={!addingName.trim() || addCompanionMutation.isPending}
+                    onClick={() => addCompanionMutation.mutate(addingName.trim())}
+                  >
+                    <Check className="h-3.5 w-3.5" />
+                  </Button>
+                  <Button
+                    type="button"
+                    size="icon"
+                    variant="ghost"
+                    className="h-8 w-8 shrink-0 text-muted-foreground"
+                    onClick={() => { setIsAdding(false); setAddingName('') }}
+                  >
+                    <X className="h-3.5 w-3.5" />
+                  </Button>
+                </div>
+              )}
+            </div>
+          )}
+
           <DialogFooter className="pt-2">
             <Button type="submit" className="w-full" disabled={mutation.isPending}>
               {mutation.isPending ? 'Saving…' : 'Save'}
