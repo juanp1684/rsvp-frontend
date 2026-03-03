@@ -106,10 +106,19 @@ export default function RsvpPage() {
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-b from-amber-50 via-[#fdf8ef] to-amber-50/30">
 
+      {/* Event title banner */}
+      {event?.name && (
+        <div className="w-full py-8 px-6 flex justify-center bg-gradient-to-b from-amber-50 to-[#fdf8ef]">
+          <h1 className="font-display italic text-4xl md:text-6xl text-center leading-tight text-amber-900/80">
+            {event.name}
+          </h1>
+        </div>
+      )}
+
       {/* Hero — couple photo */}
-      <div className="w-full aspect-[4/5] md:aspect-video bg-muted overflow-hidden">
+      <div className="w-full aspect-[4/5] md:aspect-[10/6] bg-muted overflow-hidden">
         {event?.couple_image_url
-          ? <img src={event.couple_image_url} alt="Foto de la pareja" className="w-full h-full object-cover" />
+          ? <img src={event.couple_image_url} alt="Foto de la pareja" className="w-full h-full object-cover object-top" />
           : <div className="w-full h-full flex flex-col items-center justify-center gap-3">
               <ImageIcon className="h-16 w-16 text-muted-foreground/25" />
               <p className="text-xs text-muted-foreground/40 uppercase tracking-widest">Foto de la pareja</p>

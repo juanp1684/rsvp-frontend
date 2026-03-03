@@ -7,10 +7,10 @@ import { Button } from '@/components/ui/button'
 import { Upload, ImageIcon } from 'lucide-react'
 
 const IMAGE_SLOTS = [
-  { key: 'couple',     label: 'Couple Photo',     aspect: 'aspect-[4/5]',  ratio: '4:5' },
-  { key: 'ceremony',   label: 'Ceremony',          aspect: 'aspect-video',  ratio: '16:9' },
-  { key: 'reception',  label: 'Reception',         aspect: 'aspect-video',  ratio: '16:9' },
-  { key: 'invitation', label: 'Invitation Card',   aspect: 'aspect-[3/4]',  ratio: '3:4' },
+  { key: 'ceremony',   label: 'Ceremony',          aspect: 'aspect-video',   ratio: '16:9' },
+  { key: 'reception',  label: 'Reception',         aspect: 'aspect-video',   ratio: '16:9' },
+  { key: 'couple',     label: 'Couple Photo',      aspect: 'aspect-[10/6]',  ratio: '10:6' },
+  { key: 'invitation', label: 'Invitation Card',   aspect: 'aspect-[3/4]',   ratio: '3:4' },
 ]
 
 const fmt = (iso, opts) => new Date(iso).toLocaleString('en-US', opts)
