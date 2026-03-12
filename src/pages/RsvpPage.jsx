@@ -143,9 +143,6 @@ export default function RsvpPage() {
         <div className="text-center">
           <p className="text-amber-700/60 text-xs uppercase tracking-widest mb-2">Invitación</p>
           <h1 className="text-3xl font-semibold">{invitee.full_name}</h1>
-          {event?.name && (
-            <p className="text-lg text-muted-foreground mt-1">{event.name}</p>
-          )}
         </div>
 
         {/* Ceremony + Reception */}
