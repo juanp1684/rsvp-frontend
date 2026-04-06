@@ -1,0 +1,11 @@
+services:
+  fe:
+    build:
+      context: .
+      dockerfile: Dockerfile.prod
+      args:
+        VITE_API_URL: ${VITE_API_URL}
+    container_name: rsvp-fe
+    restart: unless-stopped
+    ports:
+      - "3000:80"
