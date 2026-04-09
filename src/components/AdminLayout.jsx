@@ -4,7 +4,9 @@ import { useAuthStore } from '@/store/authStore'
 import { useThemeStore } from '@/store/themeStore'
 import { Button } from '@/components/ui/button'
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet'
-import { Menu, Moon, Sun, ArrowLeftRight } from 'lucide-react'
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
+import ChangePasswordDialog from '@/components/ChangePasswordDialog'
+import { Menu, Moon, Sun, ArrowLeftRight, ChevronDown } from 'lucide-react'
 
 const navItems = [
   { to: '/', label: 'Dashboard' },
@@ -30,6 +32,7 @@ function NavLinks({ onNavigate, itemClassName = '' }) {
 
 export default function AdminLayout() {
   const [mobileOpen, setMobileOpen] = useState(false)
+  const [changePwOpen, setChangePwOpen] = useState(false)
   const logout = useAuthStore((s) => s.logout)
   const user = useAuthStore((s) => s.user)
   const activeEvent = useAuthStore((s) => s.activeEvent)
@@ -66,6 +69,9 @@ export default function AdminLayout() {
                     Switch event
                   </Button>
                 )}
+                <Button variant="outline" className="w-full" onClick={() => { setMobileOpen(false); setChangePwOpen(true) }}>
+                  Change password
+                </Button>
                 <Button variant="outline" className="w-full" onClick={toggleTheme}>
                   {dark ? <Sun className="h-4 w-4 mr-2" /> : <Moon className="h-4 w-4 mr-2" />}
                   {dark ? 'Light mode' : 'Dark mode'}
@@ -92,7 +98,6 @@ export default function AdminLayout() {
 
         {/* Desktop user + logout */}
         <div className="hidden md:flex items-center gap-3">
-          {user && <span className="text-sm text-muted-foreground">{user.name}</span>}
           {isSuperAdmin && (
             <Button variant="ghost" size="sm" onClick={() => navigate('/events')}>
               <ArrowLeftRight className="h-4 w-4 mr-1" />
@@ -102,15 +107,31 @@ export default function AdminLayout() {
           <Button variant="ghost" size="icon" onClick={toggleTheme}>
             {dark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
           </Button>
-          <Button variant="outline" size="sm" onClick={handleLogout}>
-            Log out
-          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="sm">
+                {user?.name ?? 'Account'}
+                <ChevronDown className="h-4 w-4 ml-1" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => setChangePwOpen(true)}>
+                Change password
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={handleLogout}>
+                Log out
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </header>
 
       <main className="flex-1 p-4 md:p-6 max-w-5xl mx-auto w-full">
         <Outlet />
       </main>
+
+      <ChangePasswordDialog open={changePwOpen} onOpenChange={setChangePwOpen} />
     </div>
   )
 }
