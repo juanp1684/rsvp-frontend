@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import api from '@/lib/api'
+import { toast } from 'sonner'
 
 export default function ChangePasswordDialog({ open, onOpenChange }) {
   const [currentPassword, setCurrentPassword] = useState('')
@@ -11,14 +12,12 @@ export default function ChangePasswordDialog({ open, onOpenChange }) {
   const [newPasswordConfirmation, setNewPasswordConfirmation] = useState('')
   const [error, setError] = useState(null)
   const [loading, setLoading] = useState(false)
-  const [success, setSuccess] = useState(false)
 
   const reset = () => {
     setCurrentPassword('')
     setNewPassword('')
     setNewPasswordConfirmation('')
     setError(null)
-    setSuccess(false)
   }
 
   const handleSubmit = async (e) => {
@@ -31,9 +30,9 @@ export default function ChangePasswordDialog({ open, onOpenChange }) {
         new_password: newPassword,
         new_password_confirmation: newPasswordConfirmation,
       })
-      setSuccess(true)
+      toast.success('Password updated successfully.')
       reset()
-      setTimeout(() => onOpenChange(false), 1000)
+      onOpenChange(false)
     } catch (err) {
       const msg = err.response?.data?.errors?.current_password?.[0]
         ?? err.response?.data?.errors?.new_password?.[0]
@@ -82,7 +81,6 @@ export default function ChangePasswordDialog({ open, onOpenChange }) {
             />
           </div>
           {error && <p className="text-sm text-destructive">{error}</p>}
-          {success && <p className="text-sm text-green-600">Password updated successfully.</p>}
           <Button type="submit" disabled={loading}>
             {loading ? 'Updating…' : 'Update password'}
           </Button>
