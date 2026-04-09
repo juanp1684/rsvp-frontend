@@ -4,6 +4,7 @@ import { useAuthStore } from '@/store/authStore'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { Checkbox } from '@/components/ui/checkbox'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 
 export default function LoginPage() {
@@ -11,6 +12,7 @@ export default function LoginPage() {
   const login = useAuthStore((s) => s.login)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [remember, setRemember] = useState(false)
   const [error, setError] = useState(null)
   const [loading, setLoading] = useState(false)
 
@@ -19,7 +21,7 @@ export default function LoginPage() {
     setError(null)
     setLoading(true)
     try {
-      await login(email, password)
+      await login(email, password, remember)
       navigate('/')
     } catch {
       setError('Invalid email or password.')
@@ -57,6 +59,14 @@ export default function LoginPage() {
                 onChange={(e) => setPassword(e.target.value)}
                 required
               />
+            </div>
+            <div className="flex items-center gap-2">
+              <Checkbox
+                id="remember"
+                checked={remember}
+                onCheckedChange={setRemember}
+              />
+              <Label htmlFor="remember" className="font-normal cursor-pointer">Remember me</Label>
             </div>
             {error && <p className="text-sm text-destructive">{error}</p>}
             <Button type="submit" className="w-full mt-1" disabled={loading}>

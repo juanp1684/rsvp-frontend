@@ -1,17 +1,21 @@
 import { create } from 'zustand'
 import api from '@/lib/api'
 
-export const useAuthStore = create((set) => ({
-  token: localStorage.getItem('token'),
-  user: null,
-  activeEvent: JSON.parse(localStorage.getItem('activeEvent') ?? 'null'),
+const getToken = () => localStorage.getItem('token') ?? sessionStorage.getItem('token')
+const getActiveEvent = () => JSON.parse(localStorage.getItem('activeEvent') ?? sessionStorage.getItem('activeEvent') ?? 'null')
 
-  login: async (email, password) => {
+export const useAuthStore = create((set) => ({
+  token: getToken(),
+  user: null,
+  activeEvent: getActiveEvent(),
+
+  login: async (email, password, remember = false) => {
     const { data } = await api.post('/auth/login', { email, password })
-    localStorage.setItem('token', data.token)
+    const storage = remember ? localStorage : sessionStorage
+    storage.setItem('token', data.token)
     const activeEvent = data.user.event ?? null
     if (activeEvent) {
-      localStorage.setItem('activeEvent', JSON.stringify(activeEvent))
+      storage.setItem('activeEvent', JSON.stringify(activeEvent))
     }
     set({ token: data.token, user: data.user, activeEvent })
   },
@@ -25,6 +29,8 @@ export const useAuthStore = create((set) => ({
     await api.post('/auth/logout').catch(() => {})
     localStorage.removeItem('token')
     localStorage.removeItem('activeEvent')
+    sessionStorage.removeItem('token')
+    sessionStorage.removeItem('activeEvent')
     set({ token: null, user: null, activeEvent: null })
   },
 }))
