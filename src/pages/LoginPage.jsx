@@ -10,7 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 export default function LoginPage() {
   const navigate = useNavigate()
   const login = useAuthStore((s) => s.login)
-  const [email, setEmail] = useState('')
+  const [email, setEmail] = useState(() => localStorage.getItem('lastEmail') ?? '')
   const [password, setPassword] = useState('')
   const [remember, setRemember] = useState(false)
   const [error, setError] = useState(null)
@@ -22,6 +22,7 @@ export default function LoginPage() {
     setLoading(true)
     try {
       await login(email, password, remember)
+      localStorage.setItem('lastEmail', email)
       navigate('/')
     } catch {
       setError('Invalid email or password.')
