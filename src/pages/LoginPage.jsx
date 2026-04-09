@@ -12,7 +12,7 @@ export default function LoginPage() {
   const login = useAuthStore((s) => s.login)
   const [email, setEmail] = useState(() => localStorage.getItem('lastEmail') ?? '')
   const [password, setPassword] = useState('')
-  const [remember, setRemember] = useState(false)
+  const [remember, setRemember] = useState(() => localStorage.getItem('rememberMe') === 'true')
   const [error, setError] = useState(null)
   const [loading, setLoading] = useState(false)
 
@@ -23,6 +23,7 @@ export default function LoginPage() {
     try {
       await login(email, password, remember)
       localStorage.setItem('lastEmail', email)
+      localStorage.setItem('rememberMe', remember)
       navigate('/')
     } catch {
       setError('Invalid email or password.')
