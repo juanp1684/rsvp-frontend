@@ -34,6 +34,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
+import { Checkbox } from '@/components/ui/checkbox'
 import { Plus, Pencil, Trash2, Upload, Download, ChevronUp, ChevronDown, ChevronsUpDown, QrCode } from 'lucide-react'
 
 function WhatsAppIcon({ className }) {
@@ -78,6 +79,8 @@ export default function InviteesPage() {
   const [importOpen, setImportOpen] = useState(false)
   const fileInputRef = useRef(null)
   const [sort, setSort] = useState({ field: 'full_name', dir: 'asc' })
+  const [selectedIds, setSelectedIds] = useState(new Set())
+  const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false)
 
   const { data: invitees = [], isLoading } = useQuery({
     queryKey: ['invitees', activeEvent?.id],
@@ -93,6 +96,23 @@ export default function InviteesPage() {
       setDeleteTarget(null)
     },
     onError: () => toast.error('Could not delete invitee.'),
+  })
+
+  const bulkDeleteMutation = useMutation({
+    mutationFn: (ids) => api.post(`/events/${activeEvent.id}/invitees/bulk-destroy`, { ids }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['invitees', activeEvent?.id] })
+      toast.success(`Deleted ${selectedIds.size} invitees.`)
+      setSelectedIds(new Set())
+      setBulkDeleteOpen(false)
+    },
+    onError: () => toast.error('Could not delete invitees.'),
+  })
+
+  const toggleSelect = (id) => setSelectedIds((prev) => {
+    const next = new Set(prev)
+    next.has(id) ? next.delete(id) : next.add(id)
+    return next
   })
 
   const handleSort = (field) => {
@@ -150,6 +170,16 @@ export default function InviteesPage() {
       }
       return 0
     })
+
+  const allFilteredSelected = filtered.length > 0 && filtered.every((i) => selectedIds.has(i.id))
+
+  const toggleSelectAll = () => {
+    if (allFilteredSelected) {
+      setSelectedIds(new Set())
+    } else {
+      setSelectedIds(new Set(filtered.map((i) => i.id)))
+    }
+  }
 
   const handleEdit = (invitee) => {
     setEditInvitee(invitee)
@@ -231,10 +261,18 @@ export default function InviteesPage() {
     <div className="flex flex-col gap-4">
       <div className="flex items-center justify-between gap-2">
         <h1 className="text-xl font-semibold">Invitees</h1>
-        <Button size="sm" onClick={handleAdd}>
-          <Plus className="h-4 w-4 mr-1" />
-          Add
-        </Button>
+        <div className="flex gap-2">
+          {selectedIds.size > 0 && (
+            <Button size="sm" variant="destructive" onClick={() => setBulkDeleteOpen(true)}>
+              <Trash2 className="h-4 w-4 mr-1" />
+              Delete ({selectedIds.size})
+            </Button>
+          )}
+          <Button size="sm" onClick={handleAdd}>
+            <Plus className="h-4 w-4 mr-1" />
+            Add
+          </Button>
+        </div>
       </div>
 
       {/* Search + actions */}
@@ -315,7 +353,12 @@ export default function InviteesPage() {
               <div key={invitee.id} className="border rounded-lg overflow-hidden">
                 {/* Invitee row */}
                 <div className="p-4 flex items-start justify-between gap-3">
-                  <div className="flex flex-col gap-1 min-w-0">
+                  <Checkbox
+                    checked={selectedIds.has(invitee.id)}
+                    onCheckedChange={() => toggleSelect(invitee.id)}
+                    className="mt-0.5 shrink-0"
+                  />
+                  <div className="flex flex-col gap-1 min-w-0 flex-1">
                     <span className="font-medium text-sm truncate">{invitee.full_name}</span>
                     {invitee.phone && (
                       <span className="text-xs text-muted-foreground">{invitee.phone}</span>
@@ -373,6 +416,12 @@ export default function InviteesPage() {
             <Table>
               <TableHeader>
                 <TableRow>
+                  <TableHead className="w-10">
+                    <Checkbox
+                      checked={allFilteredSelected}
+                      onCheckedChange={toggleSelectAll}
+                    />
+                  </TableHead>
                   <TableHead>
                     <button onClick={() => handleSort('full_name')} className="flex items-center hover:text-foreground transition-colors cursor-pointer">
                       Name <SortIcon field="full_name" />
@@ -393,6 +442,12 @@ export default function InviteesPage() {
                 {filtered.map((invitee) => (
                   <>
                     <TableRow key={invitee.id}>
+                      <TableCell>
+                        <Checkbox
+                          checked={selectedIds.has(invitee.id)}
+                          onCheckedChange={() => toggleSelect(invitee.id)}
+                        />
+                      </TableCell>
                       <TableCell className="font-medium">{invitee.full_name}</TableCell>
                       <TableCell className="text-muted-foreground">{invitee.phone ?? '—'}</TableCell>
                       <TableCell>
@@ -434,6 +489,7 @@ export default function InviteesPage() {
                     {/* Companion rows */}
                     {invitee.companions.map((companion) => (
                       <TableRow key={companion.id} className="bg-muted/40 hover:bg-muted/40">
+                        <TableCell />
                         <TableCell className="text-muted-foreground pl-8">
                           <span className="mr-2 text-xs">↳</span>
                           {companion.full_name}
@@ -468,6 +524,26 @@ export default function InviteesPage() {
         onOpenChange={(o) => !o && setQrInvitee(null)}
         invitee={qrInvitee}
       />
+
+      <AlertDialog open={bulkDeleteOpen} onOpenChange={setBulkDeleteOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete {selectedIds.size} invitees?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently delete the selected invitees and all their companions.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={() => bulkDeleteMutation.mutate([...selectedIds])}
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <AlertDialog open={!!deleteTarget} onOpenChange={(o) => !o && setDeleteTarget(null)}>
         <AlertDialogContent>
