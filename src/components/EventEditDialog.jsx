@@ -21,7 +21,8 @@ export default function EventEditDialog({ event, open, onOpenChange }) {
   const [error, setError] = useState(null)
 
   useEffect(() => {
-    if (event) {
+    if (event && open) {
+      setError(null)
       setForm({
         name: event.name ?? '',
         ceremony_at: toLocalDatetimeValue(event.ceremony_at),
@@ -35,9 +36,12 @@ export default function EventEditDialog({ event, open, onOpenChange }) {
         notes: event.notes ?? '',
       })
     }
-  }, [event])
+  }, [event, open])
 
-  const set = (field) => (e) => setForm((prev) => ({ ...prev, [field]: e.target.value }))
+  const set = (field) => (e) => {
+    if (error?.field === field) setError(null)
+    setForm((prev) => ({ ...prev, [field]: e.target.value }))
+  }
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -48,7 +52,7 @@ export default function EventEditDialog({ event, open, onOpenChange }) {
     const deadline = new Date(form.rsvp_deadline)
 
     if (deadline >= ceremony) {
-      setError('RSVP deadline must be before the ceremony date.')
+      setError({ field: 'rsvp_deadline', message: 'RSVP deadline must be before the ceremony date.' })
       return
     }
 
@@ -92,12 +96,12 @@ export default function EventEditDialog({ event, open, onOpenChange }) {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Field label="Dress code" id="dress_code" value={form.dress_code} onChange={set('dress_code')} />
-            <Field label="RSVP deadline" id="rsvp_deadline" type="date" value={form.rsvp_deadline?.slice(0, 10)} onChange={set('rsvp_deadline')} required />
+            <Field label="RSVP deadline" id="rsvp_deadline" type="date" value={form.rsvp_deadline?.slice(0, 10)} onChange={set('rsvp_deadline')} required hasError={error?.field === 'rsvp_deadline'} />
           </div>
 
           <Field label="Notes" id="notes" value={form.notes} onChange={set('notes')} />
 
-          {error && <p className="text-sm text-destructive">{error}</p>}
+          {error && <p className="text-sm text-destructive">{error.message}</p>}
           <Button type="submit" disabled={loading}>
             {loading ? 'Saving…' : 'Save changes'}
           </Button>
@@ -107,11 +111,11 @@ export default function EventEditDialog({ event, open, onOpenChange }) {
   )
 }
 
-function Field({ label, id, value, onChange, type = 'text', required = false }) {
+function Field({ label, id, value, onChange, type = 'text', required = false, hasError = false }) {
   return (
     <div className="flex flex-col gap-1.5">
-      <Label htmlFor={id}>{label}</Label>
-      <Input id={id} type={type} value={value ?? ''} onChange={onChange} required={required} />
+      <Label htmlFor={id} className={hasError ? 'text-destructive' : ''}>{label}</Label>
+      <Input id={id} type={type} value={value ?? ''} onChange={onChange} required={required} className={hasError ? 'border-destructive focus-visible:ring-destructive' : ''} />
     </div>
   )
 }
