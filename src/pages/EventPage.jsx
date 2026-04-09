@@ -4,7 +4,8 @@ import { toast } from 'sonner'
 import api from '@/lib/api'
 import { useAuthStore } from '@/store/authStore'
 import { Button } from '@/components/ui/button'
-import { Upload, Trash2, ImageIcon } from 'lucide-react'
+import EventEditDialog from '@/components/EventEditDialog'
+import { Upload, Trash2, ImageIcon, Pencil } from 'lucide-react'
 
 const IMAGE_SLOTS = [
   { key: 'ceremony',      label: 'Ceremony',               aspect: 'aspect-video',   ratio: '16:9' },
@@ -19,6 +20,7 @@ const fmt = (iso, opts) => new Date(iso).toLocaleString('en-US', opts)
 export default function EventPage() {
   const qc = useQueryClient()
   const [uploading, setUploading] = useState({})
+  const [editOpen, setEditOpen] = useState(false)
   const fileRefs = useRef({})
   const activeEvent = useAuthStore((s) => s.activeEvent)
 
@@ -76,7 +78,10 @@ export default function EventPage() {
       {/* Header */}
       <div className="flex items-center justify-between gap-2">
         <h1 className="text-xl font-semibold">Event</h1>
-        <span className="text-xs font-mono text-muted-foreground bg-muted px-2 py-1 rounded">ID: {event.id}</span>
+        <Button variant="outline" size="sm" onClick={() => setEditOpen(true)}>
+          <Pencil className="h-4 w-4 mr-1" />
+          Edit
+        </Button>
       </div>
 
       {/* Event details */}
@@ -163,6 +168,7 @@ export default function EventPage() {
         </div>
       </div>
 
+      <EventEditDialog event={event} open={editOpen} onOpenChange={setEditOpen} />
     </div>
   )
 }
