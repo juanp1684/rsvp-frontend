@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import * as XLSX from 'xlsx'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
@@ -6,6 +6,7 @@ import api from '@/lib/api'
 import { useAuthStore } from '@/store/authStore'
 import InviteeFormDialog from '@/components/InviteeFormDialog'
 import QrCodeDialog from '@/components/QrCodeDialog'
+import ImportDialog from '@/components/ImportDialog'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
@@ -17,13 +18,6 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from '@/components/ui/dialog'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -77,7 +71,6 @@ export default function InviteesPage() {
   const [deleteTarget, setDeleteTarget] = useState(null)
   const [qrInvitee, setQrInvitee] = useState(null)
   const [importOpen, setImportOpen] = useState(false)
-  const fileInputRef = useRef(null)
   const [sort, setSort] = useState({ field: 'full_name', dir: 'asc' })
   const [selectedIds, setSelectedIds] = useState(new Set())
   const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false)
@@ -231,34 +224,6 @@ export default function InviteesPage() {
     XLSX.writeFile(wb, 'lista-invitados.xlsx')
   }
 
-  const handleTemplateDownload = () => {
-    const csv = 'nombre,teléfono,acompañantes,notas\nJuan García,+52 55 1234 5678,1,\n'
-    const blob = new Blob([csv], { type: 'text/csv' })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = 'plantilla-invitados.csv'
-    a.click()
-    URL.revokeObjectURL(url)
-  }
-
-  const handleImport = (e) => {
-    const file = e.target.files?.[0]
-    if (!file) return
-    setImportOpen(false)
-    const formData = new FormData()
-    formData.append('file', file)
-    api
-      .post(`/events/${activeEvent.id}/invitees/import`, formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      })
-      .then(({ data }) => {
-        qc.invalidateQueries({ queryKey: ['invitees', activeEvent?.id] })
-        toast.success(`Imported ${data.imported} invitees.`)
-      })
-      .catch(() => toast.error('Import failed. Check your file format.'))
-    e.target.value = ''
-  }
 
   return (
     <div className="flex flex-col gap-4">
@@ -336,13 +301,6 @@ export default function InviteesPage() {
             <Upload className="h-4 w-4 mr-1" />
             Import
           </Button>
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept=".csv,.xlsx,.xls"
-            className="hidden"
-            onChange={handleImport}
-          />
         </div>
       </div>
 
@@ -569,48 +527,7 @@ export default function InviteesPage() {
         </AlertDialogContent>
       </AlertDialog>
 
-      <Dialog open={importOpen} onOpenChange={setImportOpen}>
-        <DialogContent className="max-w-sm">
-          <DialogHeader>
-            <DialogTitle>Import invitees</DialogTitle>
-          </DialogHeader>
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b">
-                <th className="text-left py-1.5 font-medium">Column</th>
-                <th className="text-left py-1.5 font-medium">Required?</th>
-              </tr>
-            </thead>
-            <tbody>
-              {[
-                { col: 'nombre', required: true },
-                { col: 'teléfono', required: false },
-                { col: 'acompañantes', required: false },
-                { col: 'notas', required: false },
-              ].map(({ col, required }) => (
-                <tr key={col} className="border-b last:border-0">
-                  <td className="py-1.5 font-mono text-xs">{col}</td>
-                  <td className="py-1.5">
-                    {required
-                      ? <span className="text-green-600 font-medium">Required</span>
-                      : <span className="text-muted-foreground">Optional</span>}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-          <DialogFooter className="flex-col gap-2 sm:flex-col">
-            <Button variant="outline" className="w-full" onClick={handleTemplateDownload}>
-              <Download className="h-4 w-4 mr-1" />
-              Download template
-            </Button>
-            <Button className="w-full" onClick={() => fileInputRef.current?.click()}>
-              <Upload className="h-4 w-4 mr-1" />
-              Choose file…
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <ImportDialog open={importOpen} onOpenChange={setImportOpen} />
     </div>
   )
 }
