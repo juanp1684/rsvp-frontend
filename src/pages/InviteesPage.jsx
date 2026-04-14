@@ -191,24 +191,27 @@ export default function InviteesPage() {
     setFormOpen(true)
   }
 
+  const STATUS_ES = { attending: 'confirmado', pending: 'pendiente', declined: 'declinado' }
+  const TYPE_ES = { invitee: 'invitado', companion: 'acompañante' }
+
   const buildExportRows = () =>
     filtered.flatMap((invitee) => [
-      { type: 'invitee', full_name: invitee.full_name, phone: invitee.phone ?? '', status: invitee.status },
+      { tipo: TYPE_ES.invitee, nombre: invitee.full_name, telefono: invitee.phone ?? '', estado: STATUS_ES[invitee.status] },
       ...invitee.companions.map((c) => ({
-        type: 'companion', full_name: c.full_name, phone: '', status: invitee.status,
+        tipo: TYPE_ES.companion, nombre: c.full_name, telefono: '', estado: STATUS_ES[invitee.status],
       })),
     ])
 
   const handleExportCsv = () => {
     const data = buildExportRows()
-    const headers = ['type', 'full_name', 'phone', 'status']
+    const headers = ['tipo', 'nombre', 'telefono', 'estado']
     const rows = data.map((r) => headers.map((h) => r[h] ?? '').join(','))
     const csv = [headers.join(','), ...rows].join('\n')
     const blob = new Blob([csv], { type: 'text/csv' })
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = url
-    a.download = 'guest-list.csv'
+    a.download = 'lista-invitados.csv'
     a.click()
     URL.revokeObjectURL(url)
   }
@@ -217,24 +220,24 @@ export default function InviteesPage() {
     const data = buildExportRows()
     const ws = XLSX.utils.json_to_sheet(
       data.map((r) => ({
-        Type: r.type ?? '',
-        'Full Name': r.full_name ?? '',
-        Phone: r.phone ?? '',
-        Status: r.status ?? '',
+        Tipo: r.tipo ?? '',
+        Nombre: r.nombre ?? '',
+        Teléfono: r.telefono ?? '',
+        Estado: r.estado ?? '',
       }))
     )
     const wb = XLSX.utils.book_new()
-    XLSX.utils.book_append_sheet(wb, ws, 'Guest List')
-    XLSX.writeFile(wb, 'guest-list.xlsx')
+    XLSX.utils.book_append_sheet(wb, ws, 'Lista de Invitados')
+    XLSX.writeFile(wb, 'lista-invitados.xlsx')
   }
 
   const handleTemplateDownload = () => {
-    const csv = 'full_name,phone,allowed_companions,notes\nJuan García,+52 55 1234 5678,1,\n'
+    const csv = 'nombre,teléfono,acompañantes,notas\nJuan García,+52 55 1234 5678,1,\n'
     const blob = new Blob([csv], { type: 'text/csv' })
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = url
-    a.download = 'invitees-template.csv'
+    a.download = 'plantilla-invitados.csv'
     a.click()
     URL.revokeObjectURL(url)
   }
@@ -580,10 +583,10 @@ export default function InviteesPage() {
             </thead>
             <tbody>
               {[
-                { col: 'full_name', required: true },
-                { col: 'phone', required: false },
-                { col: 'allowed_companions', required: false },
-                { col: 'notes', required: false },
+                { col: 'nombre', required: true },
+                { col: 'teléfono', required: false },
+                { col: 'acompañantes', required: false },
+                { col: 'notas', required: false },
               ].map(({ col, required }) => (
                 <tr key={col} className="border-b last:border-0">
                   <td className="py-1.5 font-mono text-xs">{col}</td>
