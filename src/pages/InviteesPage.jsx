@@ -133,9 +133,9 @@ export default function InviteesPage() {
     str.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase()
 
   const countInvitee = (i) =>
-    i.status === 'pending'
-      ? 1 + (i.allowed_companions ?? 0)
-      : 1 + (i.companions?.length ?? 0)
+    i.status === 'attending'
+      ? 1 + (i.companions?.length ?? 0)
+      : 1 + (i.allowed_companions ?? 0)
 
   const statusCounts = {
     all:       invitees.reduce((sum, i) => sum + countInvitee(i), 0),
