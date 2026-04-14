@@ -132,11 +132,16 @@ export default function InviteesPage() {
   const normalize = (str) =>
     str.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase()
 
+  const countInvitee = (i) =>
+    i.status === 'pending'
+      ? 1 + (i.allowed_companions ?? 0)
+      : 1 + (i.companions?.length ?? 0)
+
   const statusCounts = {
-    all: invitees.reduce((sum, i) => sum + 1 + (i.companions?.length ?? 0), 0),
-    attending: invitees.filter((i) => i.status === 'attending').reduce((sum, i) => sum + 1 + (i.companions?.length ?? 0), 0),
-    pending: invitees.filter((i) => i.status === 'pending').reduce((sum, i) => sum + 1 + (i.allowed_companions ?? 0), 0),
-    declined: invitees.filter((i) => i.status === 'declined').reduce((sum, i) => sum + 1 + (i.companions?.length ?? 0), 0),
+    all:       invitees.reduce((sum, i) => sum + countInvitee(i), 0),
+    attending: invitees.filter((i) => i.status === 'attending').reduce((sum, i) => sum + countInvitee(i), 0),
+    pending:   invitees.filter((i) => i.status === 'pending').reduce((sum, i) => sum + countInvitee(i), 0),
+    declined:  invitees.filter((i) => i.status === 'declined').reduce((sum, i) => sum + countInvitee(i), 0),
   }
 
   const filtered = invitees
