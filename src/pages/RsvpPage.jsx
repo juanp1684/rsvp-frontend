@@ -28,6 +28,14 @@ export default function RsvpPage() {
 
   const isEditing = invitee?.status !== 'pending'
 
+  const effectiveDeadline = invitee?.type === 'late'
+    ? (event?.late_rsvp_deadline ?? event?.rsvp_deadline)
+    : event?.rsvp_deadline
+
+  const deadlinePassed = invitee?.type === 'late'
+    ? (effectiveDeadline ? new Date().setHours(0, 0, 0, 0) > new Date(effectiveDeadline).setHours(0, 0, 0, 0) : false)
+    : (deadlinePassed ?? false)
+
   useEffect(() => {
     if (!invitee || invitee.status === 'pending') return
     setStatus(invitee.status)
@@ -214,17 +222,17 @@ export default function RsvpPage() {
                 Vestimenta: <span className="text-foreground font-medium">{event.dress_code}</span>
               </p>
             )}
-            {event.rsvp_deadline && (
+            {effectiveDeadline && (
               <p className="text-sm text-muted-foreground">
                 Confirmar antes del{' '}
-                {new Date(event.rsvp_deadline).toLocaleDateString('es-MX', { dateStyle: 'long' })}
+                {new Date(effectiveDeadline).toLocaleDateString('es-MX', { dateStyle: 'long' })}
               </p>
             )}
           </div>
         )}
 
         {/* Status messages */}
-        {event?.deadline_passed && isEditing && (
+        {deadlinePassed && isEditing && (
           <div className="flex flex-col gap-1 text-sm text-center text-muted-foreground">
             <p>Tu respuesta ya fue registrada. El plazo para hacer cambios ha vencido.</p>
             <p>
@@ -236,21 +244,21 @@ export default function RsvpPage() {
           </div>
         )}
 
-        {event?.deadline_passed && !isEditing && (
+        {deadlinePassed && !isEditing && (
           <p className="text-sm text-center text-muted-foreground">
             El plazo para confirmar asistencia ha vencido. Comunícate directamente con los comprometidos.
           </p>
         )}
 
-        {!event?.deadline_passed && isEditing && event?.rsvp_deadline && (
+        {!deadlinePassed && isEditing && effectiveDeadline && (
           <p className="text-sm text-center text-muted-foreground">
             Puedes actualizar tu respuesta hasta el{' '}
-            {new Date(event.rsvp_deadline).toLocaleDateString('es-MX', { dateStyle: 'long' })}.
+            {new Date(effectiveDeadline).toLocaleDateString('es-MX', { dateStyle: 'long' })}.
           </p>
         )}
 
         {/* RSVP form */}
-        {!event?.deadline_passed && (
+        {!deadlinePassed && (
           <form onSubmit={handleSubmit} className="w-full max-w-sm flex flex-col gap-6">
 
             {/* Attendance */}
