@@ -316,16 +316,21 @@ export default function InviteesPage() {
           {/* Mobile: card list */}
           <div className="flex flex-col gap-3 md:hidden">
             {filtered.map((invitee) => (
-              <div key={invitee.id} className="border rounded-lg overflow-hidden">
+              <div key={invitee.id} className={`border rounded-lg overflow-hidden${invitee.type === 'late' ? ' border-l-4 border-l-amber-400' : ''}`}>
                 {/* Invitee row */}
-                <div className="p-4 flex items-start justify-between gap-3">
+                <div className={`p-4 flex items-start justify-between gap-3${invitee.type === 'late' ? ' bg-amber-50/60 dark:bg-amber-950/20' : ''}`}>
                   <Checkbox
                     checked={selectedIds.has(invitee.id)}
                     onCheckedChange={() => toggleSelect(invitee.id)}
                     className="mt-0.5 shrink-0"
                   />
                   <div className="flex flex-col gap-1 min-w-0 flex-1">
-                    <span className="font-medium text-sm truncate">{invitee.full_name}</span>
+                    <div className="flex items-center gap-1.5 min-w-0">
+                      <span className="font-medium text-sm truncate">{invitee.full_name}</span>
+                      {invitee.type === 'late' && (
+                        <Badge className="text-xs shrink-0 bg-amber-100 text-amber-800 border-amber-300 hover:bg-amber-100">Late</Badge>
+                      )}
+                    </div>
                     {invitee.phone && (
                       <span className="text-xs text-muted-foreground">{invitee.phone}</span>
                     )}
@@ -407,14 +412,21 @@ export default function InviteesPage() {
               <TableBody>
                 {filtered.map((invitee) => (
                   <>
-                    <TableRow key={invitee.id}>
+                    <TableRow key={invitee.id} className={invitee.type === 'late' ? 'bg-amber-50/60 dark:bg-amber-950/20' : ''}>
                       <TableCell>
                         <Checkbox
                           checked={selectedIds.has(invitee.id)}
                           onCheckedChange={() => toggleSelect(invitee.id)}
                         />
                       </TableCell>
-                      <TableCell className="font-medium">{invitee.full_name}</TableCell>
+                      <TableCell className="font-medium">
+                        <div className="flex items-center gap-1.5">
+                          {invitee.full_name}
+                          {invitee.type === 'late' && (
+                            <Badge className="text-xs bg-amber-100 text-amber-800 border-amber-300 hover:bg-amber-100">Late</Badge>
+                          )}
+                        </div>
+                      </TableCell>
                       <TableCell className="text-muted-foreground">{invitee.phone ?? '—'}</TableCell>
                       <TableCell>
                         <Badge variant={statusVariant[invitee.status]} className="capitalize">

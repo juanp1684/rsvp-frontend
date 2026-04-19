@@ -22,7 +22,7 @@ import {
 } from '@/components/ui/select'
 import { Check, Pencil, Trash2, X } from 'lucide-react'
 
-const empty = { full_name: '', phone: '', allowed_companions: '0', notes: '' }
+const empty = { full_name: '', phone: '', allowed_companions: '0', notes: '', type: 'regular' }
 
 export default function InviteeFormDialog({ open, onOpenChange, invitee }) {
   const isEdit = !!invitee
@@ -42,6 +42,7 @@ export default function InviteeFormDialog({ open, onOpenChange, invitee }) {
             phone: invitee.phone ?? '',
             allowed_companions: String(invitee.allowed_companions),
             notes: invitee.notes ?? '',
+            type: invitee.type ?? 'regular',
           }
         : empty
     )
@@ -145,6 +146,22 @@ export default function InviteeFormDialog({ open, onOpenChange, invitee }) {
           <div className="flex flex-col gap-1.5">
             <Label htmlFor="notes">Notes</Label>
             <Input id="notes" value={form.notes} onChange={set('notes')} maxLength={500} />
+          </div>
+
+          <div className="flex flex-col gap-1.5">
+            <Label>Type</Label>
+            <Select
+              value={form.type}
+              onValueChange={(v) => setForm((f) => ({ ...f, type: v }))}
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="regular">Regular</SelectItem>
+                <SelectItem value="late">Late</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
           {showCompanions && (

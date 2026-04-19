@@ -12,6 +12,7 @@ const COLUMNS = [
   { col: 'teléfono',     required: false },
   { col: 'acompañantes', required: false },
   { col: 'notas',        required: false },
+  { col: 'tipo',         required: false, hint: 'regular o tarde' },
 ]
 
 export default function ImportDialog({ open, onOpenChange }) {
@@ -27,7 +28,7 @@ export default function ImportDialog({ open, onOpenChange }) {
   }
 
   const handleTemplateDownload = () => {
-    const csv = 'nombre,teléfono,acompañantes,notas\nJuan García,+52 55 1234 5678,1,\n'
+    const csv = 'nombre,teléfono,acompañantes,notas,tipo\nJuan García,+52 55 1234 5678,1,,regular\n'
     const blob = new Blob([csv], { type: 'text/csv' })
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
@@ -84,9 +85,12 @@ export default function ImportDialog({ open, onOpenChange }) {
             </tr>
           </thead>
           <tbody>
-            {COLUMNS.map(({ col, required }) => (
+            {COLUMNS.map(({ col, required, hint }) => (
               <tr key={col} className="border-b last:border-0">
-                <td className="py-1.5 font-mono text-xs">{col}</td>
+                <td className="py-1.5 font-mono text-xs">
+                  {col}
+                  {hint && <span className="text-muted-foreground ml-1 font-sans">({hint})</span>}
+                </td>
                 <td className="py-1.5">
                   {required
                     ? <span className="text-green-600 font-medium">Required</span>

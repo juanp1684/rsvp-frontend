@@ -32,7 +32,8 @@ export default function EventEditDialog({ event, open, onOpenChange }) {
         reception_location: event.reception_location ?? '',
         reception_url: event.reception_url ?? '',
         dress_code: event.dress_code ?? '',
-        rsvp_deadline: toLocalDatetimeValue(event.rsvp_deadline),
+        rsvp_deadline: event.rsvp_deadline ? event.rsvp_deadline.slice(0, 10) : '',
+        late_rsvp_deadline: event.late_rsvp_deadline ? event.late_rsvp_deadline.slice(0, 10) : '',
         notes: event.notes ?? '',
       })
     }
@@ -48,12 +49,23 @@ export default function EventEditDialog({ event, open, onOpenChange }) {
     setError(null)
 
     const ceremony = new Date(form.ceremony_at)
-    const reception = new Date(form.reception_at)
     const deadline = new Date(form.rsvp_deadline)
+    const lateDeadline = form.late_rsvp_deadline ? new Date(form.late_rsvp_deadline) : null
 
     if (deadline >= ceremony) {
       setError({ field: 'rsvp_deadline', message: 'RSVP deadline must be before the ceremony date.' })
       return
+    }
+
+    if (lateDeadline) {
+      if (lateDeadline < deadline) {
+        setError({ field: 'late_rsvp_deadline', message: 'Late deadline must be on or after the regular RSVP deadline.' })
+        return
+      }
+      if (lateDeadline >= ceremony) {
+        setError({ field: 'late_rsvp_deadline', message: 'Late deadline must be before the ceremony date.' })
+        return
+      }
     }
 
     setLoading(true)
@@ -96,7 +108,14 @@ export default function EventEditDialog({ event, open, onOpenChange }) {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Field label="Dress code" id="dress_code" value={form.dress_code} onChange={set('dress_code')} />
-            <Field label="RSVP deadline" id="rsvp_deadline" type="date" value={form.rsvp_deadline?.slice(0, 10)} onChange={set('rsvp_deadline')} required hasError={error?.field === 'rsvp_deadline'} />
+            <Field label="RSVP deadline" id="rsvp_deadline" type="date" value={form.rsvp_deadline ?? ''} onChange={set('rsvp_deadline')} required hasError={error?.field === 'rsvp_deadline'} />
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <Field label="Late RSVP deadline" id="late_rsvp_deadline" type="date" value={form.late_rsvp_deadline ?? ''} onChange={set('late_rsvp_deadline')} hasError={error?.field === 'late_rsvp_deadline'} />
+            <div className="flex items-end pb-0.5">
+              <p className="text-xs text-muted-foreground">Optional. If set, invitees marked as "Late" can respond until this date.</p>
+            </div>
           </div>
 
           <Field label="Notes" id="notes" value={form.notes} onChange={set('notes')} />
