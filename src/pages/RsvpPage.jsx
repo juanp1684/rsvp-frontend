@@ -34,7 +34,7 @@ export default function RsvpPage() {
 
   const deadlinePassed = invitee?.type === 'late'
     ? (effectiveDeadline ? new Date().setHours(0, 0, 0, 0) > new Date(effectiveDeadline).setHours(0, 0, 0, 0) : false)
-    : (deadlinePassed ?? false)
+    : (event?.deadline_passed ?? false)
 
   useEffect(() => {
     if (!invitee || invitee.status === 'pending') return
