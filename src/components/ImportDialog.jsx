@@ -1,4 +1,5 @@
 import { useRef, useState } from 'react'
+import * as XLSX from 'xlsx'
 import { useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
@@ -14,6 +15,43 @@ const COLUMNS = [
   { col: 'notas',        required: false },
   { col: 'tipo',         required: false, hint: 'regular o tarde' },
 ]
+
+function validateStructure(file) {
+  return new Promise((resolve) => {
+    const reader = new FileReader()
+    reader.onload = (e) => {
+      try {
+        const workbook = XLSX.read(e.target.result, { type: 'array' })
+        const sheet = workbook.Sheets[workbook.SheetNames[0]]
+        const rows = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '' })
+
+        if (rows.length === 0) {
+          resolve([{ row: 0, field: '', message: 'The file is empty.' }])
+          return
+        }
+
+        const headerCount = rows[0].filter((h) => String(h).trim() !== '').length
+
+        const errs = []
+        for (let i = 1; i < rows.length; i++) {
+          const rowCount = rows[i].filter((v) => v !== '').length
+          if (rowCount === 0) continue // skip blank rows
+          if (rowCount !== headerCount) {
+            errs.push({
+              row: i + 1,
+              field: '',
+              message: `Row has ${rowCount} column${rowCount !== 1 ? 's' : ''} but the header has ${headerCount}.`,
+            })
+          }
+        }
+        resolve(errs)
+      } catch {
+        resolve([{ row: 0, field: '', message: 'Could not read the file. Make sure it is a valid CSV or Excel file.' }])
+      }
+    }
+    reader.readAsArrayBuffer(file)
+  })
+}
 
 export default function ImportDialog({ open, onOpenChange }) {
   const qc = useQueryClient()
@@ -45,6 +83,13 @@ export default function ImportDialog({ open, onOpenChange }) {
 
     setErrors([])
     setLoading(true)
+
+    const structureErrors = await validateStructure(file)
+    if (structureErrors.length > 0) {
+      setErrors(structureErrors)
+      setLoading(false)
+      return
+    }
 
     const formData = new FormData()
     formData.append('file', file)
@@ -109,8 +154,8 @@ export default function ImportDialog({ open, onOpenChange }) {
             <ul className="divide-y max-h-48 overflow-y-auto">
               {errors.map((err, i) => (
                 <li key={i} className="px-3 py-2 text-xs flex gap-3">
-                  <span className="text-muted-foreground shrink-0">Row {err.row}</span>
-                  <span className="font-mono text-muted-foreground shrink-0">{err.field}</span>
+                  {err.row > 0 && <span className="text-muted-foreground shrink-0">Row {err.row}</span>}
+                  {err.field && <span className="font-mono text-muted-foreground shrink-0">{err.field}</span>}
                   <span className="text-destructive">{err.message}</span>
                 </li>
               ))}
