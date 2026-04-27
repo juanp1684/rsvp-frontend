@@ -2,17 +2,19 @@ import { create } from 'zustand'
 import api from '@/lib/api'
 
 const getToken = () => localStorage.getItem('token') ?? sessionStorage.getItem('token')
+const getUser = () => JSON.parse(localStorage.getItem('user') ?? sessionStorage.getItem('user') ?? 'null')
 const getActiveEvent = () => JSON.parse(localStorage.getItem('activeEvent') ?? sessionStorage.getItem('activeEvent') ?? 'null')
 
 export const useAuthStore = create((set) => ({
   token: getToken(),
-  user: null,
+  user: getUser(),
   activeEvent: getActiveEvent(),
 
   login: async (email, password, remember = false) => {
     const { data } = await api.post('/auth/login', { email, password })
     const storage = remember ? localStorage : sessionStorage
     storage.setItem('token', data.token)
+    storage.setItem('user', JSON.stringify(data.user))
     const activeEvent = data.user.event ?? null
     if (activeEvent) {
       storage.setItem('activeEvent', JSON.stringify(activeEvent))
@@ -28,8 +30,10 @@ export const useAuthStore = create((set) => ({
   logout: async () => {
     await api.post('/auth/logout').catch(() => {})
     localStorage.removeItem('token')
+    localStorage.removeItem('user')
     localStorage.removeItem('activeEvent')
     sessionStorage.removeItem('token')
+    sessionStorage.removeItem('user')
     sessionStorage.removeItem('activeEvent')
     set({ token: null, user: null, activeEvent: null })
   },
