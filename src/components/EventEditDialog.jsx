@@ -36,8 +36,8 @@ export default function EventEditDialog({ event, open, onOpenChange }) {
         reception_at: toLocalDatetimeValue(event.reception_at),
         reception_location: event.reception_location ?? '',
         reception_url: event.reception_url ?? '',
-        rsvp_deadline: event.rsvp_deadline ? event.rsvp_deadline.slice(0, 10) : '',
-        late_rsvp_deadline: event.late_rsvp_deadline ? event.late_rsvp_deadline.slice(0, 10) : '',
+        rsvp_deadline: toLocalDatetimeValue(event.rsvp_deadline),
+        late_rsvp_deadline: toLocalDatetimeValue(event.late_rsvp_deadline),
         no_kids: event.no_kids ?? false,
         no_kids_message: event.no_kids_message ?? '',
         confirm_attending_message: event.confirm_attending_message ?? '',
@@ -131,8 +131,8 @@ export default function EventEditDialog({ event, open, onOpenChange }) {
           {/* RSVP */}
           <Section title="RSVP">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <Field label="Deadline" id="rsvp_deadline" type="date" value={form.rsvp_deadline ?? ''} onChange={set('rsvp_deadline')} required hasError={error?.field === 'rsvp_deadline'} />
-              <Field label="Late deadline" id="late_rsvp_deadline" type="date" value={form.late_rsvp_deadline ?? ''} onChange={set('late_rsvp_deadline')} hasError={error?.field === 'late_rsvp_deadline'} />
+              <Field label="Deadline" id="rsvp_deadline" type="datetime-local" value={form.rsvp_deadline ?? ''} onChange={set('rsvp_deadline')} required hasError={error?.field === 'rsvp_deadline'} />
+              <Field label="Late deadline" id="late_rsvp_deadline" type="datetime-local" value={form.late_rsvp_deadline ?? ''} onChange={set('late_rsvp_deadline')} hasError={error?.field === 'late_rsvp_deadline'} />
             </div>
             {error?.field === 'rsvp_deadline' || error?.field === 'late_rsvp_deadline'
               ? <p className="text-sm text-destructive">{error.message}</p>

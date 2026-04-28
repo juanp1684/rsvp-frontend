@@ -39,7 +39,7 @@ export default function RsvpPage() {
     : event?.rsvp_deadline
 
   const deadlinePassed = invitee?.type === 'late'
-    ? (effectiveDeadline ? new Date().setHours(0, 0, 0, 0) > new Date(effectiveDeadline).setHours(0, 0, 0, 0) : false)
+    ? (effectiveDeadline ? new Date() > new Date(effectiveDeadline) : false)
     : (event?.deadline_passed ?? false)
 
   useEffect(() => {
@@ -306,7 +306,7 @@ export default function RsvpPage() {
             {effectiveDeadline && (
               <p className="text-sm text-muted-foreground">
                 Confirmar antes del{' '}
-                {new Date(effectiveDeadline).toLocaleDateString('es-MX', { dateStyle: 'long' })}
+                {new Date(effectiveDeadline).toLocaleString('es-MX', { dateStyle: 'long', timeStyle: 'short' })}
               </p>
             )}
           </div>
@@ -334,7 +334,7 @@ export default function RsvpPage() {
         {!deadlinePassed && isEditing && effectiveDeadline && (
           <p className="text-sm text-center text-muted-foreground">
             Puedes actualizar tu respuesta hasta el{' '}
-            {new Date(effectiveDeadline).toLocaleDateString('es-MX', { dateStyle: 'long' })}.
+            {new Date(effectiveDeadline).toLocaleString('es-MX', { dateStyle: 'long', timeStyle: 'short' })}.
           </p>
         )}
 
