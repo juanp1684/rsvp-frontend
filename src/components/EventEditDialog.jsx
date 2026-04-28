@@ -128,21 +128,21 @@ export default function EventEditDialog({ event, open, onOpenChange }) {
             <Field label="Notes" id="notes" value={form.notes} onChange={set('notes')} />
           </Section>
 
-          {/* Ceremony */}
-          <Section title="Ceremony">
-            <Field label="Date & time" id="ceremony_at" type="datetime-local" value={form.ceremony_at} onChange={set('ceremony_at')} required />
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <Field label="Location" id="ceremony_location" value={form.ceremony_location} onChange={set('ceremony_location')} required />
-              <Field label="URL" id="ceremony_url" type="url" value={form.ceremony_url} onChange={set('ceremony_url')} />
-            </div>
-          </Section>
-
           {/* Civil ceremony */}
           <Section title="Civil ceremony">
             <Field label="Date & time" id="civil_at" type="datetime-local" value={form.civil_at} onChange={set('civil_at')} />
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <Field label="Location" id="civil_location" value={form.civil_location} onChange={set('civil_location')} />
               <Field label="URL" id="civil_url" type="url" value={form.civil_url} onChange={set('civil_url')} />
+            </div>
+          </Section>
+
+          {/* Ceremony */}
+          <Section title="Ceremony">
+            <Field label="Date & time" id="ceremony_at" type="datetime-local" value={form.ceremony_at} onChange={set('ceremony_at')} required />
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <Field label="Location" id="ceremony_location" value={form.ceremony_location} onChange={set('ceremony_location')} required />
+              <Field label="URL" id="ceremony_url" type="url" value={form.ceremony_url} onChange={set('ceremony_url')} />
             </div>
           </Section>
 
