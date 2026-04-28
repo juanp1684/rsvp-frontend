@@ -229,6 +229,33 @@ export default function RsvpPage() {
           </div>
         )}
 
+        {/* Invitation card image */}
+        <div className="w-full max-w-xs mx-auto aspect-[3/4] bg-muted rounded-2xl shadow-sm overflow-hidden">
+          {event?.invitation_image_url
+            ? <button
+                type="button"
+                className="w-full h-full cursor-zoom-in"
+                onClick={() => setLightboxOpen(true)}
+                aria-label="Ver invitación en pantalla completa"
+              >
+                <img src={event.invitation_image_url} alt="Invitación" className="w-full h-full object-cover" />
+              </button>
+            : <div className="w-full h-full flex flex-col items-center justify-center gap-3">
+                <ImageIcon className="h-12 w-12 text-muted-foreground/25" />
+                <p className="text-xs text-muted-foreground/40 uppercase tracking-widest">Invitación</p>
+              </div>
+          }
+        </div>
+
+        {/* No-kids notice */}
+        {event?.no_kids && (
+          <div className="w-full rounded-xl border border-[#C0A18F]/60 bg-[#C0A18F]/10 px-4 py-3 text-center">
+            <p className="text-sm text-[#735749]">
+              {event.no_kids_message || 'Este evento es para adultos. Te pedimos no traer niños.'}
+            </p>
+          </div>
+        )}
+
         {/* Ceremonies */}
         {(event?.ceremony_at || event?.civil_at) && (
           <div className={`w-full grid grid-cols-1 gap-8 ${event?.civil_at && event?.ceremony_at ? 'md:grid-cols-2' : ''}`}>
@@ -300,33 +327,6 @@ export default function RsvpPage() {
                 ? <a href={event.reception_url} target="_blank" rel="noopener noreferrer" className="text-sm text-[#735749] underline">{event.reception_location}</a>
                 : <p className="text-sm text-muted-foreground">{event.reception_location}</p>}
             </div>
-          </div>
-        )}
-
-        {/* Invitation card image */}
-        <div className="w-full max-w-xs mx-auto aspect-[3/4] bg-muted rounded-2xl shadow-sm overflow-hidden">
-          {event?.invitation_image_url
-            ? <button
-                type="button"
-                className="w-full h-full cursor-zoom-in"
-                onClick={() => setLightboxOpen(true)}
-                aria-label="Ver invitación en pantalla completa"
-              >
-                <img src={event.invitation_image_url} alt="Invitación" className="w-full h-full object-cover" />
-              </button>
-            : <div className="w-full h-full flex flex-col items-center justify-center gap-3">
-                <ImageIcon className="h-12 w-12 text-muted-foreground/25" />
-                <p className="text-xs text-muted-foreground/40 uppercase tracking-widest">Invitación</p>
-              </div>
-          }
-        </div>
-
-        {/* No-kids notice */}
-        {event?.no_kids && (
-          <div className="w-full rounded-xl border border-[#C0A18F]/60 bg-[#C0A18F]/10 px-4 py-3 text-center">
-            <p className="text-sm text-[#735749]">
-              {event.no_kids_message || 'Este evento es para adultos. Te pedimos no traer niños.'}
-            </p>
           </div>
         )}
 
