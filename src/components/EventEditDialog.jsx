@@ -5,6 +5,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { Checkbox } from '@/components/ui/checkbox'
 import api from '@/lib/api'
 
 const toLocalDatetimeValue = (iso) => {
@@ -25,16 +26,20 @@ export default function EventEditDialog({ event, open, onOpenChange }) {
       setError(null)
       setForm({
         name: event.name ?? '',
+        dress_code: event.dress_code ?? '',
+        notes: event.notes ?? '',
         ceremony_at: toLocalDatetimeValue(event.ceremony_at),
-        reception_at: toLocalDatetimeValue(event.reception_at),
         ceremony_location: event.ceremony_location ?? '',
         ceremony_url: event.ceremony_url ?? '',
+        reception_at: toLocalDatetimeValue(event.reception_at),
         reception_location: event.reception_location ?? '',
         reception_url: event.reception_url ?? '',
-        dress_code: event.dress_code ?? '',
         rsvp_deadline: event.rsvp_deadline ? event.rsvp_deadline.slice(0, 10) : '',
         late_rsvp_deadline: event.late_rsvp_deadline ? event.late_rsvp_deadline.slice(0, 10) : '',
-        notes: event.notes ?? '',
+        no_kids: event.no_kids ?? false,
+        no_kids_message: event.no_kids_message ?? '',
+        confirm_attending_message: event.confirm_attending_message ?? '',
+        confirm_declined_message: event.confirm_declined_message ?? '',
       })
     }
   }, [event, open])
@@ -87,40 +92,85 @@ export default function EventEditDialog({ event, open, onOpenChange }) {
         <DialogHeader>
           <DialogTitle>Edit event</DialogTitle>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="flex flex-col gap-4 mt-2">
+        <form onSubmit={handleSubmit} className="flex flex-col gap-6 mt-2">
 
-          <Field label="Name" id="name" value={form.name} onChange={set('name')} required />
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <Field label="Ceremony date & time" id="ceremony_at" type="datetime-local" value={form.ceremony_at} onChange={set('ceremony_at')} required />
-            <Field label="Reception date & time" id="reception_at" type="datetime-local" value={form.reception_at} onChange={set('reception_at')} required />
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <Field label="Ceremony location" id="ceremony_location" value={form.ceremony_location} onChange={set('ceremony_location')} required />
-            <Field label="Ceremony URL" id="ceremony_url" type="url" value={form.ceremony_url} onChange={set('ceremony_url')} />
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <Field label="Reception location" id="reception_location" value={form.reception_location} onChange={set('reception_location')} required />
-            <Field label="Reception URL" id="reception_url" type="url" value={form.reception_url} onChange={set('reception_url')} />
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <Field label="Dress code" id="dress_code" value={form.dress_code} onChange={set('dress_code')} />
-            <Field label="RSVP deadline" id="rsvp_deadline" type="date" value={form.rsvp_deadline ?? ''} onChange={set('rsvp_deadline')} required hasError={error?.field === 'rsvp_deadline'} />
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <Field label="Late RSVP deadline" id="late_rsvp_deadline" type="date" value={form.late_rsvp_deadline ?? ''} onChange={set('late_rsvp_deadline')} hasError={error?.field === 'late_rsvp_deadline'} />
-            <div className="flex items-end pb-0.5">
-              <p className="text-xs text-muted-foreground">Optional. If set, invitees marked as "Late" can respond until this date.</p>
+          {/* General */}
+          <Section title="General">
+            <Field label="Name" id="name" value={form.name} onChange={set('name')} required />
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <Field label="Dress code" id="dress_code" value={form.dress_code} onChange={set('dress_code')} />
+              <div /> {/* spacer */}
             </div>
-          </div>
+            <Field label="Notes" id="notes" value={form.notes} onChange={set('notes')} />
+          </Section>
 
-          <Field label="Notes" id="notes" value={form.notes} onChange={set('notes')} />
+          {/* Ceremony */}
+          <Section title="Ceremony">
+            <Field label="Date & time" id="ceremony_at" type="datetime-local" value={form.ceremony_at} onChange={set('ceremony_at')} required />
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <Field label="Location" id="ceremony_location" value={form.ceremony_location} onChange={set('ceremony_location')} required />
+              <Field label="URL" id="ceremony_url" type="url" value={form.ceremony_url} onChange={set('ceremony_url')} />
+            </div>
+          </Section>
 
-          {error && <p className="text-sm text-destructive">{error.message}</p>}
+          {/* Reception */}
+          <Section title="Reception">
+            <Field label="Date & time" id="reception_at" type="datetime-local" value={form.reception_at} onChange={set('reception_at')} required />
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <Field label="Location" id="reception_location" value={form.reception_location} onChange={set('reception_location')} required />
+              <Field label="URL" id="reception_url" type="url" value={form.reception_url} onChange={set('reception_url')} />
+            </div>
+          </Section>
+
+          {/* RSVP */}
+          <Section title="RSVP">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <Field label="Deadline" id="rsvp_deadline" type="date" value={form.rsvp_deadline ?? ''} onChange={set('rsvp_deadline')} required hasError={error?.field === 'rsvp_deadline'} />
+              <Field label="Late deadline" id="late_rsvp_deadline" type="date" value={form.late_rsvp_deadline ?? ''} onChange={set('late_rsvp_deadline')} hasError={error?.field === 'late_rsvp_deadline'} />
+            </div>
+            {error?.field === 'rsvp_deadline' || error?.field === 'late_rsvp_deadline'
+              ? <p className="text-sm text-destructive">{error.message}</p>
+              : <p className="text-xs text-muted-foreground">Late deadline is optional — for invitees marked as "Late".</p>
+            }
+            <div className="flex flex-col gap-3 pt-1">
+              <div className="flex items-center gap-2">
+                <Checkbox
+                  id="no_kids"
+                  checked={form.no_kids}
+                  onCheckedChange={(checked) => setForm((prev) => ({ ...prev, no_kids: !!checked }))}
+                />
+                <Label htmlFor="no_kids">No kids policy</Label>
+              </div>
+              {form.no_kids && (
+                <Field
+                  label="Custom message (optional)"
+                  id="no_kids_message"
+                  value={form.no_kids_message}
+                  onChange={set('no_kids_message')}
+                  placeholder="Este evento es para adultos. Te pedimos no traer niños."
+                />
+              )}
+            </div>
+          </Section>
+
+          {/* Confirmation */}
+          <Section title="Confirmation">
+            <Field
+              label="Attending message"
+              id="confirm_attending_message"
+              value={form.confirm_attending_message}
+              onChange={set('confirm_attending_message')}
+              placeholder="¡Nos vemos pronto!"
+            />
+            <Field
+              label="Declined message"
+              id="confirm_declined_message"
+              value={form.confirm_declined_message}
+              onChange={set('confirm_declined_message')}
+              placeholder="Gracias por avisarnos"
+            />
+          </Section>
+
           <Button type="submit" disabled={loading}>
             {loading ? 'Saving…' : 'Save changes'}
           </Button>
@@ -130,11 +180,23 @@ export default function EventEditDialog({ event, open, onOpenChange }) {
   )
 }
 
-function Field({ label, id, value, onChange, type = 'text', required = false, hasError = false }) {
+function Section({ title, children }) {
+  return (
+    <div className="flex flex-col gap-4">
+      <div className="flex items-center gap-3">
+        <h3 className="text-sm font-semibold uppercase tracking-wide shrink-0">{title}</h3>
+        <div className="h-px bg-border flex-1" />
+      </div>
+      {children}
+    </div>
+  )
+}
+
+function Field({ label, id, value, onChange, type = 'text', required = false, hasError = false, placeholder }) {
   return (
     <div className="flex flex-col gap-1.5">
       <Label htmlFor={id} className={hasError ? 'text-destructive' : ''}>{label}</Label>
-      <Input id={id} type={type} value={value ?? ''} onChange={onChange} required={required} className={hasError ? 'border-destructive focus-visible:ring-destructive' : ''} />
+      <Input id={id} type={type} value={value ?? ''} onChange={onChange} required={required} placeholder={placeholder} className={hasError ? 'border-destructive focus-visible:ring-destructive' : ''} />
     </div>
   )
 }

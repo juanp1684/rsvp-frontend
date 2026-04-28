@@ -1,11 +1,14 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useParams } from 'react-router-dom'
 import { useQuery, useMutation } from '@tanstack/react-query'
 import api from '@/lib/api'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { ImageIcon } from 'lucide-react'
+import { ImageIcon, Play, Pause } from 'lucide-react'
+import Lightbox from 'yet-another-react-lightbox'
+import Zoom from 'yet-another-react-lightbox/plugins/zoom'
+import 'yet-another-react-lightbox/styles.css'
 
 export default function RsvpPage() {
   useEffect(() => { document.title = 'RSVP' }, [])
@@ -14,6 +17,9 @@ export default function RsvpPage() {
   const [step, setStep] = useState('form') // 'form' | 'confirmed'
   const [status, setStatus] = useState(null) // 'attending' | 'declined'
   const [companions, setCompanions] = useState([])
+  const [lightboxOpen, setLightboxOpen] = useState(false)
+  const [isPlaying, setIsPlaying] = useState(false)
+  const audioRef = useRef(null)
 
   const { data: invitee, isLoading, isError } = useQuery({
     queryKey: ['rsvp', eventSlug, code],
@@ -35,6 +41,10 @@ export default function RsvpPage() {
   const deadlinePassed = invitee?.type === 'late'
     ? (effectiveDeadline ? new Date().setHours(0, 0, 0, 0) > new Date(effectiveDeadline).setHours(0, 0, 0, 0) : false)
     : (event?.deadline_passed ?? false)
+
+  useEffect(() => {
+    if (audioRef.current) audioRef.current.volume = 0.5
+  }, [event?.song_url])
 
   useEffect(() => {
     if (!invitee || invitee.status === 'pending') return
@@ -94,13 +104,26 @@ export default function RsvpPage() {
   }
 
   if (step === 'confirmed') {
+    const confirmImageUrl = status === 'attending'
+      ? event?.confirm_attending_image_url
+      : event?.confirm_declined_image_url
+
     return (
       <Screen>
-        <p className="text-2xl">
-          {status === 'attending' ? '🎉' : '💌'}
-        </p>
-        <p className="text-lg font-semibold mt-2">
-          {status === 'attending' ? '¡Nos vemos pronto!' : 'Gracias por avisarnos'}
+        {confirmImageUrl
+          ? <img
+              src={confirmImageUrl}
+              alt=""
+              className="w-64 aspect-[3/4] rounded-2xl object-cover shadow-md"
+            />
+          : <p className="text-2xl">
+              {status === 'attending' ? '🎉' : '💌'}
+            </p>
+        }
+        <p className="text-lg font-semibold mt-4">
+          {status === 'attending'
+            ? (event?.confirm_attending_message || '¡Nos vemos pronto!')
+            : (event?.confirm_declined_message || 'Gracias por avisarnos')}
         </p>
         <p className="text-muted-foreground text-sm mt-1">
           {status === 'attending'
@@ -112,12 +135,12 @@ export default function RsvpPage() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-gradient-to-b from-amber-50 via-[#fdf8ef] to-amber-50/30">
+    <div className="min-h-screen flex flex-col bg-[#FFF1E9]">
 
       {/* Event title banner */}
       {event?.name && (
-        <div className="w-full py-8 px-6 flex justify-center bg-gradient-to-b from-amber-50 to-[#fdf8ef]">
-          <h1 className="font-display italic text-4xl md:text-6xl text-center leading-tight text-amber-900/80">
+        <div className="w-full py-8 px-6 flex justify-center bg-[#FFF1E9]">
+          <h1 className="font-display italic text-4xl md:text-6xl text-center leading-tight text-[#412D26]/80">
             {event.name}
           </h1>
         </div>
@@ -141,15 +164,42 @@ export default function RsvpPage() {
         }
       </div>
 
+      {/* Music player */}
+      {event?.song_url && (
+        <>
+          <audio ref={audioRef} src={event.song_url} loop preload="auto" />
+          <div className="w-full flex flex-col items-center gap-2 py-4">
+            <p className={`text-xs text-[#735749]/60 uppercase tracking-widest ${isPlaying ? 'invisible' : ''}`}>Dale Play</p>
+            <button
+              type="button"
+              onClick={() => {
+                const audio = audioRef.current
+                if (!audio) return
+                if (isPlaying) {
+                  audio.pause()
+                  setIsPlaying(false)
+                } else {
+                  audio.play().then(() => setIsPlaying(true)).catch(() => {})
+                }
+              }}
+              className="flex items-center justify-center w-12 h-12 rounded-full bg-[#412D26]/10 hover:bg-[#412D26]/20 transition-colors text-[#412D26]"
+              aria-label={isPlaying ? 'Pausar música' : 'Reproducir música'}
+            >
+              {isPlaying ? <Pause className="h-5 w-5 fill-current" /> : <Play className="h-5 w-5 fill-current" />}
+            </button>
+          </div>
+        </>
+      )}
+
       {/* Gold divider */}
-      <div className="w-full h-px bg-gradient-to-r from-transparent via-amber-400/60 to-transparent" />
+      <div className="w-full h-px bg-gradient-to-r from-transparent via-[#C0A18F]/60 to-transparent" />
 
       <div className="w-full max-w-2xl mx-auto px-4 md:px-8 py-10">
-      <div className="flex flex-col items-center gap-10 bg-white/75 backdrop-blur-sm rounded-3xl shadow-xl shadow-amber-900/10 border border-amber-200/50 px-6 md:px-10 py-12">
+      <div className="flex flex-col items-center gap-10 bg-[#FFF1E9]/90 backdrop-blur-sm rounded-3xl shadow-xl shadow-[#412D26]/10 border border-[#C0A18F]/40 px-6 md:px-10 py-12">
 
         {/* Invitee name + event title */}
         <div className="text-center">
-          <p className="text-amber-700/60 text-xs uppercase tracking-widest mb-2">Invitación</p>
+          <p className="text-[#735749]/60 text-xs uppercase tracking-widest mb-2">Invitación</p>
           <h1 className="text-3xl font-semibold">{invitee.full_name}</h1>
         </div>
 
@@ -168,12 +218,12 @@ export default function RsvpPage() {
                   }
                 </div>
                 <div className="flex flex-col gap-0.5">
-                  <p className="font-semibold text-amber-800">Ceremonia</p>
+                  <p className="font-semibold text-[#412D26]">Ceremonia</p>
                   <p className="text-sm text-muted-foreground">
                     {new Date(event.ceremony_at).toLocaleString('es-MX', { dateStyle: 'long', timeStyle: 'short' })}
                   </p>
                   {event.ceremony_url
-                    ? <a href={event.ceremony_url} target="_blank" rel="noopener noreferrer" className="text-sm text-amber-700 underline">{event.ceremony_location}</a>
+                    ? <a href={event.ceremony_url} target="_blank" rel="noopener noreferrer" className="text-sm text-[#735749] underline">{event.ceremony_location}</a>
                     : <p className="text-sm text-muted-foreground">{event.ceremony_location}</p>}
                 </div>
               </div>
@@ -190,12 +240,12 @@ export default function RsvpPage() {
                   }
                 </div>
                 <div className="flex flex-col gap-0.5">
-                  <p className="font-semibold text-amber-800">Recepción</p>
+                  <p className="font-semibold text-[#412D26]">Recepción</p>
                   <p className="text-sm text-muted-foreground">
                     {new Date(event.reception_at).toLocaleString('es-MX', { dateStyle: 'long', timeStyle: 'short' })}
                   </p>
                   {event.reception_url
-                    ? <a href={event.reception_url} target="_blank" rel="noopener noreferrer" className="text-sm text-amber-700 underline">{event.reception_location}</a>
+                    ? <a href={event.reception_url} target="_blank" rel="noopener noreferrer" className="text-sm text-[#735749] underline">{event.reception_location}</a>
                     : <p className="text-sm text-muted-foreground">{event.reception_location}</p>}
                 </div>
               </div>
@@ -206,13 +256,29 @@ export default function RsvpPage() {
         {/* Invitation card image */}
         <div className="w-full max-w-xs mx-auto aspect-[3/4] bg-muted rounded-2xl shadow-sm overflow-hidden">
           {event?.invitation_image_url
-            ? <img src={event.invitation_image_url} alt="Invitación" className="w-full h-full object-cover" />
+            ? <button
+                type="button"
+                className="w-full h-full cursor-zoom-in"
+                onClick={() => setLightboxOpen(true)}
+                aria-label="Ver invitación en pantalla completa"
+              >
+                <img src={event.invitation_image_url} alt="Invitación" className="w-full h-full object-cover" />
+              </button>
             : <div className="w-full h-full flex flex-col items-center justify-center gap-3">
                 <ImageIcon className="h-12 w-12 text-muted-foreground/25" />
                 <p className="text-xs text-muted-foreground/40 uppercase tracking-widest">Invitación</p>
               </div>
           }
         </div>
+
+        {/* No-kids notice */}
+        {event?.no_kids && (
+          <div className="w-full rounded-xl border border-[#C0A18F]/60 bg-[#C0A18F]/10 px-4 py-3 text-center">
+            <p className="text-sm text-[#735749]">
+              {event.no_kids_message || 'Este evento es para adultos. Te pedimos no traer niños.'}
+            </p>
+          </div>
+        )}
 
         {/* Dress code + deadline */}
         {event && (event.dress_code || event.rsvp_deadline) && (
@@ -269,7 +335,7 @@ export default function RsvpPage() {
                   type="button"
                   variant={status === 'attending' ? 'default' : 'outline'}
                   onClick={() => handleStatusSelect('attending')}
-                  className="w-full"
+                  className={`w-full ${status === 'attending' ? 'bg-[#412D26] hover:bg-[#735749] text-[#FFF1E9]' : 'border-[#C0A18F] text-[#412D26] hover:bg-[#C0A18F]/10 hover:text-[#412D26]'}`}
                 >
                   Sí, asistiré
                 </Button>
@@ -277,7 +343,7 @@ export default function RsvpPage() {
                   type="button"
                   variant={status === 'declined' ? 'default' : 'outline'}
                   onClick={() => handleStatusSelect('declined')}
-                  className="w-full"
+                  className={`w-full ${status === 'declined' ? 'bg-[#412D26] hover:bg-[#735749] text-[#FFF1E9]' : 'border-[#C0A18F] text-[#412D26] hover:bg-[#C0A18F]/10 hover:text-[#412D26]'}`}
                 >
                   No podré ir
                 </Button>
@@ -329,6 +395,7 @@ export default function RsvpPage() {
                     variant="outline"
                     size="sm"
                     onClick={handleAddCompanion}
+                    className="border-[#C0A18F] text-[#412D26] hover:bg-[#C0A18F]/10 hover:text-[#412D26]"
                   >
                     + Agregar acompañante
                   </Button>
@@ -337,7 +404,7 @@ export default function RsvpPage() {
             )}
 
             {status && (
-              <Button type="submit" className="w-full" disabled={mutation.isPending}>
+              <Button type="submit" className="w-full bg-[#412D26] hover:bg-[#735749] text-[#FFF1E9]" disabled={mutation.isPending}>
                 {mutation.isPending ? 'Enviando…' : isEditing ? 'Actualizar respuesta' : 'Confirmar'}
               </Button>
             )}
@@ -352,13 +419,23 @@ export default function RsvpPage() {
 
       </div>
       </div>
+
+      {event?.invitation_image_url && (
+        <Lightbox
+          open={lightboxOpen}
+          close={() => setLightboxOpen(false)}
+          slides={[{ src: event.invitation_image_url }]}
+          plugins={[Zoom]}
+          carousel={{ finite: true }}
+        />
+      )}
     </div>
   )
 }
 
 function Screen({ children }) {
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-6 text-center bg-gradient-to-b from-amber-50 via-[#fdf8ef] to-amber-50/30">
+    <div className="min-h-screen flex flex-col items-center justify-center p-6 text-center bg-[#FFF1E9]">
       {children}
     </div>
   )
