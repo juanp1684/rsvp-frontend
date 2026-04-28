@@ -204,17 +204,28 @@ export default function RsvpPage() {
         </div>
 
         {/* Parents */}
-        {(event?.partner1_parents || event?.partner2_parents) && (
-          <div className="text-center flex flex-col gap-1">
-            {event.partner1_parents && (
-              <p className="text-sm text-[#735749]">{event.partner1_parents}</p>
-            )}
-            {event.partner1_parents && event.partner2_parents && (
-              <p className="text-xs text-[#C0A18F]">&</p>
-            )}
-            {event.partner2_parents && (
-              <p className="text-sm text-[#735749]">{event.partner2_parents}</p>
-            )}
+        {(event?.partner1_parent1 || event?.partner1_parent2 || event?.partner2_parent1 || event?.partner2_parent2) && (
+          <div className="w-full text-center flex flex-col items-center gap-5">
+            <div className="flex flex-col items-center gap-1">
+              <p className="text-xs uppercase tracking-[0.2em] text-[#412D26]/60">Con la bendición de</p>
+              <p className="font-display italic text-2xl text-[#735749]">nuestros padres</p>
+            </div>
+            <div className="w-full grid grid-cols-1 sm:grid-cols-2 gap-6">
+              {(event.partner1_parent1 || event.partner1_parent2) && (
+                <div className="flex flex-col items-center gap-2">
+                  <p className="text-xs uppercase tracking-[0.15em] text-[#412D26]/60">De la novia</p>
+                  {event.partner1_parent1 && <p className="italic text-[#412D26]">{event.partner1_parent1}</p>}
+                  {event.partner1_parent2 && <p className="italic text-[#412D26]">y {event.partner1_parent2}</p>}
+                </div>
+              )}
+              {(event.partner2_parent1 || event.partner2_parent2) && (
+                <div className="flex flex-col items-center gap-2">
+                  <p className="text-xs uppercase tracking-[0.15em] text-[#412D26]/60">Del novio</p>
+                  {event.partner2_parent1 && <p className="italic text-[#412D26]">{event.partner2_parent1}</p>}
+                  {event.partner2_parent2 && <p className="italic text-[#412D26]">y {event.partner2_parent2}</p>}
+                </div>
+              )}
+            </div>
           </div>
         )}
 

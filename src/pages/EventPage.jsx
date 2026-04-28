@@ -92,8 +92,8 @@ export default function EventPage() {
       {/* Event details */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-3 text-sm border rounded-lg p-5">
         <Detail label="Name" value={event.name} />
-        <Detail label="Partner 1 parents" value={event.partner1_parents} />
-        <Detail label="Partner 2 parents" value={event.partner2_parents} />
+        <Detail label="De la novia" value={[event.partner1_parent1, event.partner1_parent2].filter(Boolean).join(' & ')} />
+        <Detail label="Del novio" value={[event.partner2_parent1, event.partner2_parent2].filter(Boolean).join(' & ')} />
         <Detail label="Dress Code" value={event.dress_code} />
         <Detail
           label="Ceremony"
