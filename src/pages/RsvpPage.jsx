@@ -229,8 +229,8 @@ export default function RsvpPage() {
           </div>
         )}
 
-        {/* Ceremony + Reception */}
-        {(event?.ceremony_at || event?.reception_at) && (
+        {/* Ceremonies */}
+        {(event?.ceremony_at || event?.civil_at) && (
           <div className="w-full grid grid-cols-1 md:grid-cols-2 gap-8">
             {event?.ceremony_at && (
               <div className="flex flex-col gap-3">
@@ -254,28 +254,52 @@ export default function RsvpPage() {
                 </div>
               </div>
             )}
-            {event?.reception_at && (
+            {event?.civil_at && (
               <div className="flex flex-col gap-3">
                 <div className="w-full aspect-video bg-muted rounded-xl overflow-hidden">
-                  {event.reception_image_url
-                    ? <img src={event.reception_image_url} alt="Recepción" className="w-full h-full object-cover" />
+                  {event.civil_image_url
+                    ? <img src={event.civil_image_url} alt="Ceremonia Civil" className="w-full h-full object-cover" />
                     : <div className="w-full h-full flex flex-col items-center justify-center gap-2">
                         <ImageIcon className="h-10 w-10 text-muted-foreground/25" />
-                        <p className="text-xs text-muted-foreground/40 uppercase tracking-widest">Recepción</p>
+                        <p className="text-xs text-muted-foreground/40 uppercase tracking-widest">Civil</p>
                       </div>
                   }
                 </div>
                 <div className="flex flex-col gap-0.5">
-                  <p className="font-semibold text-[#412D26]">Recepción</p>
+                  <p className="font-semibold text-[#412D26]">Ceremonia Civil</p>
                   <p className="text-sm text-muted-foreground">
-                    {new Date(event.reception_at).toLocaleString('es-MX', { dateStyle: 'long', timeStyle: 'short' })}
+                    {new Date(event.civil_at).toLocaleString('es-MX', { dateStyle: 'long', timeStyle: 'short' })}
                   </p>
-                  {event.reception_url
-                    ? <a href={event.reception_url} target="_blank" rel="noopener noreferrer" className="text-sm text-[#735749] underline">{event.reception_location}</a>
-                    : <p className="text-sm text-muted-foreground">{event.reception_location}</p>}
+                  {event.civil_url
+                    ? <a href={event.civil_url} target="_blank" rel="noopener noreferrer" className="text-sm text-[#735749] underline">{event.civil_location}</a>
+                    : <p className="text-sm text-muted-foreground">{event.civil_location}</p>}
                 </div>
               </div>
             )}
+          </div>
+        )}
+
+        {/* Reception */}
+        {event?.reception_at && (
+          <div className="w-full flex flex-col gap-3">
+            <div className="w-full aspect-video bg-muted rounded-xl overflow-hidden">
+              {event.reception_image_url
+                ? <img src={event.reception_image_url} alt="Recepción" className="w-full h-full object-cover" />
+                : <div className="w-full h-full flex flex-col items-center justify-center gap-2">
+                    <ImageIcon className="h-10 w-10 text-muted-foreground/25" />
+                    <p className="text-xs text-muted-foreground/40 uppercase tracking-widest">Recepción</p>
+                  </div>
+              }
+            </div>
+            <div className="flex flex-col gap-0.5">
+              <p className="font-semibold text-[#412D26]">Recepción</p>
+              <p className="text-sm text-muted-foreground">
+                {new Date(event.reception_at).toLocaleString('es-MX', { dateStyle: 'long', timeStyle: 'short' })}
+              </p>
+              {event.reception_url
+                ? <a href={event.reception_url} target="_blank" rel="noopener noreferrer" className="text-sm text-[#735749] underline">{event.reception_location}</a>
+                : <p className="text-sm text-muted-foreground">{event.reception_location}</p>}
+            </div>
           </div>
         )}
 

@@ -37,6 +37,9 @@ export default function EventEditDialog({ event, open, onOpenChange }) {
         ceremony_at: toLocalDatetimeValue(event.ceremony_at),
         ceremony_location: event.ceremony_location ?? '',
         ceremony_url: event.ceremony_url ?? '',
+        civil_at: toLocalDatetimeValue(event.civil_at),
+        civil_location: event.civil_location ?? '',
+        civil_url: event.civil_url ?? '',
         reception_at: toLocalDatetimeValue(event.reception_at),
         reception_location: event.reception_location ?? '',
         reception_url: event.reception_url ?? '',
@@ -84,6 +87,7 @@ export default function EventEditDialog({ event, open, onOpenChange }) {
       await api.put(`/events/${event.id}`, {
         ...form,
         ceremony_at:        toUTC(form.ceremony_at),
+        civil_at:           toUTC(form.civil_at),
         reception_at:       toUTC(form.reception_at),
         rsvp_deadline:      toUTC(form.rsvp_deadline),
         late_rsvp_deadline: toUTC(form.late_rsvp_deadline),
@@ -130,6 +134,15 @@ export default function EventEditDialog({ event, open, onOpenChange }) {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <Field label="Location" id="ceremony_location" value={form.ceremony_location} onChange={set('ceremony_location')} required />
               <Field label="URL" id="ceremony_url" type="url" value={form.ceremony_url} onChange={set('ceremony_url')} />
+            </div>
+          </Section>
+
+          {/* Civil ceremony */}
+          <Section title="Civil ceremony">
+            <Field label="Date & time" id="civil_at" type="datetime-local" value={form.civil_at} onChange={set('civil_at')} />
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <Field label="Location" id="civil_location" value={form.civil_location} onChange={set('civil_location')} />
+              <Field label="URL" id="civil_url" type="url" value={form.civil_url} onChange={set('civil_url')} />
             </div>
           </Section>
 
