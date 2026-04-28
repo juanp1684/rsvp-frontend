@@ -203,6 +203,21 @@ export default function RsvpPage() {
           <h1 className="text-3xl font-semibold">{invitee.full_name}</h1>
         </div>
 
+        {/* Parents */}
+        {(event?.partner1_parents || event?.partner2_parents) && (
+          <div className="text-center flex flex-col gap-1">
+            {event.partner1_parents && (
+              <p className="text-sm text-[#735749]">{event.partner1_parents}</p>
+            )}
+            {event.partner1_parents && event.partner2_parents && (
+              <p className="text-xs text-[#C0A18F]">&</p>
+            )}
+            {event.partner2_parents && (
+              <p className="text-sm text-[#735749]">{event.partner2_parents}</p>
+            )}
+          </div>
+        )}
+
         {/* Ceremony + Reception */}
         {(event?.ceremony_at || event?.reception_at) && (
           <div className="w-full grid grid-cols-1 md:grid-cols-2 gap-8">

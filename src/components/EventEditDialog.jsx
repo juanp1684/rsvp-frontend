@@ -26,6 +26,8 @@ export default function EventEditDialog({ event, open, onOpenChange }) {
       setError(null)
       setForm({
         name: event.name ?? '',
+        partner1_parents: event.partner1_parents ?? '',
+        partner2_parents: event.partner2_parents ?? '',
         dress_code: event.dress_code ?? '',
         notes: event.notes ?? '',
         ceremony_at: toLocalDatetimeValue(event.ceremony_at),
@@ -97,6 +99,10 @@ export default function EventEditDialog({ event, open, onOpenChange }) {
           {/* General */}
           <Section title="General">
             <Field label="Name" id="name" value={form.name} onChange={set('name')} required />
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <Field label="Partner 1 parents" id="partner1_parents" value={form.partner1_parents} onChange={set('partner1_parents')} placeholder="Sr. y Sra. García" />
+              <Field label="Partner 2 parents" id="partner2_parents" value={form.partner2_parents} onChange={set('partner2_parents')} placeholder="Sr. y Sra. López" />
+            </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <Field label="Dress code" id="dress_code" value={form.dress_code} onChange={set('dress_code')} />
               <div /> {/* spacer */}
