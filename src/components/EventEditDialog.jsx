@@ -15,6 +15,8 @@ const toLocalDatetimeValue = (iso) => {
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`
 }
 
+const toUTC = (localStr) => localStr ? new Date(localStr).toISOString() : null
+
 export default function EventEditDialog({ event, open, onOpenChange }) {
   const qc = useQueryClient()
   const [form, setForm] = useState({})
@@ -77,7 +79,13 @@ export default function EventEditDialog({ event, open, onOpenChange }) {
 
     setLoading(true)
     try {
-      await api.put(`/events/${event.id}`, form)
+      await api.put(`/events/${event.id}`, {
+        ...form,
+        ceremony_at:        toUTC(form.ceremony_at),
+        reception_at:       toUTC(form.reception_at),
+        rsvp_deadline:      toUTC(form.rsvp_deadline),
+        late_rsvp_deadline: toUTC(form.late_rsvp_deadline),
+      })
       qc.invalidateQueries({ queryKey: ['event'] })
       toast.success('Event updated.')
       onOpenChange(false)
