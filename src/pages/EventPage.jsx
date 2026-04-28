@@ -8,8 +8,8 @@ import EventEditDialog from '@/components/EventEditDialog'
 import { Upload, Trash2, ImageIcon, Pencil, Music2 } from 'lucide-react'
 
 const RSVP_IMAGE_SLOTS = [
-  { key: 'ceremony',      label: 'Ceremony',              aspect: 'aspect-video',  ratio: '16:9' },
   { key: 'civil',         label: 'Civil Ceremony',        aspect: 'aspect-video',  ratio: '16:9', optional: true },
+  { key: 'ceremony',      label: 'Ceremony',              aspect: 'aspect-video',  ratio: '16:9' },
   { key: 'reception',     label: 'Reception',             aspect: 'aspect-video',  ratio: '16:9' },
   { key: 'couple',        label: 'Couple Photo',          aspect: 'aspect-[10/6]', ratio: '10:6' },
   { key: 'couple_mobile', label: 'Couple Photo (Mobile)', aspect: 'aspect-[4/5]',  ratio: '4:5', optional: true },
