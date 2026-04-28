@@ -231,29 +231,7 @@ export default function RsvpPage() {
 
         {/* Ceremonies */}
         {(event?.ceremony_at || event?.civil_at) && (
-          <div className="w-full grid grid-cols-1 md:grid-cols-2 gap-8">
-            {event?.ceremony_at && (
-              <div className="flex flex-col gap-3">
-                <div className="w-full aspect-video bg-muted rounded-xl overflow-hidden">
-                  {event.ceremony_image_url
-                    ? <img src={event.ceremony_image_url} alt="Ceremonia" className="w-full h-full object-cover" />
-                    : <div className="w-full h-full flex flex-col items-center justify-center gap-2">
-                        <ImageIcon className="h-10 w-10 text-muted-foreground/25" />
-                        <p className="text-xs text-muted-foreground/40 uppercase tracking-widest">Ceremonia</p>
-                      </div>
-                  }
-                </div>
-                <div className="flex flex-col gap-0.5">
-                  <p className="font-semibold text-[#412D26]">Ceremonia</p>
-                  <p className="text-sm text-muted-foreground">
-                    {new Date(event.ceremony_at).toLocaleString('es-MX', { dateStyle: 'long', timeStyle: 'short' })}
-                  </p>
-                  {event.ceremony_url
-                    ? <a href={event.ceremony_url} target="_blank" rel="noopener noreferrer" className="text-sm text-[#735749] underline">{event.ceremony_location}</a>
-                    : <p className="text-sm text-muted-foreground">{event.ceremony_location}</p>}
-                </div>
-              </div>
-            )}
+          <div className={`w-full grid grid-cols-1 gap-8 ${event?.civil_at && event?.ceremony_at ? 'md:grid-cols-2' : ''}`}>
             {event?.civil_at && (
               <div className="flex flex-col gap-3">
                 <div className="w-full aspect-video bg-muted rounded-xl overflow-hidden">
@@ -273,6 +251,28 @@ export default function RsvpPage() {
                   {event.civil_url
                     ? <a href={event.civil_url} target="_blank" rel="noopener noreferrer" className="text-sm text-[#735749] underline">{event.civil_location}</a>
                     : <p className="text-sm text-muted-foreground">{event.civil_location}</p>}
+                </div>
+              </div>
+            )}
+            {event?.ceremony_at && (
+              <div className="flex flex-col gap-3">
+                <div className="w-full aspect-video bg-muted rounded-xl overflow-hidden">
+                  {event.ceremony_image_url
+                    ? <img src={event.ceremony_image_url} alt="Ceremonia" className="w-full h-full object-cover" />
+                    : <div className="w-full h-full flex flex-col items-center justify-center gap-2">
+                        <ImageIcon className="h-10 w-10 text-muted-foreground/25" />
+                        <p className="text-xs text-muted-foreground/40 uppercase tracking-widest">Ceremonia</p>
+                      </div>
+                  }
+                </div>
+                <div className="flex flex-col gap-0.5">
+                  <p className="font-semibold text-[#412D26]">Ceremonia</p>
+                  <p className="text-sm text-muted-foreground">
+                    {new Date(event.ceremony_at).toLocaleString('es-MX', { dateStyle: 'long', timeStyle: 'short' })}
+                  </p>
+                  {event.ceremony_url
+                    ? <a href={event.ceremony_url} target="_blank" rel="noopener noreferrer" className="text-sm text-[#735749] underline">{event.ceremony_location}</a>
+                    : <p className="text-sm text-muted-foreground">{event.ceremony_location}</p>}
                 </div>
               </div>
             )}
