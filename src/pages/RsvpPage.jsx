@@ -140,8 +140,15 @@ export default function RsvpPage() {
       {/* Event title banner */}
       {event?.name && (
         <div className="w-full py-8 px-6 flex justify-center bg-[#FFF1E9]">
-          <h1 className="font-display italic text-4xl md:text-6xl text-center leading-tight text-[#412D26]/80">
-            {event.name}
+          <h1 className="font-display uppercase tracking-widest text-4xl md:text-6xl text-center leading-tight text-[#735749]">
+            {event.name.split('&').map((part, i, arr) => (
+              <span key={i}>
+                {part}
+                {i < arr.length - 1 && (
+                  <span style={{ fontFamily: "'Cormorant Garamond', serif" }}>&</span>
+                )}
+              </span>
+            ))}
           </h1>
         </div>
       )}
@@ -200,7 +207,7 @@ export default function RsvpPage() {
         {/* Invitee name + event title */}
         <div className="text-center">
           <p className="text-[#735749]/60 text-xs uppercase tracking-widest mb-2">Invitación</p>
-          <h1 className="text-3xl font-semibold">{invitee.full_name}</h1>
+          <h1 className="text-3xl font-semibold font-subtitle">{invitee.full_name}</h1>
         </div>
 
         {/* Parents */}
@@ -208,7 +215,7 @@ export default function RsvpPage() {
           <div className="w-full text-center flex flex-col items-center gap-5">
             <div className="flex flex-col items-center gap-1">
               <p className="text-xs uppercase tracking-[0.2em] text-[#412D26]/60">Con la bendición de</p>
-              <p className="font-display italic text-2xl text-[#735749]">nuestros padres</p>
+              <p className="font-display italic uppercase text-2xl text-[#735749]">nuestros padres</p>
             </div>
             <div className="w-full grid grid-cols-1 sm:grid-cols-2 gap-6">
               {(event.partner1_parent1 || event.partner1_parent2) && (
@@ -271,7 +278,7 @@ export default function RsvpPage() {
                   }
                 </div>
                 <div className="flex flex-col gap-0.5">
-                  <p className="font-semibold text-[#412D26]">Ceremonia Civil</p>
+                  <p className="font-semibold font-subtitle text-[#412D26]">Ceremonia Civil</p>
                   <p className="text-sm text-muted-foreground">
                     {new Date(event.civil_at).toLocaleString('es-MX', { dateStyle: 'long', timeStyle: 'short' })}
                   </p>
@@ -293,7 +300,7 @@ export default function RsvpPage() {
                   }
                 </div>
                 <div className="flex flex-col gap-0.5">
-                  <p className="font-semibold text-[#412D26]">Ceremonia</p>
+                  <p className="font-semibold font-subtitle text-[#412D26]">Ceremonia</p>
                   <p className="text-sm text-muted-foreground">
                     {new Date(event.ceremony_at).toLocaleString('es-MX', { dateStyle: 'long', timeStyle: 'short' })}
                   </p>
@@ -319,7 +326,7 @@ export default function RsvpPage() {
               }
             </div>
             <div className="flex flex-col gap-0.5">
-              <p className="font-semibold text-[#412D26]">Recepción</p>
+              <p className="font-semibold font-subtitle text-[#412D26]">Recepción</p>
               <p className="text-sm text-muted-foreground">
                 {new Date(event.reception_at).toLocaleString('es-MX', { dateStyle: 'long', timeStyle: 'short' })}
               </p>
@@ -379,7 +386,7 @@ export default function RsvpPage() {
 
             {/* Attendance */}
             <div className="flex flex-col gap-2">
-              <p className="text-sm font-medium text-center">¿Asistirás a nuestra boda?</p>
+              <p className="text-sm font-medium font-subtitle text-center">¿Asistirás a nuestra boda?</p>
               <div className="grid grid-cols-2 gap-3">
                 <Button
                   type="button"
