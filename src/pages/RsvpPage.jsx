@@ -50,18 +50,21 @@ export default function RsvpPage() {
   useEffect(() => {
     if (!event?.song_url) return
     const tryPlay = () => {
-      if (!audioRef.current || isPlaying) return
+      window.removeEventListener('click', tryPlay)
+      window.removeEventListener('touchstart', tryPlay)
+      window.removeEventListener('scroll', tryPlay)
+      if (!audioRef.current) return
       audioRef.current.play().then(() => setIsPlaying(true)).catch(() => {})
     }
-    window.addEventListener('click', tryPlay, { once: true })
-    window.addEventListener('touchstart', tryPlay, { once: true })
-    window.addEventListener('scroll', tryPlay, { once: true })
+    window.addEventListener('click', tryPlay)
+    window.addEventListener('touchstart', tryPlay)
+    window.addEventListener('scroll', tryPlay)
     return () => {
       window.removeEventListener('click', tryPlay)
       window.removeEventListener('touchstart', tryPlay)
       window.removeEventListener('scroll', tryPlay)
     }
-  }, [event?.song_url, isPlaying])
+  }, [event?.song_url])
 
   useEffect(() => {
     if (!invitee || invitee.status === 'pending') return
