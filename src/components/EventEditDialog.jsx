@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
+import { useAuthStore } from '@/store/authStore'
 import { toast } from 'sonner'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
@@ -26,6 +27,7 @@ const toUTC = (localStr) => localStr ? new Date(localStr).toISOString() : null
 
 export default function EventEditDialog({ event, open, onOpenChange }) {
   const qc = useQueryClient()
+  const setActiveEvent = useAuthStore((s) => s.setActiveEvent)
   const [form, setForm] = useState({})
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
@@ -98,7 +100,7 @@ export default function EventEditDialog({ event, open, onOpenChange }) {
 
     setLoading(true)
     try {
-      await api.put(`/events/${event.id}`, {
+      const { data: updated } = await api.put(`/events/${event.id}`, {
         ...form,
         ceremony_at:        toUTC(form.ceremony_at),
         civil_at:           toUTC(form.civil_at),
@@ -106,6 +108,7 @@ export default function EventEditDialog({ event, open, onOpenChange }) {
         rsvp_deadline:      toUTC(form.rsvp_deadline),
         late_rsvp_deadline: toUTC(form.late_rsvp_deadline),
       })
+      setActiveEvent(updated)
       qc.invalidateQueries({ queryKey: ['event'] })
       toast.success('Event updated.')
       onOpenChange(false)
