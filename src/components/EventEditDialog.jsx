@@ -32,6 +32,9 @@ export default function EventEditDialog({ event, open, onOpenChange }) {
         partner1_parent2: event.partner1_parent2 ?? '',
         partner2_parent1: event.partner2_parent1 ?? '',
         partner2_parent2: event.partner2_parent2 ?? '',
+        civil_ceremony_same_venue: event.civil_ceremony_same_venue ?? false,
+        civil_reception_same_venue: event.civil_reception_same_venue ?? false,
+        ceremony_reception_same_venue: event.ceremony_reception_same_venue ?? false,
         dress_code: event.dress_code ?? '',
         notes: event.notes ?? '',
         ceremony_at: toLocalDatetimeValue(event.ceremony_at),
@@ -183,6 +186,39 @@ export default function EventEditDialog({ event, open, onOpenChange }) {
                   placeholder="Este evento es para adultos. Te pedimos no traer niños."
                 />
               )}
+            </div>
+          </Section>
+
+          {/* Venue sharing */}
+          <Section title="Venue sharing">
+            <p className="text-xs text-muted-foreground -mt-1">When ceremonies share the same venue, the RSVP page will show them grouped under one photo and address.</p>
+            <div className="flex flex-col gap-3">
+              {form.civil_at !== undefined && (
+                <div className="flex items-center gap-2">
+                  <Checkbox
+                    id="civil_ceremony_same_venue"
+                    checked={form.civil_ceremony_same_venue}
+                    onCheckedChange={(v) => setForm((p) => ({ ...p, civil_ceremony_same_venue: !!v }))}
+                  />
+                  <Label htmlFor="civil_ceremony_same_venue">Civil ceremony and ceremony are at the same venue</Label>
+                </div>
+              )}
+              <div className="flex items-center gap-2">
+                <Checkbox
+                  id="civil_reception_same_venue"
+                  checked={form.civil_reception_same_venue}
+                  onCheckedChange={(v) => setForm((p) => ({ ...p, civil_reception_same_venue: !!v }))}
+                />
+                <Label htmlFor="civil_reception_same_venue">Civil ceremony and reception are at the same venue</Label>
+              </div>
+              <div className="flex items-center gap-2">
+                <Checkbox
+                  id="ceremony_reception_same_venue"
+                  checked={form.ceremony_reception_same_venue}
+                  onCheckedChange={(v) => setForm((p) => ({ ...p, ceremony_reception_same_venue: !!v }))}
+                />
+                <Label htmlFor="ceremony_reception_same_venue">Ceremony and reception are at the same venue</Label>
+              </div>
             </div>
           </Section>
 

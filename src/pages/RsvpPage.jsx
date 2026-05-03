@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { ImageIcon, Play, Pause } from 'lucide-react'
+import CeremoniesBlock from '@/components/CeremoniesBlock'
 import Lightbox from 'yet-another-react-lightbox'
 import Zoom from 'yet-another-react-lightbox/plugins/zoom'
 import 'yet-another-react-lightbox/styles.css'
@@ -135,17 +136,17 @@ export default function RsvpPage() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#FFF1E9]">
+    <div className="min-h-screen flex flex-col bg-[#A47864]">
 
       {/* Event title banner */}
       {event?.name && (
-        <div className="w-full py-8 px-6 flex justify-center bg-[#FFF1E9]">
-          <h1 className="font-display uppercase tracking-widest text-4xl md:text-6xl text-center leading-tight text-[#735749]">
+        <div className="w-full py-8 px-6 flex justify-center">
+          <h1 className="font-display uppercase tracking-widest text-4xl md:text-6xl text-center leading-tight text-[#FFF1E9]">
             {event.name.split('&').map((part, i, arr) => (
               <span key={i}>
                 {part}
                 {i < arr.length - 1 && (
-                  <span style={{ fontFamily: "'Cormorant Garamond', serif" }}>&</span>
+                  <span style={{ fontFamily: "'Cormorant Garamond', serif", color: '#FFF1E9' }}>&</span>
                 )}
               </span>
             ))}
@@ -176,7 +177,7 @@ export default function RsvpPage() {
         <>
           <audio ref={audioRef} src={event.song_url} loop preload="auto" />
           <div className="w-full flex flex-col items-center gap-2 py-4">
-            <p className={`text-xs text-[#735749]/60 uppercase tracking-widest ${isPlaying ? 'invisible' : ''}`}>Dale Play</p>
+            <p className={`text-xs text-[#FFF1E9]/60 uppercase tracking-widest ${isPlaying ? 'invisible' : ''}`}>Play</p>
             <button
               type="button"
               onClick={() => {
@@ -189,7 +190,7 @@ export default function RsvpPage() {
                   audio.play().then(() => setIsPlaying(true)).catch(() => {})
                 }
               }}
-              className="flex items-center justify-center w-12 h-12 rounded-full bg-[#412D26]/10 hover:bg-[#412D26]/20 transition-colors text-[#412D26]"
+              className="flex items-center justify-center w-12 h-12 rounded-full bg-[#FFF1E9]/20 hover:bg-[#FFF1E9]/30 transition-colors text-[#FFF1E9]"
               aria-label={isPlaying ? 'Pausar música' : 'Reproducir música'}
             >
               {isPlaying ? <Pause className="h-5 w-5 fill-current" /> : <Play className="h-5 w-5 fill-current" />}
@@ -207,7 +208,7 @@ export default function RsvpPage() {
         {/* Invitee name + event title */}
         <div className="text-center">
           <p className="text-[#735749]/60 text-xs uppercase tracking-widest mb-2">Invitación</p>
-          <h1 className="text-3xl font-semibold font-subtitle">{invitee.full_name}</h1>
+          <h1 className="text-5xl font-script">{invitee.full_name}</h1>
         </div>
 
         {/* Parents */}
@@ -263,78 +264,9 @@ export default function RsvpPage() {
           </div>
         )}
 
-        {/* Ceremonies */}
-        {(event?.ceremony_at || event?.civil_at) && (
-          <div className={`w-full grid grid-cols-1 gap-8 ${event?.civil_at && event?.ceremony_at ? 'md:grid-cols-2' : ''}`}>
-            {event?.civil_at && (
-              <div className="flex flex-col gap-3">
-                <div className="w-full aspect-video bg-muted rounded-xl overflow-hidden">
-                  {event.civil_image_url
-                    ? <img src={event.civil_image_url} alt="Ceremonia Civil" className="w-full h-full object-cover" />
-                    : <div className="w-full h-full flex flex-col items-center justify-center gap-2">
-                        <ImageIcon className="h-10 w-10 text-muted-foreground/25" />
-                        <p className="text-xs text-muted-foreground/40 uppercase tracking-widest">Civil</p>
-                      </div>
-                  }
-                </div>
-                <div className="flex flex-col gap-0.5">
-                  <p className="font-semibold font-subtitle text-[#412D26]">Ceremonia Civil</p>
-                  <p className="text-sm text-muted-foreground">
-                    {new Date(event.civil_at).toLocaleString('es-MX', { dateStyle: 'long', timeStyle: 'short' })}
-                  </p>
-                  {event.civil_url
-                    ? <a href={event.civil_url} target="_blank" rel="noopener noreferrer" className="text-sm text-[#735749] underline">{event.civil_location}</a>
-                    : <p className="text-sm text-muted-foreground">{event.civil_location}</p>}
-                </div>
-              </div>
-            )}
-            {event?.ceremony_at && (
-              <div className="flex flex-col gap-3">
-                <div className="w-full aspect-video bg-muted rounded-xl overflow-hidden">
-                  {event.ceremony_image_url
-                    ? <img src={event.ceremony_image_url} alt="Ceremonia" className="w-full h-full object-cover" />
-                    : <div className="w-full h-full flex flex-col items-center justify-center gap-2">
-                        <ImageIcon className="h-10 w-10 text-muted-foreground/25" />
-                        <p className="text-xs text-muted-foreground/40 uppercase tracking-widest">Ceremonia</p>
-                      </div>
-                  }
-                </div>
-                <div className="flex flex-col gap-0.5">
-                  <p className="font-semibold font-subtitle text-[#412D26]">Ceremonia</p>
-                  <p className="text-sm text-muted-foreground">
-                    {new Date(event.ceremony_at).toLocaleString('es-MX', { dateStyle: 'long', timeStyle: 'short' })}
-                  </p>
-                  {event.ceremony_url
-                    ? <a href={event.ceremony_url} target="_blank" rel="noopener noreferrer" className="text-sm text-[#735749] underline">{event.ceremony_location}</a>
-                    : <p className="text-sm text-muted-foreground">{event.ceremony_location}</p>}
-                </div>
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* Reception */}
-        {event?.reception_at && (
-          <div className="w-full flex flex-col gap-3">
-            <div className="w-full aspect-video bg-muted rounded-xl overflow-hidden">
-              {event.reception_image_url
-                ? <img src={event.reception_image_url} alt="Recepción" className="w-full h-full object-cover" />
-                : <div className="w-full h-full flex flex-col items-center justify-center gap-2">
-                    <ImageIcon className="h-10 w-10 text-muted-foreground/25" />
-                    <p className="text-xs text-muted-foreground/40 uppercase tracking-widest">Recepción</p>
-                  </div>
-              }
-            </div>
-            <div className="flex flex-col gap-0.5">
-              <p className="font-semibold font-subtitle text-[#412D26]">Recepción</p>
-              <p className="text-sm text-muted-foreground">
-                {new Date(event.reception_at).toLocaleString('es-MX', { dateStyle: 'long', timeStyle: 'short' })}
-              </p>
-              {event.reception_url
-                ? <a href={event.reception_url} target="_blank" rel="noopener noreferrer" className="text-sm text-[#735749] underline">{event.reception_location}</a>
-                : <p className="text-sm text-muted-foreground">{event.reception_location}</p>}
-            </div>
-          </div>
+        {/* Ceremonies + Reception */}
+        {event && (event.civil_at || event.ceremony_at || event.reception_at) && (
+          <CeremoniesBlock event={event} />
         )}
 
         {/* Dress code + deadline */}
