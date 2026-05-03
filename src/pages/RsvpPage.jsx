@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { useParams } from 'react-router-dom'
 import { useQuery, useMutation } from '@tanstack/react-query'
 import api from '@/lib/api'
@@ -48,16 +48,16 @@ export default function RsvpPage() {
     if (audioRef.current) audioRef.current.volume = 0.5
   }, [event?.song_url])
 
-  const tryAutoplay = () => {
+  const tryAutoplay = useCallback(() => {
     if (autoplayedRef.current || !audioRef.current) return
     autoplayedRef.current = true
     audioRef.current.play().then(() => setIsPlaying(true)).catch(() => {})
-  }
+  }, [])
 
   useEffect(() => {
     document.addEventListener('scroll', tryAutoplay, { passive: true, once: true })
     return () => document.removeEventListener('scroll', tryAutoplay)
-  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [tryAutoplay])
 
   useEffect(() => {
     if (!invitee || invitee.status === 'pending') return
