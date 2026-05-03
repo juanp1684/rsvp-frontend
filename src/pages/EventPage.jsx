@@ -9,7 +9,7 @@ import { Upload, Trash2, ImageIcon, Pencil, Music2 } from 'lucide-react'
 
 const RSVP_IMAGE_SLOTS = [
   { key: 'civil',         label: 'Civil Ceremony',        aspect: 'aspect-video',  ratio: '16:9', optional: true },
-  { key: 'ceremony',      label: 'Ceremony',              aspect: 'aspect-video',  ratio: '16:9' },
+  { key: 'ceremony',      label: 'Religious Ceremony',    aspect: 'aspect-video',  ratio: '16:9' },
   { key: 'reception',     label: 'Reception',             aspect: 'aspect-video',  ratio: '16:9' },
   { key: 'couple',        label: 'Couple Photo',          aspect: 'aspect-[10/6]', ratio: '10:6' },
   { key: 'couple_mobile', label: 'Couple Photo (Mobile)', aspect: 'aspect-[4/5]',  ratio: '4:5', optional: true },
@@ -97,14 +97,14 @@ export default function EventPage() {
         <Detail label="Del novio" value={[event.partner2_parent1, event.partner2_parent2].filter(Boolean).join(' & ')} />
         <Detail label="Dress Code" value={event.dress_code} />
         <Detail
-          label="Ceremony"
+          label="Religious Ceremony"
           value={event.ceremony_at && fmt(event.ceremony_at, { dateStyle: 'long', timeStyle: 'short' })}
         />
         <Detail
           label="Reception"
           value={event.reception_at && fmt(event.reception_at, { dateStyle: 'long', timeStyle: 'short' })}
         />
-        <Detail label="Ceremony Location" value={event.ceremony_location} url={event.ceremony_url} />
+        <Detail label="Religious Ceremony Location" value={event.ceremony_location} url={event.ceremony_url} />
         <Detail label="Reception Location" value={event.reception_location} url={event.reception_url} />
         <Detail
           label="RSVP Deadline"

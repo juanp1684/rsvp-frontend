@@ -140,8 +140,8 @@ export default function EventEditDialog({ event, open, onOpenChange }) {
             </div>
           </Section>
 
-          {/* Ceremony */}
-          <Section title="Ceremony">
+          {/* Religious ceremony */}
+          <Section title="Religious ceremony">
             <Field label="Date & time" id="ceremony_at" type="datetime-local" value={form.ceremony_at} onChange={set('ceremony_at')} required />
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <Field label="Location" id="ceremony_location" value={form.ceremony_location} onChange={set('ceremony_location')} required />
