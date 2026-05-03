@@ -259,15 +259,6 @@ export default function RsvpPage() {
           }
         </div>
 
-        {/* No-kids notice */}
-        {event?.no_kids && (
-          <div className="w-full rounded-xl border border-[#C0A18F]/60 bg-[#C0A18F]/10 px-4 py-3 text-center">
-            <p className="text-sm text-[#735749]">
-              {event.no_kids_message || 'Este evento es para adultos. Te pedimos no traer niños.'}
-            </p>
-          </div>
-        )}
-
         {/* Ceremonies + Reception */}
         {event && (event.civil_at || event.ceremony_at || event.reception_at) && (
           <CeremoniesBlock event={event} />
@@ -311,6 +302,15 @@ export default function RsvpPage() {
           <div className="w-full rounded-xl border border-[#C0A18F]/60 bg-[#C0A18F]/10 px-4 py-3 text-center">
             <p className="text-xs uppercase tracking-[0.15em] text-[#412D26]/60 mb-1">Recomendaciones</p>
             <p className="text-sm text-[#735749]">{event.recommendations}</p>
+          </div>
+        )}
+
+        {/* No-kids notice */}
+        {event?.no_kids && (
+          <div className="w-full rounded-xl border border-[#C0A18F]/60 bg-[#C0A18F]/10 px-4 py-3 text-center">
+            <p className="text-sm text-[#735749]">
+              {event.no_kids_message || 'Este evento es para adultos. Te pedimos no traer niños.'}
+            </p>
           </div>
         )}
 
