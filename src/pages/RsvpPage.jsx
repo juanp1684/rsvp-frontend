@@ -55,7 +55,7 @@ export default function RsvpPage() {
   }, [])
 
   useEffect(() => {
-    document.addEventListener('scroll', tryAutoplay, { passive: true, once: true })
+    document.addEventListener('scroll', tryAutoplay, { passive: true })
     return () => document.removeEventListener('scroll', tryAutoplay)
   }, [tryAutoplay])
 
