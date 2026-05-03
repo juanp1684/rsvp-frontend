@@ -1,8 +1,9 @@
 import { ImageIcon } from 'lucide-react'
 
 const PRIORITY = ['reception', 'ceremony', 'civil']
-const LABELS = { civil: 'Ceremonia Civil', ceremony: 'Ceremonia', reception: 'Recepción' }
+const LABELS = { civil: 'Ceremonia Civil', ceremony: 'Ceremonia Religiosa', reception: 'Recepción' }
 const AT_KEYS = { civil: 'civil_at', ceremony: 'ceremony_at', reception: 'reception_at' }
+const ORDER = { civil: 0, ceremony: 1, reception: 2 }
 
 function computeGroups(nodes, edges) {
   const parent = Object.fromEntries(nodes.map(n => [n, n]))
@@ -55,12 +56,8 @@ export default function CeremoniesBlock({ event }) {
 
   const groups = computeGroups(nodes, edges)
 
-  groups.sort((a, b) => {
-    const aMin = Math.min(...a.map(k => new Date(event[AT_KEYS[k]]).getTime()))
-    const bMin = Math.min(...b.map(k => new Date(event[AT_KEYS[k]]).getTime()))
-    return aMin - bMin
-  })
-  groups.forEach(g => g.sort((a, b) => new Date(event[AT_KEYS[a]]) - new Date(event[AT_KEYS[b]])))
+  groups.sort((a, b) => Math.min(...a.map(k => ORDER[k])) - Math.min(...b.map(k => ORDER[k])))
+  groups.forEach(g => g.sort((a, b) => ORDER[a] - ORDER[b]))
 
   const gridCols = groups.length >= 2 ? 'md:grid-cols-2' : ''
 
