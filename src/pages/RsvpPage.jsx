@@ -49,16 +49,15 @@ export default function RsvpPage() {
   }, [event?.song_url])
 
   const tryAutoplay = () => {
-    if (autoplayedRef.current || !audioRef.current || !event?.song_url) return
+    if (autoplayedRef.current || !audioRef.current) return
     autoplayedRef.current = true
     audioRef.current.play().then(() => setIsPlaying(true)).catch(() => {})
   }
 
   useEffect(() => {
-    if (!event?.song_url) return
     document.addEventListener('scroll', tryAutoplay, { passive: true, once: true })
     return () => document.removeEventListener('scroll', tryAutoplay)
-  }, [event?.song_url]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (!invitee || invitee.status === 'pending') return
