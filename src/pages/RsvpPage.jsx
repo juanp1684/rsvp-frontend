@@ -227,7 +227,7 @@ export default function RsvpPage() {
             {event.subtitle && (
               <p className="text-xs uppercase tracking-[0.2em] text-[#412D26]/60">{event.subtitle}</p>
             )}
-            <p className="text-base uppercase tracking-[0.2em] text-[#412D26]/60">Nosotros</p>
+            <p className="text-2xl uppercase tracking-[0.2em] text-[#412D26]/60">Nosotros</p>
             <h2 className="font-display uppercase tracking-widest text-4xl md:text-6xl text-center leading-tight text-[#412D26]">
               {event.name.split('&').map((part, i, arr) => (
                 <span key={i}>
