@@ -44,10 +44,24 @@ export default function RsvpPage() {
     : (event?.deadline_passed ?? false)
 
   useEffect(() => {
-    if (!audioRef.current) return
-    audioRef.current.volume = 0.5
-    audioRef.current.play().then(() => setIsPlaying(true)).catch(() => {})
+    if (audioRef.current) audioRef.current.volume = 0.5
   }, [event?.song_url])
+
+  useEffect(() => {
+    if (!event?.song_url) return
+    const tryPlay = () => {
+      if (!audioRef.current || isPlaying) return
+      audioRef.current.play().then(() => setIsPlaying(true)).catch(() => {})
+    }
+    window.addEventListener('click', tryPlay, { once: true })
+    window.addEventListener('touchstart', tryPlay, { once: true })
+    window.addEventListener('scroll', tryPlay, { once: true })
+    return () => {
+      window.removeEventListener('click', tryPlay)
+      window.removeEventListener('touchstart', tryPlay)
+      window.removeEventListener('scroll', tryPlay)
+    }
+  }, [event?.song_url, isPlaying])
 
   useEffect(() => {
     if (!invitee || invitee.status === 'pending') return
