@@ -192,7 +192,7 @@ export default function RsvpPage() {
         {/* Invitee name + event title */}
         <div className="text-center">
           <p className="text-[#735749]/60 text-xs uppercase tracking-widest mb-2">Invitación</p>
-          <h1 className="text-5xl font-script">{invitee.full_name}</h1>
+          <h1 className="text-5xl font-script text-[#A47864]">{invitee.full_name}</h1>
         </div>
 
         {/* Parents */}
