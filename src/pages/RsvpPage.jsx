@@ -44,7 +44,9 @@ export default function RsvpPage() {
     : (event?.deadline_passed ?? false)
 
   useEffect(() => {
-    if (audioRef.current) audioRef.current.volume = 0.5
+    if (!audioRef.current) return
+    audioRef.current.volume = 0.5
+    audioRef.current.play().then(() => setIsPlaying(true)).catch(() => {})
   }, [event?.song_url])
 
   useEffect(() => {
