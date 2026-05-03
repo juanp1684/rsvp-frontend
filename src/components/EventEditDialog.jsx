@@ -200,7 +200,7 @@ export default function EventEditDialog({ event, open, onOpenChange }) {
                     checked={form.civil_ceremony_same_venue}
                     onCheckedChange={(v) => setForm((p) => ({ ...p, civil_ceremony_same_venue: !!v }))}
                   />
-                  <Label htmlFor="civil_ceremony_same_venue">Civil ceremony and ceremony are at the same venue</Label>
+                  <Label htmlFor="civil_ceremony_same_venue">Civil ceremony and religious ceremony are at the same venue</Label>
                 </div>
               )}
               <div className="flex items-center gap-2">
@@ -217,7 +217,7 @@ export default function EventEditDialog({ event, open, onOpenChange }) {
                   checked={form.ceremony_reception_same_venue}
                   onCheckedChange={(v) => setForm((p) => ({ ...p, ceremony_reception_same_venue: !!v }))}
                 />
-                <Label htmlFor="ceremony_reception_same_venue">Ceremony and reception are at the same venue</Label>
+                <Label htmlFor="ceremony_reception_same_venue">Religious ceremony and reception are at the same venue</Label>
               </div>
             </div>
           </Section>
