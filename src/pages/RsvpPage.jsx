@@ -223,12 +223,12 @@ export default function RsvpPage() {
 
         {/* Couple name */}
         {event?.name && (
-          <div className="text-center flex flex-col items-center gap-2">
+          <div className="text-center flex flex-col items-center gap-3">
             {event.subtitle && (
               <p className="text-xs uppercase tracking-[0.2em] text-[#412D26]/60">{event.subtitle}</p>
             )}
-            <p className="text-xs uppercase tracking-[0.2em] text-[#412D26]/60">Nosotros</p>
-            <h2 className="font-display uppercase tracking-widest text-3xl md:text-5xl text-center leading-tight text-[#412D26]">
+            <p className="font-display italic text-2xl text-[#735749]">Nosotros</p>
+            <h2 className="font-display uppercase tracking-widest text-4xl md:text-6xl text-center leading-tight text-[#412D26]">
               {event.name.split('&').map((part, i, arr) => (
                 <span key={i}>
                   {part}
