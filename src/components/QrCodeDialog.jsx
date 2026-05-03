@@ -8,14 +8,20 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { Download } from 'lucide-react'
-import { useAuthStore } from '@/store/authStore'
 
-export default function QrCodeDialog({ open, onOpenChange, invitee }) {
+const buildRsvpBase = (event) => {
+  const domain = import.meta.env.VITE_APP_DOMAIN
+  if (event?.subdomain && domain) {
+    return `${window.location.protocol}//${event.subdomain}.${domain}`
+  }
+  return window.location.origin
+}
+
+export default function QrCodeDialog({ open, onOpenChange, invitee, event }) {
   const canvasRef = useRef(null)
-  const activeEvent = useAuthStore((s) => s.activeEvent)
 
-  const rsvpUrl = invitee && activeEvent
-    ? `${window.location.origin}/rsvp/${activeEvent.slug}/${invitee.code}`
+  const rsvpUrl = invitee && event
+    ? `${buildRsvpBase(event)}/rsvp/${event.slug}/${invitee.code}`
     : ''
 
   const handleDownload = () => {

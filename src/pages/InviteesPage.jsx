@@ -39,12 +39,20 @@ function WhatsAppIcon({ className }) {
   )
 }
 
-const getRsvpUrl = (invitee, eventSlug) =>
-  `${window.location.origin}/rsvp/${eventSlug}/${invitee.code}`
+const buildRsvpBase = (event) => {
+  const domain = import.meta.env.VITE_APP_DOMAIN
+  if (event?.subdomain && domain) {
+    return `${window.location.protocol}//${event.subdomain}.${domain}`
+  }
+  return window.location.origin
+}
 
-const getWhatsAppUrl = (invitee, eventSlug) => {
+const getRsvpUrl = (invitee, event) =>
+  `${buildRsvpBase(event)}/rsvp/${event?.slug ?? event}/${invitee.code}`
+
+const getWhatsAppUrl = (invitee, event) => {
   const phone = invitee.phone.replace(/\D/g, '')
-  const rsvpUrl = getRsvpUrl(invitee, eventSlug)
+  const rsvpUrl = getRsvpUrl(invitee, event)
   const message = encodeURIComponent(
     `Hola ${invitee.full_name}, te compartimos el enlace para confirmar tu asistencia a nuestra boda: ${rsvpUrl}`
   )
@@ -346,7 +354,7 @@ export default function InviteesPage() {
                   <div className="flex gap-1 shrink-0">
                     {invitee.phone && (
                       <Button variant="ghost" size="icon" asChild>
-                        <a href={getWhatsAppUrl(invitee, activeEvent?.slug ?? '')} target="_blank" rel="noopener noreferrer" className="text-green-600">
+                        <a href={getWhatsAppUrl(invitee, activeEvent)} target="_blank" rel="noopener noreferrer" className="text-green-600">
                           <WhatsAppIcon className="h-4 w-4" />
                         </a>
                       </Button>
@@ -442,7 +450,7 @@ export default function InviteesPage() {
                       <TableCell className="text-right">
                         {invitee.phone && (
                           <Button variant="ghost" size="icon" asChild>
-                            <a href={getWhatsAppUrl(invitee, activeEvent?.slug ?? '')} target="_blank" rel="noopener noreferrer" className="text-green-600">
+                            <a href={getWhatsAppUrl(invitee, activeEvent)} target="_blank" rel="noopener noreferrer" className="text-green-600">
                               <WhatsAppIcon className="h-4 w-4" />
                             </a>
                           </Button>
@@ -501,6 +509,7 @@ export default function InviteesPage() {
         open={!!qrInvitee}
         onOpenChange={(o) => !o && setQrInvitee(null)}
         invitee={qrInvitee}
+        event={activeEvent}
       />
 
       <AlertDialog open={bulkDeleteOpen} onOpenChange={setBulkDeleteOpen}>
