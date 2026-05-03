@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useParams } from 'react-router-dom'
 import { useQuery, useMutation } from '@tanstack/react-query'
 import api from '@/lib/api'
@@ -48,16 +48,22 @@ export default function RsvpPage() {
     if (audioRef.current) audioRef.current.volume = 0.5
   }, [event?.song_url])
 
-  const tryAutoplay = useCallback(() => {
-    if (autoplayedRef.current || !audioRef.current) return
-    autoplayedRef.current = true
-    audioRef.current.play().then(() => setIsPlaying(true)).catch(() => {})
-  }, [])
-
   useEffect(() => {
-    document.addEventListener('scroll', tryAutoplay, { passive: true })
-    return () => document.removeEventListener('scroll', tryAutoplay)
-  }, [tryAutoplay])
+    if (!event?.song_url) return
+    const tryPlay = () => {
+      if (autoplayedRef.current || !audioRef.current) return
+      autoplayedRef.current = true
+      audioRef.current.play().then(() => setIsPlaying(true)).catch(() => {})
+    }
+    window.addEventListener('click', tryPlay)
+    window.addEventListener('touchstart', tryPlay)
+    window.addEventListener('scroll', tryPlay, { passive: true })
+    return () => {
+      window.removeEventListener('click', tryPlay)
+      window.removeEventListener('touchstart', tryPlay)
+      window.removeEventListener('scroll', tryPlay)
+    }
+  }, [event?.song_url])
 
   useEffect(() => {
     if (!invitee || invitee.status === 'pending') return
@@ -148,7 +154,7 @@ export default function RsvpPage() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#A47864]" onClick={tryAutoplay} onTouchStart={tryAutoplay}>
+    <div className="min-h-screen flex flex-col bg-[#A47864]">
 
       {/* Hero — couple photo */}
       <div className="w-full aspect-[4/5] md:aspect-[10/6] bg-muted overflow-hidden">
