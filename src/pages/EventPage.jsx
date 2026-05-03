@@ -95,6 +95,9 @@ export default function EventPage() {
       {/* Event details */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-3 text-sm border rounded-lg p-5">
         <Detail label="Name" value={event.name} />
+        {event.subdomain && (
+          <Detail label="Subdomain" value={`${event.subdomain}.${import.meta.env.VITE_APP_DOMAIN}`} className="sm:col-span-2" />
+        )}
         <Detail label="De la novia" value={[event.partner1_parent1, event.partner1_parent2].filter(Boolean).join(' & ')} />
         <Detail label="Del novio" value={[event.partner2_parent1, event.partner2_parent2].filter(Boolean).join(' & ')} />
         <Detail label="Dress Code" value={event.dress_code} />

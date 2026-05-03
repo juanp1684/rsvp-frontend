@@ -8,6 +8,13 @@ import { Label } from '@/components/ui/label'
 import { Checkbox } from '@/components/ui/checkbox'
 import api from '@/lib/api'
 
+const normalizeSubdomain = (val) =>
+  val.toLowerCase().trim()
+    .replace(/[\s_]+/g, '-')
+    .replace(/[^a-z0-9-]/g, '')
+    .replace(/-+/g, '-')
+    .replace(/^-|-$/g, '')
+
 const toLocalDatetimeValue = (iso) => {
   if (!iso) return ''
   const d = new Date(iso)
@@ -28,6 +35,7 @@ export default function EventEditDialog({ event, open, onOpenChange }) {
       setError(null)
       setForm({
         name: event.name ?? '',
+        subdomain: event.subdomain ?? '',
         subtitle: event.subtitle ?? '',
         partner1_parent1: event.partner1_parent1 ?? '',
         partner1_parent2: event.partner1_parent2 ?? '',
@@ -120,6 +128,20 @@ export default function EventEditDialog({ event, open, onOpenChange }) {
           <Section title="General">
             <Field label="Name" id="name" value={form.name} onChange={set('name')} required />
             <Field label="Subtitle" id="subtitle" value={form.subtitle} onChange={set('subtitle')} placeholder="Una historia de amor" />
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="subdomain">Subdomain</Label>
+              <Input
+                id="subdomain"
+                value={form.subdomain}
+                onChange={(e) => setForm((p) => ({ ...p, subdomain: e.target.value }))}
+                placeholder="juan-y-maria"
+              />
+              {form.subdomain && (
+                <p className="text-xs text-muted-foreground">
+                  Will be saved as: <span className="font-medium text-foreground">{normalizeSubdomain(form.subdomain) || '—'}</span>
+                </p>
+              )}
+            </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <Field label="De la novia — 1" id="partner1_parent1" value={form.partner1_parent1} onChange={set('partner1_parent1')} placeholder="Sonia Zelada" />
               <Field label="De la novia — 2" id="partner1_parent2" value={form.partner1_parent2} onChange={set('partner1_parent2')} placeholder="Alberto Peñaranda" />
