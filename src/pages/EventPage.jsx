@@ -8,12 +8,14 @@ import EventEditDialog from '@/components/EventEditDialog'
 import { Upload, Trash2, ImageIcon, Pencil, Music2 } from 'lucide-react'
 
 const RSVP_IMAGE_SLOTS = [
-  { key: 'civil',         label: 'Civil Ceremony',        aspect: 'aspect-video',  ratio: '16:9', optional: true },
-  { key: 'ceremony',      label: 'Religious Ceremony',    aspect: 'aspect-video',  ratio: '16:9' },
-  { key: 'reception',     label: 'Reception',             aspect: 'aspect-video',  ratio: '16:9' },
-  { key: 'couple',        label: 'Couple Photo',          aspect: 'aspect-[10/6]', ratio: '10:6' },
-  { key: 'couple_mobile', label: 'Couple Photo (Mobile)', aspect: 'aspect-[4/5]',  ratio: '4:5', optional: true },
-  { key: 'invitation',    label: 'Invitation Card',       aspect: 'aspect-[3/4]',  ratio: '3:4' },
+  { key: 'civil',           label: 'Civil Ceremony',        aspect: 'aspect-video',  ratio: '16:9', optional: true },
+  { key: 'ceremony',        label: 'Religious Ceremony',    aspect: 'aspect-video',  ratio: '16:9' },
+  { key: 'reception',       label: 'Reception',             aspect: 'aspect-video',  ratio: '16:9' },
+  { key: 'couple',          label: 'Couple Photo',          aspect: 'aspect-[10/6]', ratio: '10:6' },
+  { key: 'couple_mobile',   label: 'Couple Photo (Mobile)', aspect: 'aspect-[4/5]',  ratio: '4:5', optional: true },
+  { key: 'invitation',      label: 'Invitation Card',       aspect: 'aspect-[3/4]',  ratio: '3:4' },
+  { key: 'dress_code',      label: 'Dress Code',            aspect: 'aspect-video',  ratio: '16:9', optional: true },
+  { key: 'gift_suggestion', label: 'Gift Suggestion',       aspect: 'aspect-video',  ratio: '16:9', optional: true },
 ]
 
 const CONFIRMATION_IMAGE_SLOTS = [

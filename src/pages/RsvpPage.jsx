@@ -138,22 +138,6 @@ export default function RsvpPage() {
   return (
     <div className="min-h-screen flex flex-col bg-[#A47864]">
 
-      {/* Event title banner */}
-      {event?.name && (
-        <div className="w-full py-8 px-6 flex justify-center">
-          <h1 className="font-display uppercase tracking-widest text-4xl md:text-6xl text-center leading-tight text-[#FFF1E9]">
-            {event.name.split('&').map((part, i, arr) => (
-              <span key={i}>
-                {part}
-                {i < arr.length - 1 && (
-                  <span style={{ fontFamily: "'Cormorant Garamond', serif", color: '#FFF1E9' }}>&</span>
-                )}
-              </span>
-            ))}
-          </h1>
-        </div>
-      )}
-
       {/* Hero — couple photo */}
       <div className="w-full aspect-[4/5] md:aspect-[10/6] bg-muted overflow-hidden">
         {event?.couple_image_url
@@ -237,6 +221,26 @@ export default function RsvpPage() {
           </div>
         )}
 
+        {/* Couple name */}
+        {event?.name && (
+          <div className="text-center flex flex-col items-center gap-2">
+            {event.subtitle && (
+              <p className="text-xs uppercase tracking-[0.2em] text-[#412D26]/60">{event.subtitle}</p>
+            )}
+            <p className="text-xs uppercase tracking-[0.2em] text-[#412D26]/60">Nosotros</p>
+            <h2 className="font-display uppercase tracking-widest text-3xl md:text-5xl text-center leading-tight text-[#412D26]">
+              {event.name.split('&').map((part, i, arr) => (
+                <span key={i}>
+                  {part}
+                  {i < arr.length - 1 && (
+                    <span style={{ fontFamily: "'Cormorant Garamond', serif" }}>&</span>
+                  )}
+                </span>
+              ))}
+            </h2>
+          </div>
+        )}
+
         {/* Invitation card image */}
         <div className="w-full max-w-xs mx-auto aspect-[3/4] bg-muted rounded-2xl shadow-sm overflow-hidden">
           {event?.invitation_image_url
@@ -269,21 +273,53 @@ export default function RsvpPage() {
           <CeremoniesBlock event={event} />
         )}
 
-        {/* Dress code + deadline */}
-        {event && (event.dress_code || event.rsvp_deadline) && (
-          <div className="text-center flex flex-col gap-1.5">
+        {/* Dress code */}
+        {event && (event.dress_code || event.dress_code_image_url) && (
+          <div className="w-full flex flex-col gap-3">
             {event.dress_code && (
-              <p className="text-sm text-muted-foreground">
-                Vestimenta: <span className="text-foreground font-medium">{event.dress_code}</span>
+              <p className="text-sm text-center text-muted-foreground">
+                Vestimenta: <span className="text-[#412D26] font-medium">{event.dress_code}</span>
               </p>
             )}
-            {effectiveDeadline && (
-              <p className="text-sm text-muted-foreground">
-                Confirmar antes del{' '}
-                {new Date(effectiveDeadline).toLocaleString('es-MX', { dateStyle: 'long', timeStyle: 'short' })}
-              </p>
+            {event.dress_code_image_url && (
+              <div className="w-full aspect-video rounded-xl overflow-hidden">
+                <img src={event.dress_code_image_url} alt="Dress code" className="w-full h-full object-cover" />
+              </div>
             )}
           </div>
+        )}
+
+        {/* Gift suggestion */}
+        {event && (event.gift_suggestion || event.gift_suggestion_image_url) && (
+          <div className="w-full flex flex-col gap-3">
+            {event.gift_suggestion && (
+              <div className="w-full rounded-xl border border-[#C0A18F]/60 bg-[#C0A18F]/10 px-4 py-3 text-center">
+                <p className="text-xs uppercase tracking-[0.15em] text-[#412D26]/60 mb-1">Regalo</p>
+                <p className="text-sm text-[#735749]">{event.gift_suggestion}</p>
+              </div>
+            )}
+            {event.gift_suggestion_image_url && (
+              <div className="w-full aspect-video rounded-xl overflow-hidden">
+                <img src={event.gift_suggestion_image_url} alt="Gift suggestion" className="w-full h-full object-cover" />
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Recommendations */}
+        {event?.recommendations && (
+          <div className="w-full rounded-xl border border-[#C0A18F]/60 bg-[#C0A18F]/10 px-4 py-3 text-center">
+            <p className="text-xs uppercase tracking-[0.15em] text-[#412D26]/60 mb-1">Recomendaciones</p>
+            <p className="text-sm text-[#735749]">{event.recommendations}</p>
+          </div>
+        )}
+
+        {/* RSVP deadline */}
+        {effectiveDeadline && (
+          <p className="text-sm text-center text-muted-foreground">
+            Confirmar antes del{' '}
+            {new Date(effectiveDeadline).toLocaleString('es-MX', { dateStyle: 'long', timeStyle: 'short' })}
+          </p>
         )}
 
         {/* Status messages */}

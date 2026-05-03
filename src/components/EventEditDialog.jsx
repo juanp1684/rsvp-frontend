@@ -28,6 +28,7 @@ export default function EventEditDialog({ event, open, onOpenChange }) {
       setError(null)
       setForm({
         name: event.name ?? '',
+        subtitle: event.subtitle ?? '',
         partner1_parent1: event.partner1_parent1 ?? '',
         partner1_parent2: event.partner1_parent2 ?? '',
         partner2_parent1: event.partner2_parent1 ?? '',
@@ -52,6 +53,8 @@ export default function EventEditDialog({ event, open, onOpenChange }) {
         no_kids_message: event.no_kids_message ?? '',
         confirm_attending_message: event.confirm_attending_message ?? '',
         confirm_declined_message: event.confirm_declined_message ?? '',
+        gift_suggestion: event.gift_suggestion ?? '',
+        recommendations: event.recommendations ?? '',
       })
     }
   }, [event, open])
@@ -116,6 +119,7 @@ export default function EventEditDialog({ event, open, onOpenChange }) {
           {/* General */}
           <Section title="General">
             <Field label="Name" id="name" value={form.name} onChange={set('name')} required />
+            <Field label="Subtitle" id="subtitle" value={form.subtitle} onChange={set('subtitle')} placeholder="Una historia de amor" />
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <Field label="De la novia — 1" id="partner1_parent1" value={form.partner1_parent1} onChange={set('partner1_parent1')} placeholder="Sonia Zelada" />
               <Field label="De la novia — 2" id="partner1_parent2" value={form.partner1_parent2} onChange={set('partner1_parent2')} placeholder="Alberto Peñaranda" />
@@ -187,6 +191,24 @@ export default function EventEditDialog({ event, open, onOpenChange }) {
                 />
               )}
             </div>
+          </Section>
+
+          {/* Gift & Recommendations */}
+          <Section title="Gift & Recommendations">
+            <Field
+              label="Gift suggestion"
+              id="gift_suggestion"
+              value={form.gift_suggestion}
+              onChange={set('gift_suggestion')}
+              placeholder="Si deseas hacernos un regalo, puedes contribuir a…"
+            />
+            <Field
+              label="Recommendations"
+              id="recommendations"
+              value={form.recommendations}
+              onChange={set('recommendations')}
+              placeholder="Te recomendamos llegar 15 minutos antes…"
+            />
           </Section>
 
           {/* Venue sharing */}
