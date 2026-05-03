@@ -3,7 +3,6 @@ import { ImageIcon } from 'lucide-react'
 const PRIORITY = ['reception', 'ceremony', 'civil']
 const LABELS = { civil: 'Ceremonia Civil', ceremony: 'Ceremonia Religiosa', reception: 'Recepción' }
 const AT_KEYS = { civil: 'civil_at', ceremony: 'ceremony_at', reception: 'reception_at' }
-const ORDER = { civil: 0, ceremony: 1, reception: 2 }
 
 function computeGroups(nodes, edges) {
   const parent = Object.fromEntries(nodes.map(n => [n, n]))
@@ -56,17 +55,23 @@ export default function CeremoniesBlock({ event }) {
 
   const groups = computeGroups(nodes, edges)
 
-  groups.sort((a, b) => Math.min(...a.map(k => ORDER[k])) - Math.min(...b.map(k => ORDER[k])))
-  groups.forEach(g => g.sort((a, b) => ORDER[a] - ORDER[b]))
+  groups.sort((a, b) => {
+    const aMin = Math.min(...a.map(k => new Date(event[AT_KEYS[k]]).getTime()))
+    const bMin = Math.min(...b.map(k => new Date(event[AT_KEYS[k]]).getTime()))
+    return aMin - bMin
+  })
+  groups.forEach(g => g.sort((a, b) => new Date(event[AT_KEYS[a]]) - new Date(event[AT_KEYS[b]])))
 
-  const gridCols = groups.length >= 2 ? 'md:grid-cols-2' : ''
+  const isGrid = groups.length >= 2
+  const isOdd = groups.length % 2 !== 0
 
   return (
-    <div className={`w-full grid grid-cols-1 gap-8 ${gridCols}`}>
+    <div className={`w-full grid grid-cols-1 gap-8 ${isGrid ? 'md:grid-cols-2' : ''}`}>
       {groups.map((group, gi) => {
         const { imageUrl, location, mapUrl } = groupDisplay(group, event)
+        const isLast = gi === groups.length - 1
         return (
-          <div key={gi} className="flex flex-col gap-3">
+          <div key={gi} className={`flex flex-col gap-3${isGrid && isOdd && isLast ? ' md:col-span-2' : ''}`}>
             <div className="w-full aspect-video bg-muted rounded-xl overflow-hidden">
               {imageUrl
                 ? <img src={imageUrl} alt={group.map(k => LABELS[k]).join(' / ')} className="w-full h-full object-cover" />
