@@ -21,6 +21,7 @@ export default function RsvpPage() {
   const [lightboxOpen, setLightboxOpen] = useState(false)
   const [isPlaying, setIsPlaying] = useState(false)
   const audioRef = useRef(null)
+  const autoplayedRef = useRef(false)
 
   const { data: invitee, isLoading, isError } = useQuery({
     queryKey: ['rsvp', eventSlug, code],
@@ -49,20 +50,18 @@ export default function RsvpPage() {
 
   useEffect(() => {
     if (!event?.song_url) return
-    const tryPlay = () => {
-      window.removeEventListener('click', tryPlay)
-      window.removeEventListener('touchstart', tryPlay)
-      window.removeEventListener('scroll', tryPlay)
-      if (!audioRef.current) return
+    const handler = () => {
+      if (autoplayedRef.current || !audioRef.current) return
+      autoplayedRef.current = true
       audioRef.current.play().then(() => setIsPlaying(true)).catch(() => {})
     }
-    window.addEventListener('click', tryPlay)
-    window.addEventListener('touchstart', tryPlay)
-    window.addEventListener('scroll', tryPlay)
+    window.addEventListener('click', handler)
+    window.addEventListener('touchstart', handler)
+    window.addEventListener('scroll', handler, { passive: true })
     return () => {
-      window.removeEventListener('click', tryPlay)
-      window.removeEventListener('touchstart', tryPlay)
-      window.removeEventListener('scroll', tryPlay)
+      window.removeEventListener('click', handler)
+      window.removeEventListener('touchstart', handler)
+      window.removeEventListener('scroll', handler)
     }
   }, [event?.song_url])
 
