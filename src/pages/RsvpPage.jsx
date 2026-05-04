@@ -127,6 +127,10 @@ export default function RsvpPage() {
       ? event?.confirm_attending_image_url
       : event?.confirm_declined_image_url
 
+    const confirmMessage = status === 'attending'
+      ? (event?.confirm_attending_message || '¡Nos vemos pronto!')
+      : (event?.confirm_declined_message || 'Gracias por avisarnos')
+
     return (
       <Screen>
         {confirmImageUrl
@@ -139,16 +143,7 @@ export default function RsvpPage() {
               {status === 'attending' ? '🎉' : '💌'}
             </p>
         }
-        <p className="text-lg font-semibold mt-4">
-          {status === 'attending'
-            ? (event?.confirm_attending_message || '¡Nos vemos pronto!')
-            : (event?.confirm_declined_message || 'Gracias por avisarnos')}
-        </p>
-        <p className="text-muted-foreground text-sm mt-1">
-          {status === 'attending'
-            ? 'Tu confirmación fue registrada. ¡Te esperamos!'
-            : 'Lamentamos que no puedas acompañarnos.'}
-        </p>
+        <p className="text-lg font-semibold mt-4">{confirmMessage}</p>
       </Screen>
     )
   }
