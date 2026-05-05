@@ -331,6 +331,7 @@ export default function RsvpPage() {
         {/* No-kids notice */}
         {event?.no_kids && (
           <div className="w-full rounded-xl border border-[#C0A18F]/60 bg-[#C0A18F]/10 px-4 py-3 text-center">
+            <p className="text-xs uppercase tracking-[0.15em] text-[#412D26]/60 mb-1">Solo adultos</p>
             <p className="text-sm text-[#735749]">
               {event.no_kids_message || 'Este evento es para adultos. Te pedimos no traer niños.'}
             </p>
