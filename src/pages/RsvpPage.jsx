@@ -103,7 +103,7 @@ export default function RsvpPage() {
     e.preventDefault()
     mutation.mutate({
       status,
-      companions: status === 'attending' ? companions : [],
+      companions: status === 'attending' ? companions.filter((c) => c.full_name.trim()) : [],
     })
   }
 
@@ -411,6 +411,7 @@ export default function RsvpPage() {
                         value={c.full_name}
                         onChange={(e) => handleCompanionName(i, e.target.value)}
                         maxLength={255}
+                        required
                       />
                     </div>
                     <Button

@@ -201,7 +201,8 @@ export default function InviteeFormDialog({ open, onOpenChange, invitee }) {
                         onKeyDown={(e) => {
                           if (e.key === 'Enter') {
                             e.preventDefault()
-                            updateCompanionMutation.mutate({ id: c.id, name: editingName })
+                            if (editingName.trim())
+                              updateCompanionMutation.mutate({ id: c.id, name: editingName.trim() })
                           }
                           if (e.key === 'Escape') setEditingId(null)
                         }}
@@ -213,9 +214,9 @@ export default function InviteeFormDialog({ open, onOpenChange, invitee }) {
                         size="icon"
                         variant="ghost"
                         className="h-8 w-8 shrink-0"
-                        disabled={updateCompanionMutation.isPending}
+                        disabled={!editingName.trim() || updateCompanionMutation.isPending}
                         onClick={() =>
-                          updateCompanionMutation.mutate({ id: c.id, name: editingName })
+                          updateCompanionMutation.mutate({ id: c.id, name: editingName.trim() })
                         }
                       >
                         <Check className="h-3.5 w-3.5" />
@@ -267,7 +268,7 @@ export default function InviteeFormDialog({ open, onOpenChange, invitee }) {
                     onKeyDown={(e) => {
                       if (e.key === 'Enter') {
                         e.preventDefault()
-                        addCompanionMutation.mutate(addingName)
+                        if (addingName.trim()) addCompanionMutation.mutate(addingName.trim())
                       }
                       if (e.key === 'Escape') { setIsAdding(false); setAddingName('') }
                     }}
@@ -279,8 +280,8 @@ export default function InviteeFormDialog({ open, onOpenChange, invitee }) {
                     size="icon"
                     variant="ghost"
                     className="h-8 w-8 shrink-0"
-                    disabled={addCompanionMutation.isPending}
-                    onClick={() => addCompanionMutation.mutate(addingName)}
+                    disabled={!addingName.trim() || addCompanionMutation.isPending}
+                    onClick={() => addCompanionMutation.mutate(addingName.trim())}
                   >
                     <Check className="h-3.5 w-3.5" />
                   </Button>
