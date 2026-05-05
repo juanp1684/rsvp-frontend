@@ -273,12 +273,10 @@ export default function RsvpPage() {
         {/* Dress code */}
         {event && (event.dress_code || event.dress_code_image_url) && (
           <div className="w-full rounded-xl overflow-hidden border border-[#C0A18F]/60">
-            {event.dress_code && (
-              <div className="bg-[#C0A18F]/10 px-4 py-3 text-center">
-                <p className="text-xs uppercase tracking-[0.15em] text-[#412D26]/60 mb-1">Vestimenta</p>
-                <p className="text-sm text-[#735749] font-medium">{event.dress_code}</p>
-              </div>
-            )}
+            <div className="bg-[#C0A18F]/10 px-4 py-3 text-center">
+              <p className="text-xs uppercase tracking-[0.15em] text-[#412D26]/60 mb-1">Vestimenta</p>
+              {event.dress_code && <p className="text-sm text-[#735749] font-medium">{event.dress_code}</p>}
+            </div>
             {event.dress_code_image_url && (
               <div className="w-full aspect-video">
                 <img src={event.dress_code_image_url} alt="Dress code" className="w-full h-full object-cover" />
@@ -290,12 +288,10 @@ export default function RsvpPage() {
         {/* Gift suggestion */}
         {event && (event.gift_suggestion || event.gift_suggestion_image_url) && (
           <div className="w-full rounded-xl overflow-hidden border border-[#C0A18F]/60">
-            {event.gift_suggestion && (
-              <div className="bg-[#C0A18F]/10 px-4 py-3 text-center">
-                <p className="text-xs uppercase tracking-[0.15em] text-[#412D26]/60 mb-1">Regalo</p>
-                <p className="text-sm text-[#735749]">{event.gift_suggestion}</p>
-              </div>
-            )}
+            <div className="bg-[#C0A18F]/10 px-4 py-3 text-center">
+              <p className="text-xs uppercase tracking-[0.15em] text-[#412D26]/60 mb-1">Regalo</p>
+              {event.gift_suggestion && <p className="text-sm text-[#735749]">{event.gift_suggestion}</p>}
+            </div>
             {event.gift_suggestion_image_url && (
               <div className="w-full aspect-video">
                 <img src={event.gift_suggestion_image_url} alt="Gift suggestion" className="w-full h-full object-cover" />
@@ -307,12 +303,10 @@ export default function RsvpPage() {
         {/* Recommendations */}
         {event && (event.recommendations || event.recommendations_image_url) && (
           <div className="w-full rounded-xl overflow-hidden border border-[#C0A18F]/60">
-            {event.recommendations && (
-              <div className="bg-[#C0A18F]/10 px-4 py-3 text-center">
-                <p className="text-xs uppercase tracking-[0.15em] text-[#412D26]/60 mb-1">Recomendaciones</p>
-                <p className="text-sm text-[#735749]">{event.recommendations}</p>
-              </div>
-            )}
+            <div className="bg-[#C0A18F]/10 px-4 py-3 text-center">
+              <p className="text-xs uppercase tracking-[0.15em] text-[#412D26]/60 mb-1">Recomendaciones</p>
+              {event.recommendations && <p className="text-sm text-[#735749]">{event.recommendations}</p>}
+            </div>
             {event.recommendations_image_url && (
               <div className="w-full aspect-video">
                 <img src={event.recommendations_image_url} alt="Recomendaciones" className="w-full h-full object-cover" />
