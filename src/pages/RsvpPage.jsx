@@ -239,14 +239,7 @@ export default function RsvpPage() {
           <div className="text-center flex flex-col items-center gap-3">
             <p className="text-2xl uppercase tracking-[0.2em] text-[#412D26]/60">Nosotros</p>
             <h2 className="font-script text-3xl md:text-5xl text-center leading-tight text-[#A47864]">
-              {event.name.split('&').map((part, i, arr) => (
-                <span key={i}>
-                  {part}
-                  {i < arr.length - 1 && (
-                    <span style={{ fontFamily: "'Cormorant Garamond', serif" }}>&</span>
-                  )}
-                </span>
-              ))}
+              {event.name}
             </h2>
             {event.subtitle && (
               <p className="text-xs uppercase tracking-[0.2em] text-[#412D26]/60">{event.subtitle}</p>
