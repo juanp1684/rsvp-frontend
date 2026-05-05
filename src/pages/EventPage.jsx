@@ -15,7 +15,8 @@ const RSVP_IMAGE_SLOTS = [
   { key: 'couple_mobile',   label: 'Couple Photo (Mobile)', aspect: 'aspect-[4/5]',  ratio: '4:5', optional: true },
   { key: 'invitation',      label: 'Invitation Card',       aspect: 'aspect-[3/4]',  ratio: '3:4' },
   { key: 'dress_code',      label: 'Dress Code',            aspect: 'aspect-video',  ratio: '16:9', optional: true },
-  { key: 'gift_suggestion', label: 'Gift Suggestion',       aspect: 'aspect-video',  ratio: '16:9', optional: true },
+  { key: 'gift_suggestion',  label: 'Gift Suggestion',  aspect: 'aspect-video', ratio: '16:9', optional: true },
+  { key: 'recommendations',  label: 'Recommendations',  aspect: 'aspect-video', ratio: '16:9', optional: true },
 ]
 
 const CONFIRMATION_IMAGE_SLOTS = [

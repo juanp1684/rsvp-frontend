@@ -312,10 +312,19 @@ export default function RsvpPage() {
         )}
 
         {/* Recommendations */}
-        {event?.recommendations && (
-          <div className="w-full rounded-xl border border-[#C0A18F]/60 bg-[#C0A18F]/10 px-4 py-3 text-center">
-            <p className="text-xs uppercase tracking-[0.15em] text-[#412D26]/60 mb-1">Recomendaciones</p>
-            <p className="text-sm text-[#735749]">{event.recommendations}</p>
+        {event && (event.recommendations || event.recommendations_image_url) && (
+          <div className="w-full rounded-xl overflow-hidden border border-[#C0A18F]/60">
+            {event.recommendations && (
+              <div className="bg-[#C0A18F]/10 px-4 py-3 text-center">
+                <p className="text-xs uppercase tracking-[0.15em] text-[#412D26]/60 mb-1">Recomendaciones</p>
+                <p className="text-sm text-[#735749]">{event.recommendations}</p>
+              </div>
+            )}
+            {event.recommendations_image_url && (
+              <div className="w-full aspect-video">
+                <img src={event.recommendations_image_url} alt="Recomendaciones" className="w-full h-full object-cover" />
+              </div>
+            )}
           </div>
         )}
 
