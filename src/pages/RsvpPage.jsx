@@ -143,7 +143,7 @@ export default function RsvpPage() {
               {status === 'attending' ? '🎉' : '💌'}
             </p>
         }
-        <p className="text-lg font-semibold mt-4">{confirmMessage}</p>
+        <p className="text-3xl font-script text-[#A47864] mt-4">{confirmMessage}</p>
       </Screen>
     )
   }
