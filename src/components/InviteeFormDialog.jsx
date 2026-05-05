@@ -33,6 +33,7 @@ export default function InviteeFormDialog({ open, onOpenChange, invitee }) {
   const [editingName, setEditingName] = useState('')
   const [isAdding, setIsAdding] = useState(false)
   const [addingName, setAddingName] = useState('')
+  const [localCompanions, setLocalCompanions] = useState([])
 
   useEffect(() => {
     setForm(
@@ -46,6 +47,7 @@ export default function InviteeFormDialog({ open, onOpenChange, invitee }) {
           }
         : empty
     )
+    setLocalCompanions(invitee?.companions ?? [])
     setEditingId(null)
     setIsAdding(false)
     setAddingName('')
@@ -69,8 +71,9 @@ export default function InviteeFormDialog({ open, onOpenChange, invitee }) {
   const addCompanionMutation = useMutation({
     mutationFn: (name) =>
       api.post(`/events/${activeEvent.id}/invitees/${invitee.id}/companions`, { full_name: name }),
-    onSuccess: () => {
+    onSuccess: ({ data }) => {
       qc.invalidateQueries({ queryKey: ['invitees', activeEvent?.id] })
+      setLocalCompanions((prev) => [...prev, data])
       setIsAdding(false)
       setAddingName('')
     },
@@ -80,8 +83,9 @@ export default function InviteeFormDialog({ open, onOpenChange, invitee }) {
   const updateCompanionMutation = useMutation({
     mutationFn: ({ id, name }) =>
       api.put(`/events/${activeEvent.id}/invitees/${invitee.id}/companions/${id}`, { full_name: name }),
-    onSuccess: () => {
+    onSuccess: ({ data }) => {
       qc.invalidateQueries({ queryKey: ['invitees', activeEvent?.id] })
+      setLocalCompanions((prev) => prev.map((c) => c.id === data.id ? data : c))
       setEditingId(null)
     },
     onError: () => toast.error('Could not update companion.'),
@@ -90,8 +94,9 @@ export default function InviteeFormDialog({ open, onOpenChange, invitee }) {
   const deleteCompanionMutation = useMutation({
     mutationFn: (id) =>
       api.delete(`/events/${activeEvent.id}/invitees/${invitee.id}/companions/${id}`),
-    onSuccess: () => {
+    onSuccess: (_, id) => {
       qc.invalidateQueries({ queryKey: ['invitees', activeEvent?.id] })
+      setLocalCompanions((prev) => prev.filter((c) => c.id !== id))
     },
     onError: () => toast.error('Could not remove companion.'),
   })
@@ -170,10 +175,10 @@ export default function InviteeFormDialog({ open, onOpenChange, invitee }) {
                 <Label>
                   Companions{' '}
                   <span className="text-muted-foreground font-normal">
-                    ({invitee.companions.length}/{invitee.allowed_companions})
+                    ({localCompanions.length}/{invitee.allowed_companions})
                   </span>
                 </Label>
-                {!isAdding && invitee.companions.length < invitee.allowed_companions && (
+                {!isAdding && localCompanions.length < invitee.allowed_companions && (
                   <Button
                     type="button"
                     size="sm"
@@ -185,7 +190,7 @@ export default function InviteeFormDialog({ open, onOpenChange, invitee }) {
                 )}
               </div>
 
-              {invitee.companions.map((c) => (
+              {localCompanions.map((c) => (
                 <div key={c.id} className="flex items-center gap-2">
                   {editingId === c.id ? (
                     <>
