@@ -29,6 +29,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
 import { Checkbox } from '@/components/ui/checkbox'
+import { Switch } from '@/components/ui/switch'
 import { Plus, Pencil, Trash2, Upload, Download, ChevronUp, ChevronDown, ChevronsUpDown, QrCode } from 'lucide-react'
 
 function WhatsAppIcon({ className }) {
@@ -367,10 +368,10 @@ export default function InviteesPage() {
                         {invitee.companions.length}/{invitee.allowed_companions} companions
                       </span>
                       <div className="flex items-center gap-1.5 ml-1">
-                        <Checkbox
+                        <Switch
                           id={`sent-${invitee.id}`}
                           checked={!!invitee.invitation_sent}
-                          onCheckedChange={(v) => toggleSentMutation.mutate({ id: invitee.id, value: !!v })}
+                          onCheckedChange={(v) => toggleSentMutation.mutate({ id: invitee.id, value: v })}
                         />
                         <label htmlFor={`sent-${invitee.id}`} className="text-xs text-muted-foreground cursor-pointer">Sent</label>
                       </div>
@@ -474,9 +475,9 @@ export default function InviteesPage() {
                         {invitee.code}
                       </TableCell>
                       <TableCell>
-                        <Checkbox
+                        <Switch
                           checked={!!invitee.invitation_sent}
-                          onCheckedChange={(v) => toggleSentMutation.mutate({ id: invitee.id, value: !!v })}
+                          onCheckedChange={(v) => toggleSentMutation.mutate({ id: invitee.id, value: v })}
                         />
                       </TableCell>
                       <TableCell className="text-right">
