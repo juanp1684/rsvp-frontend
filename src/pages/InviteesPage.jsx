@@ -99,6 +99,12 @@ export default function InviteesPage() {
     onError: () => toast.error('Could not delete invitee.'),
   })
 
+  const toggleSentMutation = useMutation({
+    mutationFn: ({ id, value }) => api.put(`/events/${activeEvent.id}/invitees/${id}`, { invitation_sent: value }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['invitees', activeEvent?.id] }),
+    onError: () => toast.error('Could not update invitation status.'),
+  })
+
   const bulkDeleteMutation = useMutation({
     mutationFn: (ids) => api.post(`/events/${activeEvent.id}/invitees/bulk-destroy`, { ids }),
     onSuccess: () => {
@@ -349,6 +355,14 @@ export default function InviteesPage() {
                       <span className="text-xs text-muted-foreground">
                         {invitee.companions.length}/{invitee.allowed_companions} companions
                       </span>
+                      <div className="flex items-center gap-1.5 ml-1">
+                        <Checkbox
+                          id={`sent-${invitee.id}`}
+                          checked={!!invitee.invitation_sent}
+                          onCheckedChange={(v) => toggleSentMutation.mutate({ id: invitee.id, value: !!v })}
+                        />
+                        <label htmlFor={`sent-${invitee.id}`} className="text-xs text-muted-foreground cursor-pointer">Sent</label>
+                      </div>
                     </div>
                   </div>
                   <div className="flex gap-1 shrink-0">
@@ -414,6 +428,7 @@ export default function InviteesPage() {
                   </TableHead>
                   <TableHead>Companions</TableHead>
                   <TableHead>Code</TableHead>
+                  <TableHead>Sent</TableHead>
                   <TableHead />
                 </TableRow>
               </TableHeader>
@@ -446,6 +461,12 @@ export default function InviteesPage() {
                       </TableCell>
                       <TableCell className="font-mono text-xs text-muted-foreground">
                         {invitee.code}
+                      </TableCell>
+                      <TableCell>
+                        <Checkbox
+                          checked={!!invitee.invitation_sent}
+                          onCheckedChange={(v) => toggleSentMutation.mutate({ id: invitee.id, value: !!v })}
+                        />
                       </TableCell>
                       <TableCell className="text-right">
                         {invitee.phone && (
