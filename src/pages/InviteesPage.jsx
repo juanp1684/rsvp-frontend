@@ -101,8 +101,19 @@ export default function InviteesPage() {
 
   const toggleSentMutation = useMutation({
     mutationFn: ({ id, value }) => api.put(`/events/${activeEvent.id}/invitees/${id}`, { invitation_sent: value }),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['invitees', activeEvent?.id] }),
-    onError: () => toast.error('Could not update invitation status.'),
+    onMutate: async ({ id, value }) => {
+      await qc.cancelQueries({ queryKey: ['invitees', activeEvent?.id] })
+      const previous = qc.getQueryData(['invitees', activeEvent?.id])
+      qc.setQueryData(['invitees', activeEvent?.id], (old) =>
+        old?.map((i) => i.id === id ? { ...i, invitation_sent: value } : i)
+      )
+      return { previous }
+    },
+    onError: (_err, _vars, context) => {
+      qc.setQueryData(['invitees', activeEvent?.id], context.previous)
+      toast.error('Could not update invitation status.')
+    },
+    onSettled: () => qc.invalidateQueries({ queryKey: ['invitees', activeEvent?.id] }),
   })
 
   const bulkDeleteMutation = useMutation({
