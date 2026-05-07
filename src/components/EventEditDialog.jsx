@@ -65,6 +65,7 @@ export default function EventEditDialog({ event, open, onOpenChange }) {
         confirm_declined_message: event.confirm_declined_message ?? '',
         gift_suggestion: event.gift_suggestion ?? '',
         recommendations: event.recommendations ?? '',
+        carousel_interval: event.carousel_interval ?? 5,
       })
     }
   }, [event, open])

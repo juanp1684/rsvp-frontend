@@ -290,7 +290,7 @@ export default function RsvpPage() {
 
         {/* Photo Gallery Carousel */}
         {event?.carousel_images?.length > 0 && (
-          <PhotoCarousel images={event.carousel_images} />
+          <PhotoCarousel images={event.carousel_images} interval={(event.carousel_interval ?? 5) * 1000} />
         )}
 
         {/* Dress code */}

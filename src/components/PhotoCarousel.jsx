@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 
-export default function PhotoCarousel({ images }) {
+export default function PhotoCarousel({ images, interval = 5000 }) {
   const [current, setCurrent] = useState(0)
   const touchStart = useRef(null)
   const timerRef = useRef(null)
@@ -8,8 +8,8 @@ export default function PhotoCarousel({ images }) {
 
   const resetTimer = useCallback(() => {
     clearInterval(timerRef.current)
-    timerRef.current = setInterval(() => setCurrent((i) => (i === images.length - 1 ? 0 : i + 1)), 5000)
-  }, [images.length])
+    timerRef.current = setInterval(() => setCurrent((i) => (i === images.length - 1 ? 0 : i + 1)), interval)
+  }, [images.length, interval])
 
   useEffect(() => {
     const el = containerRef.current

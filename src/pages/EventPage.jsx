@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import { useRef, useState, useEffect } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import api from '@/lib/api'
@@ -45,6 +45,7 @@ export default function EventPage() {
   const qc = useQueryClient()
   const [uploading, setUploading] = useState({})
   const [carouselUploading, setCarouselUploading] = useState(false)
+  const [carouselInterval, setCarouselInterval] = useState(5)
   const [editOpen, setEditOpen] = useState(false)
   const fileRefs = useRef({})
   const carouselFileRef = useRef(null)
@@ -55,6 +56,21 @@ export default function EventPage() {
     queryFn: () => api.get(`/event/${activeEvent.slug}`).then((r) => r.data),
     enabled: !!activeEvent?.slug,
   })
+
+  useEffect(() => {
+    if (event?.carousel_interval) setCarouselInterval(event.carousel_interval)
+  }, [event?.carousel_interval])
+
+  const handleCarouselIntervalBlur = async () => {
+    const clamped = Math.min(30, Math.max(2, carouselInterval || 5))
+    setCarouselInterval(clamped)
+    try {
+      await api.put(`/events/${event.id}`, { ...event, carousel_interval: clamped })
+      qc.invalidateQueries({ queryKey: ['event'] })
+    } catch {
+      toast.error('Could not save interval.')
+    }
+  }
 
   const handleRemove = async (type) => {
     try {
@@ -328,9 +344,23 @@ export default function EventPage() {
           <h2 className="text-lg font-semibold">Photo Gallery</h2>
           <p className="text-xs text-muted-foreground">{event.carousel_images?.length ?? 0} / 10 photos</p>
         </div>
-        <p className="text-sm text-muted-foreground -mt-2">
-          Up to 10 photos shown as a carousel on the RSVP page.
-        </p>
+        <div className="flex items-center justify-between gap-4 -mt-2">
+          <p className="text-sm text-muted-foreground">Up to 10 photos shown as a carousel on the RSVP page.</p>
+          <div className="flex items-center gap-2 shrink-0">
+            <label htmlFor="carousel_interval" className="text-xs text-muted-foreground whitespace-nowrap">Slide every</label>
+            <input
+              id="carousel_interval"
+              type="number"
+              min={2}
+              max={30}
+              value={carouselInterval}
+              onChange={(e) => setCarouselInterval(Number(e.target.value))}
+              onBlur={handleCarouselIntervalBlur}
+              className="w-14 h-7 rounded-md border border-input bg-transparent px-2 text-sm text-center shadow-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            />
+            <span className="text-xs text-muted-foreground">s</span>
+          </div>
+        </div>
 
         <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={onDragEnd}>
           <SortableContext items={(event.carousel_images ?? []).map((img) => img.id)} strategy={rectSortingStrategy}>
