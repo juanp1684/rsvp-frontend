@@ -146,8 +146,9 @@ export default function RsvpPage() {
         <p className="text-lg font-semibold mt-4">{confirmMessage}</p>
 
         <div className="mt-8 w-full max-w-[220px] rounded-2xl border border-[#C0A18F]/40 bg-[#FFF1E9] px-5 py-4 text-center shadow-sm">
-          <p className="text-sm font-semibold text-[#412D26]">rsvp-lat</p>
-          <p className="text-[11px] text-[#412D26]">by JP Chávez</p>
+          <p className="font-script text-2xl text-[#A47864]">rsvp-lat</p>
+          <p className="text-[9px] uppercase tracking-[0.2em] text-[#A47864]/60">gestión de invitaciones</p>
+          <p className="text-[10px] italic tracking-widest text-[#A47864]/70 mt-0.5">by JP Chávez</p>
           <a
             href="https://wa.me/59177977988"
             target="_blank"
