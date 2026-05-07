@@ -61,15 +61,20 @@ export default function EventPage() {
     if (event?.carousel_interval) setCarouselInterval(event.carousel_interval)
   }, [event?.carousel_interval])
 
-  const handleCarouselIntervalBlur = async () => {
-    const clamped = Math.min(30, Math.max(2, carouselInterval || 5))
-    setCarouselInterval(clamped)
-    try {
-      await api.put(`/events/${event.id}`, { ...event, carousel_interval: clamped })
-      qc.invalidateQueries({ queryKey: ['event'] })
-    } catch {
-      toast.error('Could not save interval.')
-    }
+  const intervalSaveRef = useRef(null)
+  const handleCarouselIntervalChange = (value) => {
+    setCarouselInterval(value)
+    clearTimeout(intervalSaveRef.current)
+    intervalSaveRef.current = setTimeout(async () => {
+      const clamped = Math.min(30, Math.max(2, value || 5))
+      setCarouselInterval(clamped)
+      try {
+        await api.put(`/events/${event.id}`, { ...event, carousel_interval: clamped })
+        qc.invalidateQueries({ queryKey: ['event'] })
+      } catch {
+        toast.error('Could not save interval.')
+      }
+    }, 500)
   }
 
   const handleRemove = async (type) => {
@@ -354,8 +359,7 @@ export default function EventPage() {
               min={2}
               max={30}
               value={carouselInterval}
-              onChange={(e) => setCarouselInterval(Number(e.target.value))}
-              onBlur={handleCarouselIntervalBlur}
+              onChange={(e) => handleCarouselIntervalChange(Number(e.target.value))}
               className="w-14 h-7 rounded-md border border-input bg-transparent px-2 text-sm text-center shadow-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             />
             <span className="text-xs text-muted-foreground">s</span>
