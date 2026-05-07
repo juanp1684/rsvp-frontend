@@ -63,18 +63,17 @@ export default function EventPage() {
 
   const intervalSaveRef = useRef(null)
   const handleCarouselIntervalChange = (value) => {
-    setCarouselInterval(value)
+    const clamped = Math.min(30, Math.max(1, value || 1))
+    setCarouselInterval(clamped)
     clearTimeout(intervalSaveRef.current)
     intervalSaveRef.current = setTimeout(async () => {
-      const clamped = Math.min(30, Math.max(2, value || 5))
-      setCarouselInterval(clamped)
       try {
         await api.put(`/events/${event.id}`, { ...event, carousel_interval: clamped })
         qc.invalidateQueries({ queryKey: ['event'] })
       } catch {
         toast.error('Could not save interval.')
       }
-    }, 500)
+    }, 1000)
   }
 
   const handleRemove = async (type) => {
@@ -356,7 +355,7 @@ export default function EventPage() {
             <input
               id="carousel_interval"
               type="number"
-              min={2}
+              min={1}
               max={30}
               value={carouselInterval}
               onChange={(e) => handleCarouselIntervalChange(Number(e.target.value))}
