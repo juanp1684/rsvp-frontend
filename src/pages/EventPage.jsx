@@ -6,6 +6,21 @@ import { useAuthStore } from '@/store/authStore'
 import { Button } from '@/components/ui/button'
 import EventEditDialog from '@/components/EventEditDialog'
 import { Upload, Trash2, ImageIcon, Pencil, Music2 } from 'lucide-react'
+import {
+  DndContext,
+  closestCenter,
+  PointerSensor,
+  TouchSensor,
+  useSensor,
+  useSensors,
+} from '@dnd-kit/core'
+import {
+  SortableContext,
+  useSortable,
+  arrayMove,
+  rectSortingStrategy,
+} from '@dnd-kit/sortable'
+import { CSS } from '@dnd-kit/utilities'
 
 const RSVP_IMAGE_SLOTS = [
   { key: 'civil',           label: 'Civil Ceremony',        aspect: 'aspect-video',  ratio: '16:9', optional: true },
@@ -108,6 +123,29 @@ export default function EventPage() {
     } catch {
       toast.error('Could not remove photo.')
     }
+  }
+
+  const handleCarouselReorder = async (newImages) => {
+    qc.setQueryData(['event', activeEvent?.slug], (old) => old ? { ...old, carousel_images: newImages } : old)
+    try {
+      await api.put(`/events/${event.id}/carousel-images/reorder`, { ids: newImages.map((img) => img.id) })
+    } catch {
+      qc.invalidateQueries({ queryKey: ['event'] })
+      toast.error('Could not save order.')
+    }
+  }
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(TouchSensor, { activationConstraint: { delay: 150, tolerance: 5 } }),
+  )
+
+  const onDragEnd = ({ active, over }) => {
+    if (!over || active.id === over.id) return
+    const images = event.carousel_images ?? []
+    const oldIndex = images.findIndex((img) => img.id === active.id)
+    const newIndex = images.findIndex((img) => img.id === over.id)
+    handleCarouselReorder(arrayMove(images, oldIndex, newIndex))
   }
 
   if (isLoading) return <p className="text-sm text-muted-foreground">Loading…</p>
@@ -288,26 +326,22 @@ export default function EventPage() {
       <div className="flex flex-col gap-4">
         <div className="flex items-center justify-between gap-2">
           <h2 className="text-lg font-semibold">Photo Gallery</h2>
-          <p className="text-xs text-muted-foreground">{event.carousel_images?.length ?? 0} / 10 photos</p>
+          <p className="text-xs text-muted-foreground">{event.carousel_images?.length ?? 0} / 3 photos</p>
         </div>
         <p className="text-sm text-muted-foreground -mt-2">
-          Shown as a carousel on the RSVP page, between ceremonies and dress code.
+          Up to 3 photos shown as a carousel on the RSVP page.
         </p>
 
         {event.carousel_images?.length > 0 && (
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-            {event.carousel_images.map((img) => (
-              <div key={img.id} className="relative group aspect-square rounded-xl overflow-hidden bg-muted">
-                <img src={img.url} alt="" className="w-full h-full object-cover" />
-                <button
-                  onClick={() => handleCarouselRemove(img.id)}
-                  className="absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity"
-                >
-                  <Trash2 className="h-5 w-5 text-white" />
-                </button>
+          <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={onDragEnd}>
+            <SortableContext items={event.carousel_images.map((img) => img.id)} strategy={rectSortingStrategy}>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                {event.carousel_images.map((img) => (
+                  <SortableCarouselItem key={img.id} img={img} onRemove={handleCarouselRemove} />
+                ))}
               </div>
-            ))}
-          </div>
+            </SortableContext>
+          </DndContext>
         )}
 
         <input
@@ -321,14 +355,14 @@ export default function EventPage() {
           <Button
             variant="outline"
             size="sm"
-            disabled={carouselUploading || (event.carousel_images?.length ?? 0) >= 10}
+            disabled={carouselUploading || (event.carousel_images?.length ?? 0) >= 3}
             onClick={() => carouselFileRef.current?.click()}
           >
             <Upload className="h-4 w-4 mr-1" />
             {carouselUploading ? 'Uploading…' : 'Add Photo'}
           </Button>
-          {(event.carousel_images?.length ?? 0) >= 10 && (
-            <p className="text-xs text-muted-foreground mt-1">Maximum of 10 photos reached.</p>
+          {(event.carousel_images?.length ?? 0) >= 3 && (
+            <p className="text-xs text-muted-foreground mt-1">Maximum of 3 photos reached.</p>
           )}
         </div>
       </div>
@@ -413,6 +447,28 @@ function MusicSection({ event, onRefresh }) {
           )}
         </div>
       </div>
+    </div>
+  )
+}
+
+function SortableCarouselItem({ img, onRemove }) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: img.id })
+  return (
+    <div
+      ref={setNodeRef}
+      style={{ transform: CSS.Transform.toString(transform), transition }}
+      className={`relative group aspect-square rounded-xl overflow-hidden bg-muted touch-none ${isDragging ? 'scale-105 shadow-xl z-10 opacity-90' : ''}`}
+      {...attributes}
+      {...listeners}
+    >
+      <img src={img.url} alt="" className="w-full h-full object-cover pointer-events-none" />
+      <button
+        onPointerDown={(e) => e.stopPropagation()}
+        onClick={() => onRemove(img.id)}
+        className="absolute top-1.5 right-1.5 h-7 w-7 rounded-full bg-black/50 hover:bg-black/70 flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transition-opacity"
+      >
+        <Trash2 className="h-3.5 w-3.5" />
+      </button>
     </div>
   )
 }
