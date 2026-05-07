@@ -326,23 +326,33 @@ export default function EventPage() {
       <div className="flex flex-col gap-4">
         <div className="flex items-center justify-between gap-2">
           <h2 className="text-lg font-semibold">Photo Gallery</h2>
-          <p className="text-xs text-muted-foreground">{event.carousel_images?.length ?? 0} / 3 photos</p>
+          <p className="text-xs text-muted-foreground">{event.carousel_images?.length ?? 0} / 10 photos</p>
         </div>
         <p className="text-sm text-muted-foreground -mt-2">
-          Up to 3 photos shown as a carousel on the RSVP page.
+          Up to 10 photos shown as a carousel on the RSVP page.
         </p>
 
-        {event.carousel_images?.length > 0 && (
-          <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={onDragEnd}>
-            <SortableContext items={event.carousel_images.map((img) => img.id)} strategy={rectSortingStrategy}>
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                {event.carousel_images.map((img) => (
-                  <SortableCarouselItem key={img.id} img={img} onRemove={handleCarouselRemove} />
-                ))}
-              </div>
-            </SortableContext>
-          </DndContext>
-        )}
+        <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={onDragEnd}>
+          <SortableContext items={(event.carousel_images ?? []).map((img) => img.id)} strategy={rectSortingStrategy}>
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+              {(event.carousel_images ?? []).map((img) => (
+                <SortableCarouselItem key={img.id} img={img} onRemove={handleCarouselRemove} />
+              ))}
+              {(event.carousel_images?.length ?? 0) < 10 && (
+                <button
+                  onClick={() => carouselFileRef.current?.click()}
+                  disabled={carouselUploading}
+                  className="aspect-square rounded-xl border-2 border-dashed border-muted-foreground/25 hover:border-muted-foreground/50 flex items-center justify-center text-muted-foreground/40 hover:text-muted-foreground/60 transition-colors disabled:pointer-events-none"
+                >
+                  {carouselUploading
+                    ? <div className="h-6 w-6 rounded-full border-2 border-muted-foreground/30 border-t-muted-foreground animate-spin" />
+                    : <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="h-8 w-8"><path d="M12 5v14M5 12h14" strokeLinecap="round"/></svg>
+                  }
+                </button>
+              )}
+            </div>
+          </SortableContext>
+        </DndContext>
 
         <input
           ref={carouselFileRef}
@@ -351,20 +361,6 @@ export default function EventPage() {
           className="hidden"
           onChange={handleCarouselUpload}
         />
-        <div>
-          <Button
-            variant="outline"
-            size="sm"
-            disabled={carouselUploading || (event.carousel_images?.length ?? 0) >= 3}
-            onClick={() => carouselFileRef.current?.click()}
-          >
-            <Upload className="h-4 w-4 mr-1" />
-            {carouselUploading ? 'Uploading…' : 'Add Photo'}
-          </Button>
-          {(event.carousel_images?.length ?? 0) >= 3 && (
-            <p className="text-xs text-muted-foreground mt-1">Maximum of 3 photos reached.</p>
-          )}
-        </div>
       </div>
 
       {/* Music */}
