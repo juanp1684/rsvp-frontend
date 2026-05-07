@@ -29,8 +29,10 @@ const fmt = (iso, opts) => new Date(iso).toLocaleString('en-US', opts)
 export default function EventPage() {
   const qc = useQueryClient()
   const [uploading, setUploading] = useState({})
+  const [carouselUploading, setCarouselUploading] = useState(false)
   const [editOpen, setEditOpen] = useState(false)
   const fileRefs = useRef({})
+  const carouselFileRef = useRef(null)
   const activeEvent = useAuthStore((s) => s.activeEvent)
 
   const { data: event, isLoading } = useQuery({
@@ -74,6 +76,37 @@ export default function EventPage() {
     } finally {
       setUploading((prev) => ({ ...prev, [type]: false }))
       e.target.value = ''
+    }
+  }
+
+  const handleCarouselUpload = async (e) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setCarouselUploading(true)
+    const formData = new FormData()
+    formData.append('image', file)
+    try {
+      await api.post(`/events/${event.id}/carousel-images`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      })
+      qc.invalidateQueries({ queryKey: ['event'] })
+      toast.success('Photo added.')
+    } catch (err) {
+      const msg = err?.response?.data?.message
+      toast.error(msg ?? 'Upload failed. Please try again.')
+    } finally {
+      setCarouselUploading(false)
+      e.target.value = ''
+    }
+  }
+
+  const handleCarouselRemove = async (imageId) => {
+    try {
+      await api.delete(`/events/${event.id}/carousel-images/${imageId}`)
+      qc.invalidateQueries({ queryKey: ['event'] })
+      toast.success('Photo removed.')
+    } catch {
+      toast.error('Could not remove photo.')
     }
   }
 
@@ -248,6 +281,55 @@ export default function EventPage() {
               )
             })}
           </div>
+        </div>
+      </div>
+
+      {/* Photo Gallery */}
+      <div className="flex flex-col gap-4">
+        <div className="flex items-center justify-between gap-2">
+          <h2 className="text-lg font-semibold">Photo Gallery</h2>
+          <p className="text-xs text-muted-foreground">{event.carousel_images?.length ?? 0} / 10 photos</p>
+        </div>
+        <p className="text-sm text-muted-foreground -mt-2">
+          Shown as a carousel on the RSVP page, between ceremonies and dress code.
+        </p>
+
+        {event.carousel_images?.length > 0 && (
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+            {event.carousel_images.map((img) => (
+              <div key={img.id} className="relative group aspect-square rounded-xl overflow-hidden bg-muted">
+                <img src={img.url} alt="" className="w-full h-full object-cover" />
+                <button
+                  onClick={() => handleCarouselRemove(img.id)}
+                  className="absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity"
+                >
+                  <Trash2 className="h-5 w-5 text-white" />
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+
+        <input
+          ref={carouselFileRef}
+          type="file"
+          accept="image/jpeg,image/png,image/webp"
+          className="hidden"
+          onChange={handleCarouselUpload}
+        />
+        <div>
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={carouselUploading || (event.carousel_images?.length ?? 0) >= 10}
+            onClick={() => carouselFileRef.current?.click()}
+          >
+            <Upload className="h-4 w-4 mr-1" />
+            {carouselUploading ? 'Uploading…' : 'Add Photo'}
+          </Button>
+          {(event.carousel_images?.length ?? 0) >= 10 && (
+            <p className="text-xs text-muted-foreground mt-1">Maximum of 10 photos reached.</p>
+          )}
         </div>
       </div>
 

@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { useParams } from 'react-router-dom'
 import { useQuery, useMutation } from '@tanstack/react-query'
 import api from '@/lib/api'
@@ -287,6 +287,11 @@ export default function RsvpPage() {
           <CeremoniesBlock event={event} />
         )}
 
+        {/* Photo Gallery Carousel */}
+        {event?.carousel_images?.length > 0 && (
+          <PhotoCarousel images={event.carousel_images} />
+        )}
+
         {/* Dress code */}
         {event && (event.dress_code || event.dress_code_image_url) && (
           <div className="w-full rounded-xl overflow-hidden border border-[#C0A18F]/60">
@@ -482,6 +487,76 @@ export default function RsvpPage() {
           carousel={{ finite: true }}
         />
       )}
+    </div>
+  )
+}
+
+function PhotoCarousel({ images }) {
+  const [current, setCurrent] = useState(0)
+  const touchStart = useRef(null)
+
+  const prev = useCallback(() => setCurrent((i) => (i === 0 ? images.length - 1 : i - 1)), [images.length])
+  const next = useCallback(() => setCurrent((i) => (i === images.length - 1 ? 0 : i + 1)), [images.length])
+
+  const onTouchStart = (e) => { touchStart.current = e.touches[0].clientX }
+  const onTouchEnd = (e) => {
+    if (touchStart.current === null) return
+    const diff = touchStart.current - e.changedTouches[0].clientX
+    if (Math.abs(diff) > 40) diff > 0 ? next() : prev()
+    touchStart.current = null
+  }
+
+  return (
+    <div className="w-full flex flex-col gap-3">
+      <div
+        className="relative w-full aspect-[4/3] rounded-xl overflow-hidden bg-[#C0A18F]/10 select-none"
+        onTouchStart={onTouchStart}
+        onTouchEnd={onTouchEnd}
+      >
+        {images.map((img, i) => (
+          <img
+            key={img.id}
+            src={img.url}
+            alt=""
+            className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-500 ${i === current ? 'opacity-100' : 'opacity-0'}`}
+          />
+        ))}
+
+        {/* Prev */}
+        <button
+          onClick={prev}
+          className="absolute left-2 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full bg-black/30 hover:bg-black/50 flex items-center justify-center text-white transition-colors"
+          aria-label="Previous photo"
+        >
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="h-4 w-4"><path d="M15 18l-6-6 6-6"/></svg>
+        </button>
+
+        {/* Next */}
+        <button
+          onClick={next}
+          className="absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full bg-black/30 hover:bg-black/50 flex items-center justify-center text-white transition-colors"
+          aria-label="Next photo"
+        >
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="h-4 w-4"><path d="M9 18l6-6-6-6"/></svg>
+        </button>
+
+        {/* Counter */}
+        <div className="absolute top-2 right-2 bg-black/30 text-white text-xs px-2 py-0.5 rounded-full">
+          {current + 1} / {images.length}
+        </div>
+      </div>
+
+      {/* Dots */}
+      <div className="flex items-center justify-center gap-1.5">
+        {images.map((_, i) => (
+          <button
+            key={i}
+            onClick={() => setCurrent(i)}
+            className={`rounded-full transition-all ${i === current ? 'w-4 h-2 bg-[#A47864]' : 'w-2 h-2 bg-[#C0A18F]/50 hover:bg-[#C0A18F]'}`}
+            aria-label={`Go to photo ${i + 1}`}
+          />
+        ))}
+      </div>
     </div>
   )
 }
