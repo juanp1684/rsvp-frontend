@@ -418,19 +418,21 @@ function MusicSection({ event, onRefresh }) {
       {event.song_url && (
         <audio controls src={event.song_url} className="w-full" />
       )}
-      <div className="flex items-center gap-4 border rounded-lg p-4">
-        <div className="flex items-center justify-center w-10 h-10 rounded-full bg-muted shrink-0">
-          <Music2 className="h-5 w-5 text-muted-foreground" />
-        </div>
-        <div className="flex-1 min-w-0">
-          {event.song_url
-            ? <p className="text-sm font-medium truncate">{event.song.split('/').pop()}</p>
-            : <p className="text-sm text-muted-foreground">No song uploaded</p>
-          }
-          <p className="text-xs text-muted-foreground mt-0.5">MP3 · max 10 MB · autoplays on the RSVP page</p>
+      <div className="flex flex-col gap-3 border rounded-lg p-4">
+        <div className="flex items-center gap-3">
+          <div className="flex items-center justify-center w-10 h-10 rounded-full bg-muted shrink-0">
+            <Music2 className="h-5 w-5 text-muted-foreground" />
+          </div>
+          <div className="flex-1 min-w-0">
+            {event.song_url
+              ? <p className="text-sm font-medium truncate">{event.song.split('/').pop()}</p>
+              : <p className="text-sm text-muted-foreground">No song uploaded</p>
+            }
+            <p className="text-xs text-muted-foreground mt-0.5">MP3 · max 10 MB · autoplays on the RSVP page</p>
+          </div>
         </div>
         <input ref={fileRef} type="file" accept=".mp3,audio/mpeg" className="hidden" onChange={handleUpload} />
-        <div className="flex gap-2 shrink-0">
+        <div className="flex gap-2">
           <Button variant="outline" size="sm" disabled={uploading} onClick={() => fileRef.current?.click()}>
             <Upload className="h-4 w-4 mr-1" />
             {uploading ? 'Uploading…' : event.song_url ? 'Replace' : 'Upload'}
