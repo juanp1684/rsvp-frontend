@@ -13,8 +13,6 @@ import Zoom from 'yet-another-react-lightbox/plugins/zoom'
 import 'yet-another-react-lightbox/styles.css'
 
 export default function RsvpPage() {
-  useEffect(() => { document.title = 'RSVP' }, [])
-
   const { eventSlug, code } = useParams()
   const [step, setStep] = useState('form') // 'form' | 'confirmed'
   const [status, setStatus] = useState(null) // 'attending' | 'declined'
@@ -34,6 +32,8 @@ export default function RsvpPage() {
     queryKey: ['event', eventSlug],
     queryFn: () => api.get(`/event/${eventSlug}`).then((r) => r.data),
   })
+
+  useEffect(() => { document.title = 'RSVP | ' + event?.name }, [event?.name])
 
   const isEditing = invitee?.status !== 'pending'
 
