@@ -157,7 +157,7 @@ export default function EventPage() {
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
-    useSensor(TouchSensor, { activationConstraint: { delay: 150, tolerance: 5 } }),
+    useSensor(TouchSensor, { activationConstraint: { delay: 400, tolerance: 5 } }),
   )
 
   const onDragEnd = ({ active, over }) => {
