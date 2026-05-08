@@ -9,7 +9,7 @@ import { Upload, Trash2, ImageIcon, Pencil, Music2 } from 'lucide-react'
 import {
   DndContext,
   closestCenter,
-  PointerSensor,
+  MouseSensor,
   TouchSensor,
   useSensor,
   useSensors,
@@ -156,7 +156,7 @@ export default function EventPage() {
   }
 
   const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(MouseSensor, { activationConstraint: { distance: 5 } }),
     useSensor(TouchSensor, { activationConstraint: { delay: 400, tolerance: 5 } }),
   )
 
@@ -488,7 +488,7 @@ function SortableCarouselItem({ img, onRemove }) {
     <div
       ref={setNodeRef}
       style={{ transform: CSS.Transform.toString(transform), transition }}
-      className={`relative group aspect-square rounded-xl overflow-hidden bg-muted touch-none ${isDragging ? 'scale-105 shadow-xl z-10 opacity-90' : ''}`}
+      className={`relative group aspect-square rounded-xl overflow-hidden bg-muted ${isDragging ? 'scale-105 shadow-xl z-10 opacity-90' : ''}`}
       {...attributes}
       {...listeners}
     >
