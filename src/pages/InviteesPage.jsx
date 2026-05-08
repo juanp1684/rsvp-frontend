@@ -344,40 +344,42 @@ export default function InviteesPage() {
             {filtered.map((invitee) => (
               <div key={invitee.id} className={`border rounded-lg overflow-hidden${invitee.type === 'late' ? ' border-l-4 border-l-amber-400' : ''}`}>
                 {/* Invitee row */}
-                <div className={`p-4 flex items-start justify-between gap-3${invitee.type === 'late' ? ' bg-amber-50/60 dark:bg-amber-950/20' : ''}`}>
-                  <Checkbox
-                    checked={selectedIds.has(invitee.id)}
-                    onCheckedChange={() => toggleSelect(invitee.id)}
-                    className="mt-0.5 shrink-0"
-                  />
-                  <div className="flex flex-col gap-1 min-w-0 flex-1">
-                    <div className="flex items-center gap-1.5 min-w-0">
-                      <span className="font-medium text-sm truncate">{invitee.full_name}</span>
-                      {invitee.type === 'late' && (
-                        <Badge className="text-xs shrink-0 bg-amber-100 text-amber-800 border-amber-300 hover:bg-amber-100">Late</Badge>
+                <div className={`p-4 flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3${invitee.type === 'late' ? ' bg-amber-50/60 dark:bg-amber-950/20' : ''}`}>
+                  <div className="flex items-start gap-3 flex-1 min-w-0">
+                    <Checkbox
+                      checked={selectedIds.has(invitee.id)}
+                      onCheckedChange={() => toggleSelect(invitee.id)}
+                      className="mt-0.5 shrink-0"
+                    />
+                    <div className="flex flex-col gap-1 min-w-0 flex-1">
+                      <div className="flex items-center gap-1.5 min-w-0">
+                        <span className="font-medium text-sm truncate">{invitee.full_name}</span>
+                        {invitee.type === 'late' && (
+                          <Badge className="text-xs shrink-0 bg-amber-100 text-amber-800 border-amber-300 hover:bg-amber-100">Late</Badge>
+                        )}
+                      </div>
+                      {invitee.phone && (
+                        <span className="text-xs text-muted-foreground">{invitee.phone}</span>
                       )}
-                    </div>
-                    {invitee.phone && (
-                      <span className="text-xs text-muted-foreground">{invitee.phone}</span>
-                    )}
-                    <div className="flex items-center gap-2 mt-1">
-                      <Badge variant={statusVariant[invitee.status]} className="text-xs capitalize">
-                        {invitee.status}
-                      </Badge>
-                      <span className="text-xs text-muted-foreground">
-                        {invitee.companions.length}/{invitee.allowed_companions} companions
-                      </span>
-                      <div className="flex items-center gap-1.5 ml-1">
-                        <Switch
-                          id={`sent-${invitee.id}`}
-                          checked={!!invitee.invitation_sent}
-                          onCheckedChange={(v) => toggleSentMutation.mutate({ id: invitee.id, value: v })}
-                        />
-                        <label htmlFor={`sent-${invitee.id}`} className="text-xs text-muted-foreground cursor-pointer">Sent</label>
+                      <div className="flex items-center gap-2 mt-1 flex-wrap">
+                        <Badge variant={statusVariant[invitee.status]} className="text-xs capitalize">
+                          {invitee.status}
+                        </Badge>
+                        <span className="text-xs text-muted-foreground">
+                          {invitee.companions.length}/{invitee.allowed_companions} companions
+                        </span>
+                        <div className="flex items-center gap-1.5">
+                          <Switch
+                            id={`sent-${invitee.id}`}
+                            checked={!!invitee.invitation_sent}
+                            onCheckedChange={(v) => toggleSentMutation.mutate({ id: invitee.id, value: v })}
+                          />
+                          <label htmlFor={`sent-${invitee.id}`} className="text-xs text-muted-foreground cursor-pointer">Sent</label>
+                        </div>
                       </div>
                     </div>
                   </div>
-                  <div className="flex gap-1 shrink-0">
+                  <div className="flex gap-1 shrink-0 border-t pt-2 -mx-4 px-3 sm:border-0 sm:pt-0 sm:mx-0 sm:px-0">
                     {invitee.phone && (
                       <Button variant="ghost" size="icon" asChild>
                         <a href={getWhatsAppUrl(invitee, activeEvent)} target="_blank" rel="noopener noreferrer" className="text-green-600">
