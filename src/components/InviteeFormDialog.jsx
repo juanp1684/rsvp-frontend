@@ -22,7 +22,7 @@ import {
 } from '@/components/ui/select'
 import { Check, Pencil, Trash2, X } from 'lucide-react'
 
-const empty = { full_name: '', phone: '', allowed_companions: '0', notes: '', type: 'regular' }
+const empty = { full_name: '', phone: '', allowed_companions: '0', notes: '', type: 'regular', status: 'pending' }
 
 export default function InviteeFormDialog({ open, onOpenChange, invitee }) {
   const isEdit = !!invitee
@@ -44,6 +44,7 @@ export default function InviteeFormDialog({ open, onOpenChange, invitee }) {
             allowed_companions: String(invitee.allowed_companions),
             notes: invitee.notes ?? '',
             type: invitee.type ?? 'regular',
+            status: invitee.status ?? 'pending',
           }
         : empty
     )
@@ -107,7 +108,7 @@ export default function InviteeFormDialog({ open, onOpenChange, invitee }) {
   }
 
   const showCompanions =
-    isEdit && invitee.status === 'attending' && invitee.allowed_companions > 0
+    isEdit && form.status === 'attending' && Number(form.allowed_companions) > 0
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -153,20 +154,40 @@ export default function InviteeFormDialog({ open, onOpenChange, invitee }) {
             <Input id="notes" value={form.notes} onChange={set('notes')} maxLength={500} />
           </div>
 
-          <div className="flex flex-col gap-1.5">
-            <Label>Type</Label>
-            <Select
-              value={form.type}
-              onValueChange={(v) => setForm((f) => ({ ...f, type: v }))}
-            >
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="regular">Regular</SelectItem>
-                <SelectItem value="late">Late</SelectItem>
-              </SelectContent>
-            </Select>
+          <div className="flex gap-3">
+            <div className="flex flex-col gap-1.5 flex-1">
+              <Label>Type</Label>
+              <Select
+                value={form.type}
+                onValueChange={(v) => setForm((f) => ({ ...f, type: v }))}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="regular">Regular</SelectItem>
+                  <SelectItem value="late">Late</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            {isEdit && (
+              <div className="flex flex-col gap-1.5 flex-1">
+                <Label>Status</Label>
+                <Select
+                  value={form.status}
+                  onValueChange={(v) => setForm((f) => ({ ...f, status: v }))}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="pending">Pending</SelectItem>
+                    <SelectItem value="attending">Attending</SelectItem>
+                    <SelectItem value="declined">Declined</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
           </div>
 
           {showCompanions && (
@@ -175,10 +196,10 @@ export default function InviteeFormDialog({ open, onOpenChange, invitee }) {
                 <Label>
                   Companions{' '}
                   <span className="text-muted-foreground font-normal">
-                    ({localCompanions.length}/{invitee.allowed_companions})
+                    ({localCompanions.length}/{form.allowed_companions})
                   </span>
                 </Label>
-                {!isAdding && localCompanions.length < invitee.allowed_companions && (
+                {!isAdding && localCompanions.length < Number(form.allowed_companions) && (
                   <Button
                     type="button"
                     size="sm"
