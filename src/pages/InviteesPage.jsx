@@ -330,14 +330,18 @@ export default function InviteesPage() {
               {lateCount > 0 && (
                 <div className="flex flex-col gap-1.5">
                   <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Type</p>
-                  {[{ key: 'all', label: 'All' }, { key: 'late', label: 'Late' }].map(({ key, label }) => (
+                  {[
+                    { key: 'all', label: 'All', count: invitees.length },
+                    { key: 'regular', label: 'Regular', count: invitees.length - lateCount },
+                    { key: 'late', label: 'Late', count: lateCount },
+                  ].map(({ key, label, count }) => (
                     <button
                       key={key}
                       onClick={() => setFilter('type', key)}
                       className={`flex items-center justify-between text-sm px-2 py-1 rounded-md transition-colors ${filters.type === key ? 'bg-secondary font-medium' : 'hover:bg-muted'}`}
                     >
                       {label}
-                      {key === 'late' && <span className="text-xs text-muted-foreground">{lateCount}</span>}
+                      <span className="text-xs text-muted-foreground">{count}</span>
                     </button>
                   ))}
                 </div>
