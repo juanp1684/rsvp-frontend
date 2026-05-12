@@ -396,7 +396,7 @@ export default function InviteesPage() {
             Status <SortIcon field="status" />
           </Button>
         </div>
-        <div className="flex gap-2 ml-auto">
+        <div className="flex gap-2">
           <Button variant="outline" size="sm" onClick={handleExportCsv}>
             <Download className="h-4 w-4 mr-1" />
             CSV
