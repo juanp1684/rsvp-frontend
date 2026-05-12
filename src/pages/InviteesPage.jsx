@@ -283,8 +283,8 @@ export default function InviteesPage() {
         </div>
       </div>
 
-      {/* Search + actions */}
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:flex-wrap">
+      {/* Search + filter */}
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
         <Input
           placeholder="Search by name…"
           value={search}
@@ -374,7 +374,10 @@ export default function InviteesPage() {
             </PopoverContent>
           </Popover>
         </div>
-        {/* Mobile sort */}
+      </div>
+
+      {/* Sort (mobile) + export/import */}
+      <div className="flex items-center gap-2 flex-wrap">
         <div className="flex gap-2 md:hidden">
           <Button
             variant={sort.field === 'full_name' ? 'secondary' : 'outline'}
@@ -393,7 +396,7 @@ export default function InviteesPage() {
             Status <SortIcon field="status" />
           </Button>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 ml-auto">
           <Button variant="outline" size="sm" onClick={handleExportCsv}>
             <Download className="h-4 w-4 mr-1" />
             CSV
