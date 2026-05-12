@@ -30,7 +30,8 @@ import {
 } from '@/components/ui/alert-dialog'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Switch } from '@/components/ui/switch'
-import { Plus, Pencil, Trash2, Upload, Download, ChevronUp, ChevronDown, ChevronsUpDown, QrCode } from 'lucide-react'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import { Plus, Pencil, Trash2, Upload, Download, ChevronUp, ChevronDown, ChevronsUpDown, QrCode, SlidersHorizontal, X } from 'lucide-react'
 
 function WhatsAppIcon({ className }) {
   return (
@@ -74,8 +75,8 @@ export default function InviteesPage() {
   const qc = useQueryClient()
   const activeEvent = useAuthStore((s) => s.activeEvent)
   const [search, setSearch] = useState('')
-  const [statusFilter, setStatusFilter] = useState('all')
-  const [typeFilter, setTypeFilter] = useState('all')
+  const [filters, setFilters] = useState({ status: 'all', type: 'all', sent: 'all' })
+  const setFilter = (key, value) => setFilters((prev) => ({ ...prev, [key]: value }))
   const [formOpen, setFormOpen] = useState(false)
   const [editInvitee, setEditInvitee] = useState(null)
   const [deleteTarget, setDeleteTarget] = useState(null)
@@ -172,10 +173,12 @@ export default function InviteesPage() {
   }
 
   const lateCount = invitees.filter((i) => i.type === 'late').length
+  const activeFilterCount = [filters.status !== 'all', filters.type !== 'all', filters.sent !== 'all'].filter(Boolean).length
 
   const filtered = invitees
-    .filter((i) => statusFilter === 'all' || i.status === statusFilter)
-    .filter((i) => typeFilter === 'all' || i.type === typeFilter)
+    .filter((i) => filters.status === 'all' || i.status === filters.status)
+    .filter((i) => filters.type === 'all' || i.type === filters.type)
+    .filter((i) => filters.sent === 'all' || (filters.sent === 'sent' ? i.invitation_sent : !i.invitation_sent))
     .filter((i) => {
       const q = normalize(search)
       return (
@@ -286,33 +289,87 @@ export default function InviteesPage() {
           onChange={(e) => setSearch(e.target.value)}
           className="sm:max-w-xs"
         />
-        {/* Status filter */}
-        <div className="flex gap-2 flex-wrap">
-          {[
-            { key: 'all', label: 'All' },
-            { key: 'attending', label: 'Attending' },
-            { key: 'pending', label: 'Pending' },
-            { key: 'declined', label: 'Declined' },
-          ].map(({ key, label }) => (
-            <Button
-              key={key}
-              variant={statusFilter === key ? 'secondary' : 'outline'}
-              size="sm"
-              onClick={() => setStatusFilter(key)}
-            >
-              {label} ({statusCounts[key]})
-            </Button>
-          ))}
-          {lateCount > 0 && (
-            <Button
-              variant={typeFilter === 'late' ? 'secondary' : 'outline'}
-              size="sm"
-              onClick={() => setTypeFilter((prev) => prev === 'late' ? 'all' : 'late')}
-              className={typeFilter === 'late' ? 'bg-amber-100 text-amber-800 border-amber-300 hover:bg-amber-200 dark:bg-amber-900 dark:text-amber-200' : 'border-amber-300 text-amber-700 hover:bg-amber-50'}
-            >
-              Late ({lateCount})
-            </Button>
-          )}
+        {/* Filters */}
+        <div className="flex items-center gap-2">
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button variant="outline" size="sm" className="relative">
+                <SlidersHorizontal className="h-4 w-4 mr-1" />
+                Filter
+                {activeFilterCount > 0 && (
+                  <span className="ml-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[10px] text-primary-foreground font-medium">
+                    {activeFilterCount}
+                  </span>
+                )}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-56 p-3 flex flex-col gap-4" align="start">
+              {/* Status */}
+              <div className="flex flex-col gap-1.5">
+                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Status</p>
+                {[
+                  { key: 'all', label: 'All' },
+                  { key: 'attending', label: 'Attending' },
+                  { key: 'pending', label: 'Pending' },
+                  { key: 'declined', label: 'Declined' },
+                ].map(({ key, label }) => (
+                  <button
+                    key={key}
+                    onClick={() => setFilter('status', key)}
+                    className={`flex items-center justify-between text-sm px-2 py-1 rounded-md transition-colors ${filters.status === key ? 'bg-secondary font-medium' : 'hover:bg-muted'}`}
+                  >
+                    {label}
+                    <span className="text-xs text-muted-foreground">{statusCounts[key]}</span>
+                  </button>
+                ))}
+              </div>
+
+              {/* Type */}
+              {lateCount > 0 && (
+                <div className="flex flex-col gap-1.5">
+                  <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Type</p>
+                  {[{ key: 'all', label: 'All' }, { key: 'late', label: 'Late' }].map(({ key, label }) => (
+                    <button
+                      key={key}
+                      onClick={() => setFilter('type', key)}
+                      className={`flex items-center justify-between text-sm px-2 py-1 rounded-md transition-colors ${filters.type === key ? 'bg-secondary font-medium' : 'hover:bg-muted'}`}
+                    >
+                      {label}
+                      {key === 'late' && <span className="text-xs text-muted-foreground">{lateCount}</span>}
+                    </button>
+                  ))}
+                </div>
+              )}
+
+              {/* Sent */}
+              <div className="flex flex-col gap-1.5">
+                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Invitation</p>
+                {[
+                  { key: 'all', label: 'All' },
+                  { key: 'sent', label: 'Sent' },
+                  { key: 'unsent', label: 'Not sent' },
+                ].map(({ key, label }) => (
+                  <button
+                    key={key}
+                    onClick={() => setFilter('sent', key)}
+                    className={`flex items-center text-sm px-2 py-1 rounded-md transition-colors ${filters.sent === key ? 'bg-secondary font-medium' : 'hover:bg-muted'}`}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+
+              {/* Clear */}
+              {activeFilterCount > 0 && (
+                <button
+                  onClick={() => setFilters({ status: 'all', type: 'all', sent: 'all' })}
+                  className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors pt-1 border-t"
+                >
+                  <X className="h-3 w-3" /> Clear all filters
+                </button>
+              )}
+            </PopoverContent>
+          </Popover>
         </div>
         {/* Mobile sort */}
         <div className="flex gap-2 md:hidden">
