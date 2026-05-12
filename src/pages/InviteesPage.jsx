@@ -173,6 +173,8 @@ export default function InviteesPage() {
   }
 
   const lateCount = invitees.filter((i) => i.type === 'late').length
+  const sentCount = invitees.filter((i) => i.invitation_sent).length
+  const unsentCount = invitees.filter((i) => !i.invitation_sent).length
   const activeFilterCount = [filters.status !== 'all', filters.type !== 'all', filters.sent !== 'all'].filter(Boolean).length
 
   const filtered = invitees
@@ -345,16 +347,17 @@ export default function InviteesPage() {
               <div className="flex flex-col gap-1.5">
                 <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Invitation</p>
                 {[
-                  { key: 'all', label: 'All' },
-                  { key: 'sent', label: 'Sent' },
-                  { key: 'unsent', label: 'Not sent' },
-                ].map(({ key, label }) => (
+                  { key: 'all', label: 'All', count: invitees.length },
+                  { key: 'sent', label: 'Sent', count: sentCount },
+                  { key: 'unsent', label: 'Not sent', count: unsentCount },
+                ].map(({ key, label, count }) => (
                   <button
                     key={key}
                     onClick={() => setFilter('sent', key)}
-                    className={`flex items-center text-sm px-2 py-1 rounded-md transition-colors ${filters.sent === key ? 'bg-secondary font-medium' : 'hover:bg-muted'}`}
+                    className={`flex items-center justify-between text-sm px-2 py-1 rounded-md transition-colors ${filters.sent === key ? 'bg-secondary font-medium' : 'hover:bg-muted'}`}
                   >
                     {label}
+                    <span className="text-xs text-muted-foreground">{count}</span>
                   </button>
                 ))}
               </div>
