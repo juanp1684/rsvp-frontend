@@ -75,6 +75,7 @@ export default function InviteesPage() {
   const activeEvent = useAuthStore((s) => s.activeEvent)
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState('all')
+  const [typeFilter, setTypeFilter] = useState('all')
   const [formOpen, setFormOpen] = useState(false)
   const [editInvitee, setEditInvitee] = useState(null)
   const [deleteTarget, setDeleteTarget] = useState(null)
@@ -170,8 +171,11 @@ export default function InviteesPage() {
     declined:  invitees.filter((i) => i.status === 'declined').reduce((sum, i) => sum + countInvitee(i), 0),
   }
 
+  const lateCount = invitees.filter((i) => i.type === 'late').length
+
   const filtered = invitees
     .filter((i) => statusFilter === 'all' || i.status === statusFilter)
+    .filter((i) => typeFilter === 'all' || i.type === typeFilter)
     .filter((i) => {
       const q = normalize(search)
       return (
@@ -299,6 +303,16 @@ export default function InviteesPage() {
               {label} ({statusCounts[key]})
             </Button>
           ))}
+          {lateCount > 0 && (
+            <Button
+              variant={typeFilter === 'late' ? 'secondary' : 'outline'}
+              size="sm"
+              onClick={() => setTypeFilter((prev) => prev === 'late' ? 'all' : 'late')}
+              className={typeFilter === 'late' ? 'bg-amber-100 text-amber-800 border-amber-300 hover:bg-amber-200 dark:bg-amber-900 dark:text-amber-200' : 'border-amber-300 text-amber-700 hover:bg-amber-50'}
+            >
+              Late ({lateCount})
+            </Button>
+          )}
         </div>
         {/* Mobile sort */}
         <div className="flex gap-2 md:hidden">
