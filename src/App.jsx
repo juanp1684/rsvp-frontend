@@ -8,6 +8,7 @@ import DashboardPage from '@/pages/DashboardPage'
 import EventPage from '@/pages/EventPage'
 import EventPickerPage from '@/pages/EventPickerPage'
 import InviteesPage from '@/pages/InviteesPage'
+import UsersPage from '@/pages/UsersPage'
 import RsvpPage from '@/pages/RsvpPage'
 
 const queryClient = new QueryClient()
@@ -30,6 +31,7 @@ export default function App() {
             <Route path="invitees" element={<InviteesPage />} />
             <Route path="event" element={<EventPage />} />
             <Route path="events" element={<EventPickerPage />} />
+            <Route path="users" element={<UsersPage />} />
           </Route>
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

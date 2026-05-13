@@ -14,8 +14,13 @@ const navItems = [
   { to: '/event', label: 'Event' },
 ]
 
-function NavLinks({ onNavigate, itemClassName = '' }) {
-  return navItems.map(({ to, label }) => (
+const superAdminNavItems = [
+  { to: '/users', label: 'Users' },
+]
+
+function NavLinks({ onNavigate, itemClassName = '', isSuperAdmin = false }) {
+  const items = isSuperAdmin ? [...navItems, ...superAdminNavItems] : navItems
+  return items.map(({ to, label }) => (
     <NavLink
       key={to}
       to={to}
@@ -59,7 +64,7 @@ export default function AdminLayout() {
             </SheetTrigger>
             <SheetContent side="left" className={`${dark ? 'dark' : ''} w-64 pt-10 px-4 pb-6 flex flex-col bg-background text-foreground`}>
               <nav className="flex flex-col gap-5 text-base">
-                <NavLinks onNavigate={() => setMobileOpen(false)} />
+                <NavLinks onNavigate={() => setMobileOpen(false)} isSuperAdmin={isSuperAdmin} />
               </nav>
               <div className="mt-auto flex flex-col gap-3">
                 {user && <p className="text-sm text-muted-foreground">{user.name}</p>}
@@ -92,7 +97,7 @@ export default function AdminLayout() {
 
           {/* Desktop nav */}
           <nav className="hidden md:flex gap-5 ml-4">
-            <NavLinks />
+            <NavLinks isSuperAdmin={isSuperAdmin} />
           </nav>
         </div>
 

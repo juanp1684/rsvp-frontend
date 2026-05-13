@@ -11,7 +11,8 @@ export default function ProtectedRoute({ children }) {
 
   // Super admins without an active event go to the event picker
   // (skip redirect if already on /events to avoid a loop)
-  if (user?.role === 'super_admin' && !activeEvent && pathname !== '/events') {
+  const exemptFromEventPicker = ['/events', '/users']
+  if (user?.role === 'super_admin' && !activeEvent && !exemptFromEventPicker.includes(pathname)) {
     return <Navigate to="/events" replace />
   }
 
