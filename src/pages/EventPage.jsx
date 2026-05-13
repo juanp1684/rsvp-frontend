@@ -1,4 +1,5 @@
 import { useRef, useState, useEffect } from 'react'
+import { useIsViewer } from '@/hooks/useIsViewer'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import api from '@/lib/api'
@@ -50,6 +51,7 @@ export default function EventPage() {
   const fileRefs = useRef({})
   const carouselFileRef = useRef(null)
   const activeEvent = useAuthStore((s) => s.activeEvent)
+  const isViewer = useIsViewer()
 
   const { data: event, isLoading } = useQuery({
     queryKey: ['event', activeEvent?.slug],
@@ -178,10 +180,12 @@ export default function EventPage() {
       {/* Header */}
       <div className="flex items-center justify-between gap-2">
         <h1 className="text-xl font-semibold">Event</h1>
-        <Button variant="outline" size="sm" onClick={() => setEditOpen(true)}>
-          <Pencil className="h-4 w-4 mr-1" />
-          Edit
-        </Button>
+        {!isViewer && (
+          <Button variant="outline" size="sm" onClick={() => setEditOpen(true)}>
+            <Pencil className="h-4 w-4 mr-1" />
+            Edit
+          </Button>
+        )}
       </div>
 
       {/* Event details */}
@@ -248,35 +252,39 @@ export default function EventPage() {
                 </div>
 
                 {/* Upload / Remove */}
-                <input
-                  ref={(el) => (fileRefs.current[key] = el)}
-                  type="file"
-                  accept="image/jpeg,image/png,image/webp"
-                  className="hidden"
-                  onChange={(e) => handleUpload(key, e)}
-                />
-                <div className="flex gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    disabled={uploading[key]}
-                    onClick={() => fileRefs.current[key]?.click()}
-                  >
-                    <Upload className="h-4 w-4 mr-1" />
-                    {uploading[key] ? 'Uploading…' : url ? 'Replace' : 'Upload'}
-                  </Button>
-                  {url && (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="text-destructive hover:text-destructive"
-                      onClick={() => handleRemove(key)}
-                    >
-                      <Trash2 className="h-4 w-4 mr-1" />
-                      Remove
-                    </Button>
-                  )}
-                </div>
+                {!isViewer && (
+                  <>
+                    <input
+                      ref={(el) => (fileRefs.current[key] = el)}
+                      type="file"
+                      accept="image/jpeg,image/png,image/webp"
+                      className="hidden"
+                      onChange={(e) => handleUpload(key, e)}
+                    />
+                    <div className="flex gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        disabled={uploading[key]}
+                        onClick={() => fileRefs.current[key]?.click()}
+                      >
+                        <Upload className="h-4 w-4 mr-1" />
+                        {uploading[key] ? 'Uploading…' : url ? 'Replace' : 'Upload'}
+                      </Button>
+                      {url && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="text-destructive hover:text-destructive"
+                          onClick={() => handleRemove(key)}
+                        >
+                          <Trash2 className="h-4 w-4 mr-1" />
+                          Remove
+                        </Button>
+                      )}
+                    </div>
+                  </>
+                )}
               </div>
             )
           })}
@@ -306,35 +314,39 @@ export default function EventPage() {
                         </div>
                     }
                   </div>
-                  <input
-                    ref={(el) => (fileRefs.current[key] = el)}
-                    type="file"
-                    accept="image/jpeg,image/png,image/webp"
-                    className="hidden"
-                    onChange={(e) => handleUpload(key, e)}
-                  />
-                  <div className="flex gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      disabled={uploading[key]}
-                      onClick={() => fileRefs.current[key]?.click()}
-                    >
-                      <Upload className="h-4 w-4 mr-1" />
-                      {uploading[key] ? 'Uploading…' : url ? 'Replace' : 'Upload'}
-                    </Button>
-                    {url && (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="text-destructive hover:text-destructive"
-                        onClick={() => handleRemove(key)}
-                      >
-                        <Trash2 className="h-4 w-4 mr-1" />
-                        Remove
-                      </Button>
-                    )}
-                  </div>
+                  {!isViewer && (
+                    <>
+                      <input
+                        ref={(el) => (fileRefs.current[key] = el)}
+                        type="file"
+                        accept="image/jpeg,image/png,image/webp"
+                        className="hidden"
+                        onChange={(e) => handleUpload(key, e)}
+                      />
+                      <div className="flex gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          disabled={uploading[key]}
+                          onClick={() => fileRefs.current[key]?.click()}
+                        >
+                          <Upload className="h-4 w-4 mr-1" />
+                          {uploading[key] ? 'Uploading…' : url ? 'Replace' : 'Upload'}
+                        </Button>
+                        {url && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="text-destructive hover:text-destructive"
+                            onClick={() => handleRemove(key)}
+                          >
+                            <Trash2 className="h-4 w-4 mr-1" />
+                            Remove
+                          </Button>
+                        )}
+                      </div>
+                    </>
+                  )}
                 </div>
               )
             })}
@@ -350,61 +362,74 @@ export default function EventPage() {
         </div>
         <div className="flex items-center justify-between gap-4 -mt-2">
           <p className="text-sm text-muted-foreground">Up to 10 photos shown as a carousel on the RSVP page.</p>
-          <div className="flex items-center gap-2 shrink-0">
-            <label htmlFor="carousel_interval" className="text-xs text-muted-foreground whitespace-nowrap">Slide every</label>
-            <input
-              id="carousel_interval"
-              type="number"
-              min={1}
-              max={30}
-              value={carouselInterval}
-              onChange={(e) => handleCarouselIntervalChange(Number(e.target.value))}
-              className="w-14 h-7 rounded-md border border-input bg-transparent px-2 text-sm text-center shadow-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-            />
-            <span className="text-xs text-muted-foreground">s</span>
-          </div>
+          {!isViewer && (
+            <div className="flex items-center gap-2 shrink-0">
+              <label htmlFor="carousel_interval" className="text-xs text-muted-foreground whitespace-nowrap">Slide every</label>
+              <input
+                id="carousel_interval"
+                type="number"
+                min={1}
+                max={30}
+                value={carouselInterval}
+                onChange={(e) => handleCarouselIntervalChange(Number(e.target.value))}
+                className="w-14 h-7 rounded-md border border-input bg-transparent px-2 text-sm text-center shadow-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              />
+              <span className="text-xs text-muted-foreground">s</span>
+            </div>
+          )}
         </div>
 
-        <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={onDragEnd}>
-          <SortableContext items={(event.carousel_images ?? []).map((img) => img.id)} strategy={rectSortingStrategy}>
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-              {(event.carousel_images ?? []).map((img) => (
-                <SortableCarouselItem key={img.id} img={img} onRemove={handleCarouselRemove} />
-              ))}
-              {(event.carousel_images?.length ?? 0) < 10 && (
-                <button
-                  onClick={() => carouselFileRef.current?.click()}
-                  disabled={carouselUploading}
-                  className="aspect-square rounded-xl border-2 border-dashed border-muted-foreground/25 hover:border-muted-foreground/50 flex items-center justify-center text-muted-foreground/40 hover:text-muted-foreground/60 transition-colors disabled:pointer-events-none"
-                >
-                  {carouselUploading
-                    ? <div className="h-6 w-6 rounded-full border-2 border-muted-foreground/30 border-t-muted-foreground animate-spin" />
-                    : <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="h-8 w-8"><path d="M12 5v14M5 12h14" strokeLinecap="round"/></svg>
-                  }
-                </button>
-              )}
-            </div>
-          </SortableContext>
-        </DndContext>
-
-        <input
-          ref={carouselFileRef}
-          type="file"
-          accept="image/jpeg,image/png,image/webp"
-          className="hidden"
-          onChange={handleCarouselUpload}
-        />
+        {isViewer ? (
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+            {(event.carousel_images ?? []).map((img) => (
+              <div key={img.id} className="aspect-square rounded-xl overflow-hidden bg-muted">
+                <img src={img.url} alt="" className="w-full h-full object-cover" />
+              </div>
+            ))}
+          </div>
+        ) : (
+          <>
+            <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={onDragEnd}>
+              <SortableContext items={(event.carousel_images ?? []).map((img) => img.id)} strategy={rectSortingStrategy}>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                  {(event.carousel_images ?? []).map((img) => (
+                    <SortableCarouselItem key={img.id} img={img} onRemove={handleCarouselRemove} />
+                  ))}
+                  {(event.carousel_images?.length ?? 0) < 10 && (
+                    <button
+                      onClick={() => carouselFileRef.current?.click()}
+                      disabled={carouselUploading}
+                      className="aspect-square rounded-xl border-2 border-dashed border-muted-foreground/25 hover:border-muted-foreground/50 flex items-center justify-center text-muted-foreground/40 hover:text-muted-foreground/60 transition-colors disabled:pointer-events-none"
+                    >
+                      {carouselUploading
+                        ? <div className="h-6 w-6 rounded-full border-2 border-muted-foreground/30 border-t-muted-foreground animate-spin" />
+                        : <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="h-8 w-8"><path d="M12 5v14M5 12h14" strokeLinecap="round"/></svg>
+                      }
+                    </button>
+                  )}
+                </div>
+              </SortableContext>
+            </DndContext>
+            <input
+              ref={carouselFileRef}
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              className="hidden"
+              onChange={handleCarouselUpload}
+            />
+          </>
+        )}
       </div>
 
       {/* Music */}
-      <MusicSection event={event} onRefresh={() => qc.invalidateQueries({ queryKey: ['event'] })} />
+      <MusicSection event={event} isViewer={isViewer} onRefresh={() => qc.invalidateQueries({ queryKey: ['event'] })} />
 
       <EventEditDialog event={event} open={editOpen} onOpenChange={setEditOpen} />
     </div>
   )
 }
 
-function MusicSection({ event, onRefresh }) {
+function MusicSection({ event, isViewer, onRefresh }) {
   const fileRef = useRef(null)
   const [uploading, setUploading] = useState(false)
 
@@ -464,19 +489,23 @@ function MusicSection({ event, onRefresh }) {
             <p className="text-xs text-muted-foreground mt-0.5">MP3 · max 10 MB · autoplays on the RSVP page</p>
           </div>
         </div>
-        <input ref={fileRef} type="file" accept=".mp3,audio/mpeg" className="hidden" onChange={handleUpload} />
-        <div className="flex gap-2">
-          <Button variant="outline" size="sm" disabled={uploading} onClick={() => fileRef.current?.click()}>
-            <Upload className="h-4 w-4 mr-1" />
-            {uploading ? 'Uploading…' : event.song_url ? 'Replace' : 'Upload'}
-          </Button>
-          {event.song_url && (
-            <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive" onClick={handleRemove}>
-              <Trash2 className="h-4 w-4 mr-1" />
-              Remove
-            </Button>
-          )}
-        </div>
+        {!isViewer && (
+          <>
+            <input ref={fileRef} type="file" accept=".mp3,audio/mpeg" className="hidden" onChange={handleUpload} />
+            <div className="flex gap-2">
+              <Button variant="outline" size="sm" disabled={uploading} onClick={() => fileRef.current?.click()}>
+                <Upload className="h-4 w-4 mr-1" />
+                {uploading ? 'Uploading…' : event.song_url ? 'Replace' : 'Upload'}
+              </Button>
+              {event.song_url && (
+                <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive" onClick={handleRemove}>
+                  <Trash2 className="h-4 w-4 mr-1" />
+                  Remove
+                </Button>
+              )}
+            </div>
+          </>
+        )}
       </div>
     </div>
   )

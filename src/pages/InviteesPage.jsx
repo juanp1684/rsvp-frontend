@@ -32,6 +32,7 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { Switch } from '@/components/ui/switch'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Plus, Pencil, Trash2, Upload, Download, ChevronUp, ChevronDown, ChevronsUpDown, QrCode, SlidersHorizontal, X } from 'lucide-react'
+import { useIsViewer } from '@/hooks/useIsViewer'
 
 function WhatsAppIcon({ className }) {
   return (
@@ -74,6 +75,7 @@ export default function InviteesPage() {
 
   const qc = useQueryClient()
   const activeEvent = useAuthStore((s) => s.activeEvent)
+  const isViewer = useIsViewer()
   const [search, setSearch] = useState('')
   const [filters, setFilters] = useState({ status: 'all', type: 'all', sent: 'all' })
   const setFilter = (key, value) => setFilters((prev) => ({ ...prev, [key]: value }))
@@ -269,18 +271,20 @@ export default function InviteesPage() {
     <div className="flex flex-col gap-4">
       <div className="flex items-center justify-between gap-2">
         <h1 className="text-xl font-semibold">Invitees</h1>
-        <div className="flex gap-2">
-          {selectedIds.size > 0 && (
-            <Button size="sm" variant="destructive" onClick={() => setBulkDeleteOpen(true)}>
-              <Trash2 className="h-4 w-4 mr-1" />
-              Delete ({selectedIds.size})
+        {!isViewer && (
+          <div className="flex gap-2">
+            {selectedIds.size > 0 && (
+              <Button size="sm" variant="destructive" onClick={() => setBulkDeleteOpen(true)}>
+                <Trash2 className="h-4 w-4 mr-1" />
+                Delete ({selectedIds.size})
+              </Button>
+            )}
+            <Button size="sm" onClick={handleAdd}>
+              <Plus className="h-4 w-4 mr-1" />
+              Add
             </Button>
-          )}
-          <Button size="sm" onClick={handleAdd}>
-            <Plus className="h-4 w-4 mr-1" />
-            Add
-          </Button>
-        </div>
+          </div>
+        )}
       </div>
 
       {/* Search + filter */}
@@ -409,10 +413,12 @@ export default function InviteesPage() {
             <Download className="h-4 w-4 mr-1" />
             Excel
           </Button>
-          <Button variant="outline" size="sm" onClick={() => setImportOpen(true)}>
-            <Upload className="h-4 w-4 mr-1" />
-            Import
-          </Button>
+          {!isViewer && (
+            <Button variant="outline" size="sm" onClick={() => setImportOpen(true)}>
+              <Upload className="h-4 w-4 mr-1" />
+              Import
+            </Button>
+          )}
         </div>
       </div>
 
@@ -427,11 +433,13 @@ export default function InviteesPage() {
                 {/* Invitee row */}
                 <div className={`p-4 flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3${invitee.type === 'late' ? ' bg-amber-50/60 dark:bg-amber-950/20' : ''}`}>
                   <div className="flex items-start gap-3 flex-1 min-w-0">
-                    <Checkbox
-                      checked={selectedIds.has(invitee.id)}
-                      onCheckedChange={() => toggleSelect(invitee.id)}
-                      className="mt-0.5 shrink-0"
-                    />
+                    {!isViewer && (
+                      <Checkbox
+                        checked={selectedIds.has(invitee.id)}
+                        onCheckedChange={() => toggleSelect(invitee.id)}
+                        className="mt-0.5 shrink-0"
+                      />
+                    )}
                     <div className="flex flex-col gap-1 min-w-0 flex-1">
                       <div className="flex items-center gap-1.5 min-w-0">
                         <span className="font-medium text-sm truncate">{invitee.full_name}</span>
@@ -449,14 +457,16 @@ export default function InviteesPage() {
                         <span className="text-xs text-muted-foreground">
                           {invitee.companions.length}/{invitee.allowed_companions} companions
                         </span>
-                        <div className="flex items-center gap-1.5">
-                          <Switch
-                            id={`sent-${invitee.id}`}
-                            checked={!!invitee.invitation_sent}
-                            onCheckedChange={(v) => toggleSentMutation.mutate({ id: invitee.id, value: v })}
-                          />
-                          <label htmlFor={`sent-${invitee.id}`} className="text-xs text-muted-foreground cursor-pointer">Sent</label>
-                        </div>
+                        {!isViewer && (
+                          <div className="flex items-center gap-1.5">
+                            <Switch
+                              id={`sent-${invitee.id}`}
+                              checked={!!invitee.invitation_sent}
+                              onCheckedChange={(v) => toggleSentMutation.mutate({ id: invitee.id, value: v })}
+                            />
+                            <label htmlFor={`sent-${invitee.id}`} className="text-xs text-muted-foreground cursor-pointer">Sent</label>
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -471,17 +481,21 @@ export default function InviteesPage() {
                     <Button variant="ghost" size="icon" onClick={() => setQrInvitee(invitee)}>
                       <QrCode className="h-4 w-4" />
                     </Button>
-                    <Button variant="ghost" size="icon" onClick={() => handleEdit(invitee)}>
-                      <Pencil className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="text-destructive"
-                      onClick={() => setDeleteTarget(invitee)}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
+                    {!isViewer && (
+                      <Button variant="ghost" size="icon" onClick={() => handleEdit(invitee)}>
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                    )}
+                    {!isViewer && (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="text-destructive"
+                        onClick={() => setDeleteTarget(invitee)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    )}
                   </div>
                 </div>
 
@@ -505,10 +519,12 @@ export default function InviteesPage() {
               <TableHeader>
                 <TableRow>
                   <TableHead className="w-10">
-                    <Checkbox
-                      checked={allFilteredSelected}
-                      onCheckedChange={toggleSelectAll}
-                    />
+                    {!isViewer && (
+                      <Checkbox
+                        checked={allFilteredSelected}
+                        onCheckedChange={toggleSelectAll}
+                      />
+                    )}
                   </TableHead>
                   <TableHead>
                     <button onClick={() => handleSort('full_name')} className="flex items-center hover:text-foreground transition-colors cursor-pointer">
@@ -558,10 +574,12 @@ export default function InviteesPage() {
                         {invitee.code}
                       </TableCell>
                       <TableCell>
-                        <Switch
-                          checked={!!invitee.invitation_sent}
-                          onCheckedChange={(v) => toggleSentMutation.mutate({ id: invitee.id, value: v })}
-                        />
+                        {!isViewer && (
+                          <Switch
+                            checked={!!invitee.invitation_sent}
+                            onCheckedChange={(v) => toggleSentMutation.mutate({ id: invitee.id, value: v })}
+                          />
+                        )}
                       </TableCell>
                       <TableCell className="text-right">
                         {invitee.phone && (
@@ -574,17 +592,21 @@ export default function InviteesPage() {
                         <Button variant="ghost" size="icon" onClick={() => setQrInvitee(invitee)}>
                           <QrCode className="h-4 w-4" />
                         </Button>
-                        <Button variant="ghost" size="icon" onClick={() => handleEdit(invitee)}>
-                          <Pencil className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="text-destructive"
-                          onClick={() => setDeleteTarget(invitee)}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
+                        {!isViewer && (
+                          <Button variant="ghost" size="icon" onClick={() => handleEdit(invitee)}>
+                            <Pencil className="h-4 w-4" />
+                          </Button>
+                        )}
+                        {!isViewer && (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="text-destructive"
+                            onClick={() => setDeleteTarget(invitee)}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        )}
                       </TableCell>
                     </TableRow>
 
