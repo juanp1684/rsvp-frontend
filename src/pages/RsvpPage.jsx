@@ -463,7 +463,7 @@ export default function RsvpPage() {
         )}
 
         {deadlinePassed && (
-          <div className="flex justify-center pb-8">
+          <div className="flex justify-center">
             <PromoCard />
           </div>
         )}
