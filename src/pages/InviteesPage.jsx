@@ -71,8 +71,12 @@ const getWhatsAppUrl = (invitee, event) => {
   if (isPastDeadline) {
     if (invitee.status !== 'attending') return null
 
+    const greeting = invitee.full_name.toLowerCase().includes(' y ')
+      ? `Estimados *${invitee.full_name}*,`
+      : `Hola *${invitee.full_name}*,`
+
     const lines = [
-      `Hola *${invitee.full_name}*,`,
+      greeting,
       '',
       'Te recordamos que tienes confirmada tu asistencia a nuestra boda.',
       '',
