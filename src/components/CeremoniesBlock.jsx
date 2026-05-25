@@ -74,7 +74,11 @@ export default function CeremoniesBlock({ event }) {
           <div key={gi} className={`flex flex-col gap-3${isGrid && isOdd && isLast ? ' md:col-span-2' : ''}`}>
             <div className="w-full aspect-video bg-muted rounded-xl overflow-hidden">
               {imageUrl
-                ? <img src={imageUrl} alt={group.map(k => LABELS[k]).join(' / ')} className="w-full h-full object-cover" />
+                ? mapUrl
+                  ? <a href={mapUrl} target="_blank" rel="noopener noreferrer" className="block w-full h-full">
+                      <img src={imageUrl} alt={group.map(k => LABELS[k]).join(' / ')} className="w-full h-full object-cover" />
+                    </a>
+                  : <img src={imageUrl} alt={group.map(k => LABELS[k]).join(' / ')} className="w-full h-full object-cover" />
                 : <div className="w-full h-full flex flex-col items-center justify-center gap-2">
                     <ImageIcon className="h-10 w-10 text-muted-foreground/25" />
                     <p className="text-xs text-muted-foreground/40 uppercase tracking-widest">
