@@ -53,8 +53,9 @@ const buildRsvpBase = (event) => {
 const getRsvpUrl = (invitee, event) =>
   `${buildRsvpBase(event)}/rsvp/${event?.slug ?? event}/${invitee.code}`
 
-const fmtDate = (iso) => new Date(iso).toLocaleDateString('es', {
+const fmtDate = (iso) => new Date(iso).toLocaleString('es', {
   weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
+  hour: '2-digit', minute: '2-digit',
 })
 
 const getWhatsAppUrl = (invitee, event) => {
