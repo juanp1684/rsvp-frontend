@@ -79,12 +79,19 @@ export default function CeremoniesBlock({ event }) {
                       <img src={imageUrl} alt={group.map(k => LABELS[k]).join(' / ')} className="w-full h-full object-cover" />
                     </a>
                   : <img src={imageUrl} alt={group.map(k => LABELS[k]).join(' / ')} className="w-full h-full object-cover" />
-                : <div className="w-full h-full flex flex-col items-center justify-center gap-2">
-                    <ImageIcon className="h-10 w-10 text-muted-foreground/25" />
-                    <p className="text-xs text-muted-foreground/40 uppercase tracking-widest">
-                      {group.map(k => LABELS[k]).join(' / ')}
-                    </p>
-                  </div>
+                : mapUrl
+                  ? <a href={mapUrl} target="_blank" rel="noopener noreferrer" className="flex w-full h-full flex-col items-center justify-center gap-2">
+                      <ImageIcon className="h-10 w-10 text-muted-foreground/25" />
+                      <p className="text-xs text-muted-foreground/40 uppercase tracking-widest">
+                        {group.map(k => LABELS[k]).join(' / ')}
+                      </p>
+                    </a>
+                  : <div className="w-full h-full flex flex-col items-center justify-center gap-2">
+                      <ImageIcon className="h-10 w-10 text-muted-foreground/25" />
+                      <p className="text-xs text-muted-foreground/40 uppercase tracking-widest">
+                        {group.map(k => LABELS[k]).join(' / ')}
+                      </p>
+                    </div>
               }
             </div>
             <div className="flex flex-col gap-2">
