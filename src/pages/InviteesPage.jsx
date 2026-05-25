@@ -69,7 +69,12 @@ const getWhatsAppUrl = (invitee, event) => {
   const isPastDeadline = deadline && new Date() > new Date(deadline)
 
   if (isPastDeadline) {
-    if (invitee.status !== 'attending') return null
+    if (invitee.status === 'declined') return null
+
+    if (invitee.status === 'pending') {
+      const message = `Hola ${invitee.full_name}, te compartimos el enlace para confirmar tu asistencia a nuestra boda: ${rsvpUrl}`
+      return `https://wa.me/${phone}?text=${encodeURIComponent(message)}`
+    }
 
     const greeting = invitee.full_name.toLowerCase().includes(' y ')
       ? `Estimados *${invitee.full_name}*,`
