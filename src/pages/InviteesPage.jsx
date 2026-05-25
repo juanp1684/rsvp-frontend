@@ -53,13 +53,38 @@ const buildRsvpBase = (event) => {
 const getRsvpUrl = (invitee, event) =>
   `${buildRsvpBase(event)}/rsvp/${event?.slug ?? event}/${invitee.code}`
 
+const fmtDate = (iso) => new Date(iso).toLocaleDateString('es', {
+  weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
+})
+
 const getWhatsAppUrl = (invitee, event) => {
+  if (!invitee.phone) return null
   const phone = invitee.phone.replace(/\D/g, '')
   const rsvpUrl = getRsvpUrl(invitee, event)
-  const message = encodeURIComponent(
-    `Hola ${invitee.full_name}, te compartimos el enlace para confirmar tu asistencia a nuestra boda: ${rsvpUrl}`
-  )
-  return `https://wa.me/${phone}?text=${message}`
+
+  const deadline = invitee.type === 'late'
+    ? (event.late_rsvp_deadline ?? event.rsvp_deadline)
+    : event.rsvp_deadline
+  const isPastDeadline = deadline && new Date() > new Date(deadline)
+
+  if (isPastDeadline) {
+    if (invitee.status !== 'attending') return null
+
+    const lines = [
+      `Hola *${invitee.full_name}*,`,
+      '',
+      '🔔 Te recordamos que tienes confirmada tu asistencia a nuestra boda.',
+      '',
+    ]
+    if (event.ceremony_at) lines.push(`📅 ${fmtDate(event.ceremony_at)}`)
+    if (event.ceremony_location) lines.push(`📍 ${event.ceremony_location}`)
+    lines.push('', 'Puedes ver todos los detalles aquí:', rsvpUrl)
+
+    return `https://wa.me/${phone}?text=${encodeURIComponent(lines.join('\n'))}`
+  }
+
+  const message = `Hola ${invitee.full_name}, te compartimos el enlace para confirmar tu asistencia a nuestra boda: ${rsvpUrl}`
+  return `https://wa.me/${phone}?text=${encodeURIComponent(message)}`
 }
 
 const statusVariant = {
@@ -496,7 +521,7 @@ export default function InviteesPage() {
                     </div>
                   </div>
                   <div className="flex gap-1 shrink-0 border-t pt-2 -mx-4 px-3 sm:border-0 sm:pt-0 sm:mx-0 sm:px-0">
-                    {invitee.phone && (
+                    {getWhatsAppUrl(invitee, activeEvent) && (
                       <Button variant="ghost" size="icon" asChild>
                         <a href={getWhatsAppUrl(invitee, activeEvent)} target="_blank" rel="noopener noreferrer" className="text-green-600">
                           <WhatsAppIcon className="h-4 w-4" />
@@ -607,7 +632,7 @@ export default function InviteesPage() {
                         )}
                       </TableCell>
                       <TableCell className="text-right">
-                        {invitee.phone && (
+                        {getWhatsAppUrl(invitee, activeEvent) && (
                           <Button variant="ghost" size="icon" asChild>
                             <a href={getWhatsAppUrl(invitee, activeEvent)} target="_blank" rel="noopener noreferrer" className="text-green-600">
                               <WhatsAppIcon className="h-4 w-4" />
