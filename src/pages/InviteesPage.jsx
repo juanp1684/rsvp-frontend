@@ -73,11 +73,11 @@ const getWhatsAppUrl = (invitee, event) => {
     const lines = [
       `Hola *${invitee.full_name}*,`,
       '',
-      '🔔 Te recordamos que tienes confirmada tu asistencia a nuestra boda.',
+      'Te recordamos que tienes confirmada tu asistencia a nuestra boda.',
       '',
     ]
-    if (event.ceremony_at) lines.push(`📅 ${fmtDate(event.ceremony_at)}`)
-    if (event.ceremony_location) lines.push(`📍 ${event.ceremony_location}`)
+    if (event.ceremony_at) lines.push(fmtDate(event.ceremony_at))
+    if (event.ceremony_location) lines.push(event.ceremony_location)
     lines.push('', 'Puedes ver todos los detalles aquí:', rsvpUrl)
 
     return `https://wa.me/${phone}?text=${encodeURIComponent(lines.join('\n'))}`
