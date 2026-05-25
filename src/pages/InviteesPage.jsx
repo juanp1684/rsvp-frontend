@@ -104,6 +104,23 @@ export default function InviteesPage() {
     onError: () => toast.error('Could not delete invitee.'),
   })
 
+  const bulkUpdateMutation = useMutation({
+    mutationFn: ({ ids, data }) => api.post(`/events/${activeEvent.id}/invitees/bulk-update`, { ids: [...ids], data }),
+    onMutate: async ({ ids, data }) => {
+      await qc.cancelQueries({ queryKey: ['invitees', activeEvent?.id] })
+      const previous = qc.getQueryData(['invitees', activeEvent?.id])
+      qc.setQueryData(['invitees', activeEvent?.id], (old) =>
+        old?.map((i) => ids.has(i.id) ? { ...i, ...data } : i)
+      )
+      return { previous }
+    },
+    onError: (_err, _vars, context) => {
+      qc.setQueryData(['invitees', activeEvent?.id], context.previous)
+      toast.error('Could not update invitees.')
+    },
+    onSettled: () => qc.invalidateQueries({ queryKey: ['invitees', activeEvent?.id] }),
+  })
+
   const toggleSentMutation = useMutation({
     mutationFn: ({ id, value }) => api.put(`/events/${activeEvent.id}/invitees/${id}`, { invitation_sent: value }),
     onMutate: async ({ id, value }) => {
@@ -272,12 +289,20 @@ export default function InviteesPage() {
       <div className="flex items-center justify-between gap-2">
         <h1 className="text-xl font-semibold">Invitees</h1>
         {!isViewer && (
-          <div className="flex gap-2">
+          <div className="flex gap-2 flex-wrap justify-end">
             {selectedIds.size > 0 && (
-              <Button size="sm" variant="destructive" onClick={() => setBulkDeleteOpen(true)}>
-                <Trash2 className="h-4 w-4 mr-1" />
-                Delete ({selectedIds.size})
-              </Button>
+              <>
+                <Button size="sm" variant="outline" onClick={() => bulkUpdateMutation.mutate({ ids: selectedIds, data: { invitation_sent: true } })}>
+                  Mark sent ({selectedIds.size})
+                </Button>
+                <Button size="sm" variant="outline" onClick={() => bulkUpdateMutation.mutate({ ids: selectedIds, data: { invitation_sent: false } })}>
+                  Mark unsent ({selectedIds.size})
+                </Button>
+                <Button size="sm" variant="destructive" onClick={() => setBulkDeleteOpen(true)}>
+                  <Trash2 className="h-4 w-4 mr-1" />
+                  Delete ({selectedIds.size})
+                </Button>
+              </>
             )}
             <Button size="sm" onClick={handleAdd}>
               <Plus className="h-4 w-4 mr-1" />
