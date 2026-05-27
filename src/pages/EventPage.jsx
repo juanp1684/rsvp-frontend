@@ -1,12 +1,13 @@
 import { useRef, useState, useEffect } from 'react'
 import { useIsViewer } from '@/hooks/useIsViewer'
-import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import api from '@/lib/api'
 import { useAuthStore } from '@/store/authStore'
 import { Button } from '@/components/ui/button'
 import EventEditDialog from '@/components/EventEditDialog'
-import { Upload, Trash2, ImageIcon, Pencil, Music2 } from 'lucide-react'
+import { Upload, Trash2, ImageIcon, Pencil, Music2, Plus, Check, X } from 'lucide-react'
+import { TAG_COLORS, TagChip } from '@/lib/tagColors'
 import {
   DndContext,
   closestCenter,
@@ -421,6 +422,9 @@ export default function EventPage() {
         )}
       </div>
 
+      {/* Tags */}
+      <TagsSection event={event} isViewer={isViewer} />
+
       {/* Music */}
       <MusicSection event={event} isViewer={isViewer} onRefresh={() => qc.invalidateQueries({ queryKey: ['event'] })} />
 
@@ -529,6 +533,141 @@ function SortableCarouselItem({ img, onRemove }) {
       >
         <Trash2 className="h-3.5 w-3.5" />
       </button>
+    </div>
+  )
+}
+
+function TagsSection({ event, isViewer }) {
+  const qc = useQueryClient()
+  const activeEvent = useAuthStore((s) => s.activeEvent)
+  const [adding, setAdding] = useState(false)
+  const [newName, setNewName] = useState('')
+  const [newColor, setNewColor] = useState('blue')
+  const [editingId, setEditingId] = useState(null)
+  const [editName, setEditName] = useState('')
+  const [editColor, setEditColor] = useState('blue')
+
+  const { data: tags = [] } = useQuery({
+    queryKey: ['tags', activeEvent?.id],
+    queryFn: () => api.get(`/events/${event.id}/tags`).then((r) => r.data),
+    enabled: !!event?.id,
+  })
+
+  const createMutation = useMutation({
+    mutationFn: (data) => api.post(`/events/${event.id}/tags`, data),
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['tags', activeEvent?.id] }); setAdding(false); setNewName(''); setNewColor('blue') },
+    onError: () => toast.error('Could not create tag.'),
+  })
+
+  const updateMutation = useMutation({
+    mutationFn: ({ id, ...data }) => api.put(`/events/${event.id}/tags/${id}`, data),
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['tags', activeEvent?.id] }); setEditingId(null) },
+    onError: () => toast.error('Could not update tag.'),
+  })
+
+  const deleteMutation = useMutation({
+    mutationFn: (id) => api.delete(`/events/${event.id}/tags/${id}`),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['tags', activeEvent?.id] }),
+    onError: () => toast.error('Could not delete tag.'),
+  })
+
+  const startEdit = (tag) => { setEditingId(tag.id); setEditName(tag.name); setEditColor(tag.color) }
+
+  return (
+    <div className="flex flex-col gap-4">
+      <h2 className="text-lg font-semibold">Tags</h2>
+
+      <div className="flex flex-col gap-2">
+        {tags.map((tag) => (
+          <div key={tag.id} className="flex items-center gap-3 border rounded-lg px-3 py-2">
+            {editingId === tag.id ? (
+              <>
+                <input
+                  className="flex-1 min-w-0 h-7 rounded-md border border-input bg-transparent px-2 text-sm"
+                  value={editName}
+                  onChange={(e) => setEditName(e.target.value)}
+                  maxLength={50}
+                  autoFocus
+                />
+                <div className="flex gap-1 shrink-0">
+                  {TAG_COLORS.map((c) => (
+                    <button
+                      key={c.key}
+                      onClick={() => setEditColor(c.key)}
+                      className={`h-5 w-5 rounded-full border-2 transition-transform ${editColor === c.key ? 'scale-125 border-foreground' : 'border-transparent'}`}
+                      style={{ backgroundColor: c.bg, borderColor: editColor === c.key ? c.text : 'transparent' }}
+                    />
+                  ))}
+                </div>
+                <Button type="button" size="icon" variant="ghost" className="h-7 w-7 shrink-0"
+                  disabled={!editName.trim() || updateMutation.isPending}
+                  onClick={() => updateMutation.mutate({ id: tag.id, name: editName.trim(), color: editColor })}>
+                  <Check className="h-3.5 w-3.5" />
+                </Button>
+                <Button type="button" size="icon" variant="ghost" className="h-7 w-7 shrink-0 text-muted-foreground"
+                  onClick={() => setEditingId(null)}>
+                  <X className="h-3.5 w-3.5" />
+                </Button>
+              </>
+            ) : (
+              <>
+                <TagChip tag={tag} className="shrink-0" />
+                {!isViewer && (
+                  <div className="flex gap-1 ml-auto shrink-0">
+                    <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => startEdit(tag)}>
+                      <Pencil className="h-3.5 w-3.5" />
+                    </Button>
+                    <Button size="icon" variant="ghost" className="h-7 w-7 text-destructive" onClick={() => deleteMutation.mutate(tag.id)}>
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </Button>
+                  </div>
+                )}
+              </>
+            )}
+          </div>
+        ))}
+
+        {!isViewer && adding && (
+          <div className="flex items-center gap-3 border rounded-lg px-3 py-2">
+            <input
+              className="flex-1 min-w-0 h-7 rounded-md border border-input bg-transparent px-2 text-sm"
+              placeholder="Tag name"
+              value={newName}
+              onChange={(e) => setNewName(e.target.value)}
+              maxLength={50}
+              autoFocus
+            />
+            <div className="flex gap-1 shrink-0">
+              {TAG_COLORS.map((c) => (
+                <button
+                  key={c.key}
+                  onClick={() => setNewColor(c.key)}
+                  className={`h-5 w-5 rounded-full border-2 transition-transform ${newColor === c.key ? 'scale-125' : 'border-transparent'}`}
+                  style={{ backgroundColor: c.bg, borderColor: newColor === c.key ? c.text : 'transparent' }}
+                />
+              ))}
+            </div>
+            <Button type="button" size="icon" variant="ghost" className="h-7 w-7 shrink-0"
+              disabled={!newName.trim() || createMutation.isPending}
+              onClick={() => createMutation.mutate({ name: newName.trim(), color: newColor })}>
+              <Check className="h-3.5 w-3.5" />
+            </Button>
+            <Button type="button" size="icon" variant="ghost" className="h-7 w-7 shrink-0 text-muted-foreground"
+              onClick={() => { setAdding(false); setNewName(''); setNewColor('blue') }}>
+              <X className="h-3.5 w-3.5" />
+            </Button>
+          </div>
+        )}
+      </div>
+
+      {!isViewer && !adding && (
+        <div>
+          <Button variant="outline" size="sm" onClick={() => setAdding(true)}>
+            <Plus className="h-4 w-4 mr-1" />
+            Add tag
+          </Button>
+        </div>
+      )}
     </div>
   )
 }

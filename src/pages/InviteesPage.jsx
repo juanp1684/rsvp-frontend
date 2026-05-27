@@ -33,6 +33,7 @@ import { Switch } from '@/components/ui/switch'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Plus, Pencil, Trash2, Upload, Download, ChevronUp, ChevronDown, ChevronsUpDown, QrCode, SlidersHorizontal, X } from 'lucide-react'
 import { useIsViewer } from '@/hooks/useIsViewer'
+import { TagChip } from '@/lib/tagColors'
 
 function WhatsAppIcon({ className }) {
   return (
@@ -112,7 +113,7 @@ export default function InviteesPage() {
   const activeEvent = useAuthStore((s) => s.activeEvent)
   const isViewer = useIsViewer()
   const [search, setSearch] = useState('')
-  const [filters, setFilters] = useState({ status: 'all', type: 'all', sent: 'all' })
+  const [filters, setFilters] = useState({ status: 'all', type: 'all', sent: 'all', tag: null })
   const setFilter = (key, value) => setFilters((prev) => ({ ...prev, [key]: value }))
   const [formOpen, setFormOpen] = useState(false)
   const [editInvitee, setEditInvitee] = useState(null)
@@ -126,6 +127,12 @@ export default function InviteesPage() {
   const { data: invitees = [], isLoading } = useQuery({
     queryKey: ['invitees', activeEvent?.id],
     queryFn: () => api.get(`/events/${activeEvent.id}/invitees`).then((r) => r.data),
+    enabled: !!activeEvent?.id,
+  })
+
+  const { data: eventTags = [] } = useQuery({
+    queryKey: ['tags', activeEvent?.id],
+    queryFn: () => api.get(`/events/${activeEvent.id}/tags`).then((r) => r.data),
     enabled: !!activeEvent?.id,
   })
 
@@ -229,12 +236,13 @@ export default function InviteesPage() {
   const lateCount = invitees.filter((i) => i.type === 'late').length
   const sentCount = invitees.filter((i) => i.invitation_sent).length
   const unsentCount = invitees.filter((i) => !i.invitation_sent).length
-  const activeFilterCount = [filters.status !== 'all', filters.type !== 'all', filters.sent !== 'all'].filter(Boolean).length
+  const activeFilterCount = [filters.status !== 'all', filters.type !== 'all', filters.sent !== 'all', filters.tag !== null].filter(Boolean).length
 
   const filtered = invitees
     .filter((i) => filters.status === 'all' || i.status === filters.status)
     .filter((i) => filters.type === 'all' || i.type === filters.type)
     .filter((i) => filters.sent === 'all' || (filters.sent === 'sent' ? i.invitation_sent : !i.invitation_sent))
+    .filter((i) => filters.tag === null || i.tags?.some((t) => t.id === filters.tag))
     .filter((i) => {
       const q = normalize(search)
       return (
@@ -430,10 +438,29 @@ export default function InviteesPage() {
                 ))}
               </div>
 
+              {/* Tags */}
+              {eventTags.length > 0 && (
+                <div className="flex flex-col gap-1.5">
+                  <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Tag</p>
+                  {[{ id: null, name: 'All' }, ...eventTags].map((tag) => (
+                    <button
+                      key={tag.id ?? 'all'}
+                      onClick={() => setFilter('tag', tag.id)}
+                      className={`flex items-center justify-between text-sm px-2 py-1 rounded-md transition-colors ${filters.tag === tag.id ? 'bg-secondary font-medium' : 'hover:bg-muted'}`}
+                    >
+                      {tag.id ? <TagChip tag={tag} /> : <span>All</span>}
+                      <span className="text-xs text-muted-foreground">
+                        {tag.id ? invitees.filter((i) => i.tags?.some((t) => t.id === tag.id)).length : invitees.length}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              )}
+
               {/* Clear */}
               {activeFilterCount > 0 && (
                 <button
-                  onClick={() => setFilters({ status: 'all', type: 'all', sent: 'all' })}
+                  onClick={() => setFilters({ status: 'all', type: 'all', sent: 'all', tag: null })}
                   className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors pt-1 border-t"
                 >
                   <X className="h-3 w-3" /> Clear all filters
@@ -527,6 +554,9 @@ export default function InviteesPage() {
                             <label htmlFor={`sent-${invitee.id}`} className="text-xs text-muted-foreground cursor-pointer">Sent</label>
                           </div>
                         )}
+                        {invitee.tags?.map((tag) => (
+                          <TagChip key={tag.id} tag={tag} />
+                        ))}
                       </div>
                     </div>
                   </div>
@@ -599,6 +629,7 @@ export default function InviteesPage() {
                   </TableHead>
                   <TableHead>Companions</TableHead>
                   <TableHead>Code</TableHead>
+                  <TableHead>Tags</TableHead>
                   <TableHead>Sent</TableHead>
                   <TableHead />
                 </TableRow>
@@ -632,6 +663,13 @@ export default function InviteesPage() {
                       </TableCell>
                       <TableCell className="font-mono text-xs text-muted-foreground">
                         {invitee.code}
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex flex-wrap gap-1">
+                          {invitee.tags?.map((tag) => (
+                            <TagChip key={tag.id} tag={tag} />
+                          ))}
+                        </div>
                       </TableCell>
                       <TableCell>
                         {!isViewer && (

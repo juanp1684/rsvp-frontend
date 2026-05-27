@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import api from '@/lib/api'
 import { useAuthStore } from '@/store/authStore'
@@ -21,6 +21,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Check, Pencil, Trash2, X } from 'lucide-react'
+import { TagChip } from '@/lib/tagColors'
 
 const empty = { full_name: '', phone: '', allowed_companions: '0', notes: '', type: 'regular', status: 'pending' }
 
@@ -34,6 +35,19 @@ export default function InviteeFormDialog({ open, onOpenChange, invitee }) {
   const [isAdding, setIsAdding] = useState(false)
   const [addingName, setAddingName] = useState('')
   const [localCompanions, setLocalCompanions] = useState([])
+  const [selectedTagIds, setSelectedTagIds] = useState(new Set())
+
+  const { data: eventTags = [] } = useQuery({
+    queryKey: ['tags', activeEvent?.id],
+    queryFn: () => api.get(`/events/${activeEvent.id}/tags`).then((r) => r.data),
+    enabled: !!activeEvent?.id && isEdit,
+  })
+
+  const syncTagsMutation = useMutation({
+    mutationFn: (tagIds) => api.put(`/events/${activeEvent.id}/invitees/${invitee.id}/tags`, { tag_ids: [...tagIds] }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['invitees', activeEvent?.id] }),
+    onError: () => toast.error('Could not update tags.'),
+  })
 
   useEffect(() => {
     setForm(
@@ -49,6 +63,7 @@ export default function InviteeFormDialog({ open, onOpenChange, invitee }) {
         : empty
     )
     setLocalCompanions(invitee?.companions ?? [])
+    setSelectedTagIds(new Set(invitee?.tags?.map((t) => t.id) ?? []))
     setEditingId(null)
     setIsAdding(false)
     setAddingName('')
@@ -104,8 +119,15 @@ export default function InviteeFormDialog({ open, onOpenChange, invitee }) {
 
   const handleSubmit = (e) => {
     e.preventDefault()
+    if (isEdit) syncTagsMutation.mutate(selectedTagIds)
     mutation.mutate({ ...form, allowed_companions: Number(form.allowed_companions) })
   }
+
+  const toggleTag = (id) => setSelectedTagIds((prev) => {
+    const next = new Set(prev)
+    next.has(id) ? next.delete(id) : next.add(id)
+    return next
+  })
 
   const showCompanions =
     isEdit && form.status === 'attending' && Number(form.allowed_companions) > 0
@@ -317,6 +339,24 @@ export default function InviteeFormDialog({ open, onOpenChange, invitee }) {
                   </Button>
                 </div>
               )}
+            </div>
+          )}
+
+          {isEdit && eventTags.length > 0 && (
+            <div className="flex flex-col gap-1.5 border-t pt-3">
+              <Label>Tags</Label>
+              <div className="flex flex-wrap gap-1.5">
+                {eventTags.map((tag) => (
+                  <button
+                    key={tag.id}
+                    type="button"
+                    onClick={() => toggleTag(tag.id)}
+                    className={`transition-opacity ${selectedTagIds.has(tag.id) ? 'opacity-100' : 'opacity-40 hover:opacity-70'}`}
+                  >
+                    <TagChip tag={tag} />
+                  </button>
+                ))}
+              </div>
             </div>
           )}
 
