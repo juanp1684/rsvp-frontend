@@ -612,7 +612,7 @@ function TagsSection({ event, isViewer }) {
             <div key={tag.id} className="group flex items-center gap-1">
               <TagChip tag={tag} />
               {!isViewer && (
-                <div className="flex gap-0.5 [@media(hover:hover)]:opacity-0 [@media(hover:hover)]:group-hover:opacity-100 transition-opacity">
+                <div className="flex gap-0.5">
                   <Button size="icon" variant="ghost" className="h-6 w-6" onClick={() => startEdit(tag)}>
                     <Pencil className="h-3 w-3" />
                   </Button>
