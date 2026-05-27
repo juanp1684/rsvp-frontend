@@ -7,7 +7,7 @@ import { useAuthStore } from '@/store/authStore'
 import { Button } from '@/components/ui/button'
 import EventEditDialog from '@/components/EventEditDialog'
 import { Upload, Trash2, ImageIcon, Pencil, Music2, Plus, Check, X } from 'lucide-react'
-import { TAG_COLORS, TagChip } from '@/lib/tagColors'
+import { TAG_COLORS, TagChip } from '@/lib/tagColors.jsx'
 import {
   DndContext,
   closestCenter,

@@ -21,7 +21,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Check, Pencil, Trash2, X } from 'lucide-react'
-import { TagChip } from '@/lib/tagColors'
+import { TagChip } from '@/lib/tagColors.jsx'
 
 const empty = { full_name: '', phone: '', allowed_companions: '0', notes: '', type: 'regular', status: 'pending' }
 

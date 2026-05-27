@@ -33,7 +33,7 @@ import { Switch } from '@/components/ui/switch'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Plus, Pencil, Trash2, Upload, Download, ChevronUp, ChevronDown, ChevronsUpDown, QrCode, SlidersHorizontal, X } from 'lucide-react'
 import { useIsViewer } from '@/hooks/useIsViewer'
-import { TagChip } from '@/lib/tagColors'
+import { TagChip } from '@/lib/tagColors.jsx'
 
 function WhatsAppIcon({ className }) {
   return (
