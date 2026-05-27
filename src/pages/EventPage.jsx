@@ -222,6 +222,9 @@ export default function EventPage() {
         )}
       </div>
 
+      {/* Tags */}
+      <TagsSection event={event} isViewer={isViewer} />
+
       {/* Images */}
       <div className="flex flex-col gap-8">
         <h2 className="text-lg font-semibold -mb-4">Images</h2>
@@ -421,9 +424,6 @@ export default function EventPage() {
           </>
         )}
       </div>
-
-      {/* Tags */}
-      <TagsSection event={event} isViewer={isViewer} />
 
       {/* Music */}
       <MusicSection event={event} isViewer={isViewer} onRefresh={() => qc.invalidateQueries({ queryKey: ['event'] })} />
