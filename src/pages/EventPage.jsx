@@ -577,55 +577,53 @@ function TagsSection({ event, isViewer }) {
     <div className="flex flex-col gap-4">
       <h2 className="text-lg font-semibold">Etiquetas</h2>
 
-      <div className="flex flex-col gap-2">
-        {tags.map((tag) => (
-          <div key={tag.id} className="flex items-center gap-3 border rounded-lg px-3 py-2">
-            {editingId === tag.id ? (
-              <>
-                <input
-                  className="flex-1 min-w-0 h-7 rounded-md border border-input bg-transparent px-2 text-sm"
-                  value={editName}
-                  onChange={(e) => setEditName(e.target.value)}
-                  maxLength={50}
-                  autoFocus
-                />
-                <div className="flex gap-1 shrink-0">
-                  {TAG_COLORS.map((c) => (
-                    <button
-                      key={c.key}
-                      onClick={() => setEditColor(c.key)}
-                      className={`h-5 w-5 rounded-full border-2 transition-transform ${editColor === c.key ? 'scale-125 border-foreground' : 'border-transparent'}`}
-                      style={{ backgroundColor: c.bg, borderColor: editColor === c.key ? c.text : 'transparent' }}
-                    />
-                  ))}
+      <div className="flex flex-wrap gap-2">
+        {tags.map((tag) =>
+          editingId === tag.id ? (
+            <div key={tag.id} className="flex items-center gap-2 border rounded-lg px-3 py-1.5 w-full sm:w-auto">
+              <input
+                className="w-28 h-7 rounded-md border border-input bg-transparent px-2 text-sm"
+                value={editName}
+                onChange={(e) => setEditName(e.target.value)}
+                maxLength={50}
+                autoFocus
+              />
+              <div className="flex gap-1 shrink-0">
+                {TAG_COLORS.map((c) => (
+                  <button
+                    key={c.key}
+                    onClick={() => setEditColor(c.key)}
+                    className={`h-4 w-4 rounded-full border-2 transition-transform ${editColor === c.key ? 'scale-125' : 'border-transparent'}`}
+                    style={{ backgroundColor: c.bg, borderColor: editColor === c.key ? c.text : 'transparent' }}
+                  />
+                ))}
+              </div>
+              <Button type="button" size="icon" variant="ghost" className="h-7 w-7 shrink-0"
+                disabled={!editName.trim() || updateMutation.isPending}
+                onClick={() => updateMutation.mutate({ id: tag.id, name: editName.trim(), color: editColor })}>
+                <Check className="h-3.5 w-3.5" />
+              </Button>
+              <Button type="button" size="icon" variant="ghost" className="h-7 w-7 shrink-0 text-muted-foreground"
+                onClick={() => setEditingId(null)}>
+                <X className="h-3.5 w-3.5" />
+              </Button>
+            </div>
+          ) : (
+            <div key={tag.id} className="group flex items-center gap-1">
+              <TagChip tag={tag} />
+              {!isViewer && (
+                <div className="flex gap-0.5 [@media(hover:hover)]:opacity-0 [@media(hover:hover)]:group-hover:opacity-100 transition-opacity">
+                  <Button size="icon" variant="ghost" className="h-6 w-6" onClick={() => startEdit(tag)}>
+                    <Pencil className="h-3 w-3" />
+                  </Button>
+                  <Button size="icon" variant="ghost" className="h-6 w-6 text-destructive" onClick={() => deleteMutation.mutate(tag.id)}>
+                    <Trash2 className="h-3 w-3" />
+                  </Button>
                 </div>
-                <Button type="button" size="icon" variant="ghost" className="h-7 w-7 shrink-0"
-                  disabled={!editName.trim() || updateMutation.isPending}
-                  onClick={() => updateMutation.mutate({ id: tag.id, name: editName.trim(), color: editColor })}>
-                  <Check className="h-3.5 w-3.5" />
-                </Button>
-                <Button type="button" size="icon" variant="ghost" className="h-7 w-7 shrink-0 text-muted-foreground"
-                  onClick={() => setEditingId(null)}>
-                  <X className="h-3.5 w-3.5" />
-                </Button>
-              </>
-            ) : (
-              <>
-                <TagChip tag={tag} className="shrink-0" />
-                {!isViewer && (
-                  <div className="flex gap-1 ml-auto shrink-0">
-                    <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => startEdit(tag)}>
-                      <Pencil className="h-3.5 w-3.5" />
-                    </Button>
-                    <Button size="icon" variant="ghost" className="h-7 w-7 text-destructive" onClick={() => deleteMutation.mutate(tag.id)}>
-                      <Trash2 className="h-3.5 w-3.5" />
-                    </Button>
-                  </div>
-                )}
-              </>
-            )}
-          </div>
-        ))}
+              )}
+            </div>
+          )
+        )}
 
         {!isViewer && adding && (
           <div className="flex items-center gap-3 border rounded-lg px-3 py-2">
