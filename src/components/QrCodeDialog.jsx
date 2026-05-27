@@ -76,7 +76,7 @@ export default function QrCodeDialog({ open, onOpenChange, invitee, event }) {
           </a>
           <Button className="w-full" onClick={handleDownload}>
             <Download className="h-4 w-4 mr-2" />
-            Download PNG
+            Descargar PNG
           </Button>
         </div>
       </DialogContent>

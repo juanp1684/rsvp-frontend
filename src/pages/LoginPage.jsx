@@ -26,7 +26,7 @@ export default function LoginPage() {
       localStorage.setItem('rememberMe', remember)
       navigate('/')
     } catch {
-      setError('Invalid email or password.')
+      setError('Email o contraseña incorrectos.')
     } finally {
       setLoading(false)
     }
@@ -52,7 +52,7 @@ export default function LoginPage() {
               />
             </div>
             <div className="flex flex-col gap-1.5">
-              <Label htmlFor="password">Password</Label>
+              <Label htmlFor="password">Contraseña</Label>
               <Input
                 id="password"
                 type="password"
@@ -68,11 +68,11 @@ export default function LoginPage() {
                 checked={remember}
                 onCheckedChange={setRemember}
               />
-              <Label htmlFor="remember" className="font-normal cursor-pointer">Remember me</Label>
+              <Label htmlFor="remember" className="font-normal cursor-pointer">Recordarme</Label>
             </div>
             {error && <p className="text-sm text-destructive">{error}</p>}
             <Button type="submit" className="w-full mt-1" disabled={loading}>
-              {loading ? 'Signing in…' : 'Sign in'}
+              {loading ? 'Iniciando sesión…' : 'Iniciar sesión'}
             </Button>
           </form>
         </CardContent>

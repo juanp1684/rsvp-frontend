@@ -50,12 +50,12 @@ export default function UserFormDialog({ open, onOpenChange, user }) {
         : api.post('/users', data),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['users'] })
-      toast.success(isEdit ? 'User updated.' : 'User created.')
+      toast.success(isEdit ? 'Usuario actualizado.' : 'Usuario creado.')
       onOpenChange(false)
     },
     onError: (err) => {
       const msg = err?.response?.data?.message ?? err?.response?.data?.errors?.email?.[0]
-      toast.error(msg ?? 'Something went wrong.')
+      toast.error(msg ?? 'Algo salió mal.')
     },
   })
 
@@ -77,11 +77,11 @@ export default function UserFormDialog({ open, onOpenChange, user }) {
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="w-full max-w-md">
         <DialogHeader>
-          <DialogTitle>{isEdit ? 'Edit user' : 'Add user'}</DialogTitle>
+          <DialogTitle>{isEdit ? 'Editar usuario' : 'Agregar usuario'}</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="flex flex-col gap-4 py-2">
           <div className="flex flex-col gap-1.5">
-            <Label htmlFor="name">Name</Label>
+            <Label htmlFor="name">Nombre</Label>
             <Input id="name" value={form.name} onChange={set('name')} required maxLength={255} />
           </div>
 
@@ -92,21 +92,21 @@ export default function UserFormDialog({ open, onOpenChange, user }) {
 
           <div className="flex flex-col gap-1.5">
             <Label htmlFor="password">
-              {isEdit ? 'New password' : 'Password'}
-              {isEdit && <span className="ml-1 text-xs text-muted-foreground font-normal">(leave blank to keep current)</span>}
+              {isEdit ? 'Nueva contraseña' : 'Contraseña'}
+              {isEdit && <span className="ml-1 text-xs text-muted-foreground font-normal">(dejar en blanco para no cambiar)</span>}
             </Label>
             <Input id="password" type="password" value={form.password} onChange={set('password')} required={!isEdit} minLength={8} />
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <Label>Role</Label>
+            <Label>Rol</Label>
             <Select value={form.role} onValueChange={(v) => setForm((f) => ({ ...f, role: v, event_id: '' }))}>
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="admin">Admin</SelectItem>
-                <SelectItem value="viewer">Viewer</SelectItem>
+                <SelectItem value="viewer">Solo lectura</SelectItem>
                 <SelectItem value="super_admin">Super Admin</SelectItem>
               </SelectContent>
             </Select>
@@ -114,10 +114,10 @@ export default function UserFormDialog({ open, onOpenChange, user }) {
 
           {needsEvent && (
             <div className="flex flex-col gap-1.5">
-              <Label>Event</Label>
+              <Label>Evento</Label>
               <Select value={String(form.event_id)} onValueChange={(v) => setForm((f) => ({ ...f, event_id: v }))}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Select event…" />
+                  <SelectValue placeholder="Seleccionar evento…" />
                 </SelectTrigger>
                 <SelectContent>
                   {events.map((e) => (
@@ -130,7 +130,7 @@ export default function UserFormDialog({ open, onOpenChange, user }) {
 
           <DialogFooter className="pt-2">
             <Button type="submit" className="w-full" disabled={mutation.isPending}>
-              {mutation.isPending ? 'Saving…' : 'Save'}
+              {mutation.isPending ? 'Guardando…' : 'Guardar'}
             </Button>
           </DialogFooter>
         </form>

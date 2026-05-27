@@ -8,10 +8,10 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { ArrowLeft } from 'lucide-react'
 
-const fmt = (iso) => iso ? new Date(iso).toLocaleDateString('en-US', { dateStyle: 'long' }) : null
+const fmt = (iso) => iso ? new Date(iso).toLocaleDateString('es', { dateStyle: 'long' }) : null
 
 export default function EventPickerPage() {
-  useEffect(() => { document.title = 'RSVP Admin | Select Event' }, [])
+  useEffect(() => { document.title = 'RSVP Admin | Seleccionar evento' }, [])
 
   const navigate = useNavigate()
   const setActiveEvent = useAuthStore((s) => s.setActiveEvent)
@@ -35,13 +35,13 @@ export default function EventPickerPage() {
             <ArrowLeft className="h-4 w-4" />
           </Button>
         )}
-        <h1 className="text-xl font-semibold">Select Event</h1>
+        <h1 className="text-xl font-semibold">Seleccionar evento</h1>
       </div>
 
       {isLoading ? (
-        <p className="text-sm text-muted-foreground">Loading…</p>
+        <p className="text-sm text-muted-foreground">Cargando…</p>
       ) : events.length === 0 ? (
-        <p className="text-sm text-muted-foreground">No events found.</p>
+        <p className="text-sm text-muted-foreground">No se encontraron eventos.</p>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {events.map((event) => {
@@ -56,15 +56,15 @@ export default function EventPickerPage() {
                   <CardHeader className="pb-2">
                     <div className="flex items-start justify-between gap-2">
                       <CardTitle className="text-base">{event.name}</CardTitle>
-                      {isCurrent && <Badge variant="secondary">Current</Badge>}
+                      {isCurrent && <Badge variant="secondary">Activo</Badge>}
                     </div>
                   </CardHeader>
                   <CardContent className="flex flex-col gap-1 text-sm text-muted-foreground">
                     {event.ceremony_at && (
-                      <p>Ceremony: {fmt(event.ceremony_at)}</p>
+                      <p>Ceremonia: {fmt(event.ceremony_at)}</p>
                     )}
                     {event.reception_at && (
-                      <p>Reception: {fmt(event.reception_at)}</p>
+                      <p>Recepción: {fmt(event.reception_at)}</p>
                     )}
                     {event.slug && (
                       <p className="font-mono text-xs mt-1">{event.slug}</p>

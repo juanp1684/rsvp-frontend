@@ -25,20 +25,20 @@ import {
 import { CSS } from '@dnd-kit/utilities'
 
 const RSVP_IMAGE_SLOTS = [
-  { key: 'civil',           label: 'Civil Ceremony',        aspect: 'aspect-video',  ratio: '16:9', optional: true },
-  { key: 'ceremony',        label: 'Religious Ceremony',    aspect: 'aspect-video',  ratio: '16:9' },
-  { key: 'reception',       label: 'Reception',             aspect: 'aspect-video',  ratio: '16:9' },
-  { key: 'couple',          label: 'Couple Photo',          aspect: 'aspect-[10/6]', ratio: '10:6' },
-  { key: 'couple_mobile',   label: 'Couple Photo (Mobile)', aspect: 'aspect-[4/5]',  ratio: '4:5', optional: true },
-  { key: 'invitation',      label: 'Invitation Card',       aspect: 'aspect-[3/4]',  ratio: '3:4' },
-  { key: 'dress_code',      label: 'Dress Code',            aspect: 'aspect-video',  ratio: '16:9', optional: true },
-  { key: 'gift_suggestion',  label: 'Gift Suggestion',  aspect: 'aspect-video', ratio: '16:9', optional: true },
-  { key: 'recommendations',  label: 'Recommendations',  aspect: 'aspect-video', ratio: '16:9', optional: true },
+  { key: 'civil',           label: 'Ceremonia civil',        aspect: 'aspect-video',  ratio: '16:9', optional: true },
+  { key: 'ceremony',        label: 'Ceremonia religiosa',    aspect: 'aspect-video',  ratio: '16:9' },
+  { key: 'reception',       label: 'Recepción',              aspect: 'aspect-video',  ratio: '16:9' },
+  { key: 'couple',          label: 'Foto de la pareja',      aspect: 'aspect-[10/6]', ratio: '10:6' },
+  { key: 'couple_mobile',   label: 'Foto de la pareja (móvil)', aspect: 'aspect-[4/5]', ratio: '4:5', optional: true },
+  { key: 'invitation',      label: 'Tarjeta de invitación',  aspect: 'aspect-[3/4]',  ratio: '3:4' },
+  { key: 'dress_code',      label: 'Vestimenta',             aspect: 'aspect-video',  ratio: '16:9', optional: true },
+  { key: 'gift_suggestion',  label: 'Sugerencia de regalo',  aspect: 'aspect-video', ratio: '16:9', optional: true },
+  { key: 'recommendations',  label: 'Recomendaciones',       aspect: 'aspect-video', ratio: '16:9', optional: true },
 ]
 
 const CONFIRMATION_IMAGE_SLOTS = [
-  { key: 'confirm_attending', label: 'Attending', aspect: 'aspect-[3/4]', ratio: '3:4', optional: true },
-  { key: 'confirm_declined',  label: 'Declined',  aspect: 'aspect-[3/4]', ratio: '3:4', optional: true },
+  { key: 'confirm_attending', label: 'Asistirá', aspect: 'aspect-[3/4]', ratio: '3:4', optional: true },
+  { key: 'confirm_declined',  label: 'Rechazó',  aspect: 'aspect-[3/4]', ratio: '3:4', optional: true },
 ]
 
 const fmt = (iso, opts) => new Date(iso).toLocaleString('en-US', opts)
@@ -74,7 +74,7 @@ export default function EventPage() {
         await api.put(`/events/${event.id}`, { ...event, carousel_interval: clamped })
         qc.invalidateQueries({ queryKey: ['event'] })
       } catch {
-        toast.error('Could not save interval.')
+        toast.error('No se pudo guardar el intervalo.')
       }
     }, 1000)
   }
@@ -83,9 +83,9 @@ export default function EventPage() {
     try {
       await api.delete(`/events/${event.id}/images/${type}`)
       qc.invalidateQueries({ queryKey: ['event'] })
-      toast.success('Image removed.')
+      toast.success('Imagen eliminada.')
     } catch {
-      toast.error('Could not remove image.')
+      toast.error('No se pudo eliminar la imagen.')
     }
   }
 
@@ -100,16 +100,16 @@ export default function EventPage() {
         headers: { 'Content-Type': 'multipart/form-data' },
       })
       qc.invalidateQueries({ queryKey: ['event'] })
-      toast.success('Image updated.')
+      toast.success('Imagen actualizada.')
     } catch (err) {
       const status = err?.response?.status
       if (status === 413) {
-        toast.error('Image too large. Maximum size is 10 MB.')
+        toast.error('Imagen demasiado grande. Máximo 10 MB.')
       } else if (status === 422) {
         const msg = err?.response?.data?.errors?.image?.[0]
-        toast.error(msg ?? 'Invalid image. Use JPG, PNG or WebP, max 10 MB.')
+        toast.error(msg ?? 'Imagen inválida. Usa JPG, PNG o WebP, máx. 10 MB.')
       } else {
-        toast.error('Upload failed. Please try again.')
+        toast.error('Error al cargar. Intenta de nuevo.')
       }
     } finally {
       setUploading((prev) => ({ ...prev, [type]: false }))
@@ -128,7 +128,7 @@ export default function EventPage() {
         headers: { 'Content-Type': 'multipart/form-data' },
       })
       qc.invalidateQueries({ queryKey: ['event'] })
-      toast.success('Photo added.')
+      toast.success('Foto agregada.')
     } catch (err) {
       const msg = err?.response?.data?.message
       toast.error(msg ?? 'Upload failed. Please try again.')
@@ -142,9 +142,9 @@ export default function EventPage() {
     try {
       await api.delete(`/events/${event.id}/carousel-images/${imageId}`)
       qc.invalidateQueries({ queryKey: ['event'] })
-      toast.success('Photo removed.')
+      toast.success('Foto eliminada.')
     } catch {
-      toast.error('Could not remove photo.')
+      toast.error('No se pudo eliminar la foto.')
     }
   }
 
@@ -154,7 +154,7 @@ export default function EventPage() {
       await api.put(`/events/${event.id}/carousel-images/reorder`, { ids: newImages.map((img) => img.id) })
     } catch {
       qc.invalidateQueries({ queryKey: ['event'] })
-      toast.error('Could not save order.')
+      toast.error('No se pudo guardar el orden.')
     }
   }
 
@@ -171,51 +171,51 @@ export default function EventPage() {
     handleCarouselReorder(arrayMove(images, oldIndex, newIndex))
   }
 
-  if (isLoading) return <p className="text-sm text-muted-foreground">Loading…</p>
+  if (isLoading) return <p className="text-sm text-muted-foreground">Cargando…</p>
 
-  if (!event) return <p className="text-sm text-muted-foreground">No event configured.</p>
+  if (!event) return <p className="text-sm text-muted-foreground">Sin evento configurado.</p>
 
   return (
     <div className="flex flex-col gap-8">
 
       {/* Header */}
       <div className="flex items-center justify-between gap-2">
-        <h1 className="text-xl font-semibold">Event</h1>
+        <h1 className="text-xl font-semibold">Evento</h1>
         {!isViewer && (
           <Button variant="outline" size="sm" onClick={() => setEditOpen(true)}>
             <Pencil className="h-4 w-4 mr-1" />
-            Edit
+            Editar
           </Button>
         )}
       </div>
 
       {/* Event details */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-3 text-sm border rounded-lg p-5">
-        <Detail label="Name" value={event.name} />
+        <Detail label="Nombre" value={event.name} />
         {event.subdomain && (
-          <Detail label="Subdomain" value={`${event.subdomain}.${import.meta.env.VITE_APP_DOMAIN}`} className="sm:col-span-2" />
+          <Detail label="Subdominio" value={`${event.subdomain}.${import.meta.env.VITE_APP_DOMAIN}`} className="sm:col-span-2" />
         )}
         <Detail label="De la novia" value={[event.partner1_parent1, event.partner1_parent2].filter(Boolean).join(' & ')} />
         <Detail label="Del novio" value={[event.partner2_parent1, event.partner2_parent2].filter(Boolean).join(' & ')} />
-        <Detail label="Dress Code" value={event.dress_code} />
+        <Detail label="Vestimenta" value={event.dress_code} />
         <Detail
-          label="Religious Ceremony"
+          label="Ceremonia religiosa"
           value={event.ceremony_at && fmt(event.ceremony_at, { dateStyle: 'long', timeStyle: 'short' })}
         />
         <Detail
-          label="Reception"
+          label="Recepción"
           value={event.reception_at && fmt(event.reception_at, { dateStyle: 'long', timeStyle: 'short' })}
         />
-        <Detail label="Religious Ceremony Location" value={event.ceremony_location} url={event.ceremony_url} />
-        <Detail label="Reception Location" value={event.reception_location} url={event.reception_url} />
+        <Detail label="Lugar de ceremonia" value={event.ceremony_location} url={event.ceremony_url} />
+        <Detail label="Lugar de recepción" value={event.reception_location} url={event.reception_url} />
         <Detail
-          label="RSVP Deadline"
+          label="Fecha límite RSVP"
           value={event.rsvp_deadline && fmt(event.rsvp_deadline, { dateStyle: 'long', timeStyle: 'short' })}
         />
-        {event.notes && <Detail label="Notes" value={event.notes} className="sm:col-span-2" />}
+        {event.notes && <Detail label="Notas" value={event.notes} className="sm:col-span-2" />}
         {event.no_kids && (
           <Detail
-            label="No kids policy"
+            label="Solo adultos"
             value={event.no_kids_message || 'Este evento es para adultos. Te pedimos no traer niños.'}
             className="sm:col-span-2"
           />
@@ -227,10 +227,10 @@ export default function EventPage() {
 
       {/* Images */}
       <div className="flex flex-col gap-8">
-        <h2 className="text-lg font-semibold -mb-4">Images</h2>
+        <h2 className="text-lg font-semibold -mb-4">Imágenes</h2>
 
         <div className="flex flex-col gap-4">
-          <h3 className="text-base font-medium">Invitee / RSVP page</h3>
+          <h3 className="text-base font-medium">Invitación / RSVP</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             {RSVP_IMAGE_SLOTS.map(({ key, label, aspect, ratio, optional }) => {
             const url = event[`${key}_image_url`]
@@ -240,7 +240,7 @@ export default function EventPage() {
                   <p className="text-sm font-medium">{label}</p>
                   <p className="text-xs text-muted-foreground font-mono">{ratio}</p>
                   {optional && (
-                    <p className="text-xs text-muted-foreground italic">optional</p>
+                    <p className="text-xs text-muted-foreground italic">opcional</p>
                   )}
                 </div>
 
@@ -250,7 +250,7 @@ export default function EventPage() {
                     ? <img src={url} alt={label} className="w-full h-full object-cover" />
                     : <div className="w-full h-full flex flex-col items-center justify-center gap-2">
                         <ImageIcon className="h-8 w-8 text-muted-foreground/30" />
-                        <p className="text-xs text-muted-foreground/40 uppercase tracking-widest">No image</p>
+                        <p className="text-xs text-muted-foreground/40 uppercase tracking-widest">Sin imagen</p>
                       </div>
                   }
                 </div>
@@ -273,7 +273,7 @@ export default function EventPage() {
                         onClick={() => fileRefs.current[key]?.click()}
                       >
                         <Upload className="h-4 w-4 mr-1" />
-                        {uploading[key] ? 'Uploading…' : url ? 'Replace' : 'Upload'}
+                        {uploading[key] ? 'Cargando…' : url ? 'Reemplazar' : 'Cargar'}
                       </Button>
                       {url && (
                         <Button
@@ -283,7 +283,7 @@ export default function EventPage() {
                           onClick={() => handleRemove(key)}
                         >
                           <Trash2 className="h-4 w-4 mr-1" />
-                          Remove
+                          Eliminar
                         </Button>
                       )}
                     </div>
@@ -296,7 +296,7 @@ export default function EventPage() {
         </div>
 
         <div className="flex flex-col gap-4">
-          <h3 className="text-base font-medium">Confirmation page</h3>
+          <h3 className="text-base font-medium">Página de confirmación</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             {CONFIRMATION_IMAGE_SLOTS.map(({ key, label, aspect, ratio, optional }) => {
               const url = event[`${key}_image_url`]
@@ -306,7 +306,7 @@ export default function EventPage() {
                     <p className="text-sm font-medium">{label}</p>
                     <p className="text-xs text-muted-foreground font-mono">{ratio}</p>
                     {optional && (
-                      <p className="text-xs text-muted-foreground italic">optional</p>
+                      <p className="text-xs text-muted-foreground italic">opcional</p>
                     )}
                   </div>
                   <div className={`w-full ${aspect} bg-muted rounded-xl overflow-hidden`}>
@@ -314,7 +314,7 @@ export default function EventPage() {
                       ? <img src={url} alt={label} className="w-full h-full object-cover" />
                       : <div className="w-full h-full flex flex-col items-center justify-center gap-2">
                           <ImageIcon className="h-8 w-8 text-muted-foreground/30" />
-                          <p className="text-xs text-muted-foreground/40 uppercase tracking-widest">No image</p>
+                          <p className="text-xs text-muted-foreground/40 uppercase tracking-widest">Sin imagen</p>
                         </div>
                     }
                   </div>
@@ -335,7 +335,7 @@ export default function EventPage() {
                           onClick={() => fileRefs.current[key]?.click()}
                         >
                           <Upload className="h-4 w-4 mr-1" />
-                          {uploading[key] ? 'Uploading…' : url ? 'Replace' : 'Upload'}
+                          {uploading[key] ? 'Cargando…' : url ? 'Reemplazar' : 'Cargar'}
                         </Button>
                         {url && (
                           <Button
@@ -345,7 +345,7 @@ export default function EventPage() {
                             onClick={() => handleRemove(key)}
                           >
                             <Trash2 className="h-4 w-4 mr-1" />
-                            Remove
+                            Eliminar
                           </Button>
                         )}
                       </div>
@@ -361,14 +361,14 @@ export default function EventPage() {
       {/* Photo Gallery */}
       <div className="flex flex-col gap-4">
         <div className="flex items-center justify-between gap-2">
-          <h2 className="text-lg font-semibold">Photo Gallery</h2>
-          <p className="text-xs text-muted-foreground">{event.carousel_images?.length ?? 0} / 10 photos</p>
+          <h2 className="text-lg font-semibold">Galería de fotos</h2>
+          <p className="text-xs text-muted-foreground">{event.carousel_images?.length ?? 0} / 10 fotos</p>
         </div>
         <div className="flex items-center justify-between gap-4 -mt-2">
-          <p className="text-sm text-muted-foreground">Up to 10 photos shown as a carousel on the RSVP page.</p>
+          <p className="text-sm text-muted-foreground">Hasta 10 fotos mostradas como carrusel en la invitación.</p>
           {!isViewer && (
             <div className="flex items-center gap-2 shrink-0">
-              <label htmlFor="carousel_interval" className="text-xs text-muted-foreground whitespace-nowrap">Slide every</label>
+              <label htmlFor="carousel_interval" className="text-xs text-muted-foreground whitespace-nowrap">Cambiar cada</label>
               <input
                 id="carousel_interval"
                 type="number"
@@ -448,15 +448,15 @@ function MusicSection({ event, isViewer, onRefresh }) {
         headers: { 'Content-Type': 'multipart/form-data' },
       })
       onRefresh()
-      toast.success('Song uploaded.')
+      toast.success('Canción cargada.')
     } catch (err) {
       const status = err?.response?.status
       if (status === 413) {
-        toast.error('File too large. Maximum size is 10 MB.')
+        toast.error('Archivo demasiado grande. Máximo 10 MB.')
       } else if (status === 422) {
-        toast.error('Invalid file. Use MP3, max 10 MB.')
+        toast.error('Archivo inválido. Usa MP3, máx. 10 MB.')
       } else {
-        toast.error('Upload failed. Please try again.')
+        toast.error('Error al cargar. Intenta de nuevo.')
       }
     } finally {
       setUploading(false)
@@ -468,15 +468,15 @@ function MusicSection({ event, isViewer, onRefresh }) {
     try {
       await api.delete(`/events/${event.id}/song`)
       onRefresh()
-      toast.success('Song removed.')
+      toast.success('Canción eliminada.')
     } catch {
-      toast.error('Could not remove song.')
+      toast.error('No se pudo eliminar la canción.')
     }
   }
 
   return (
     <div className="flex flex-col gap-4">
-      <h2 className="text-lg font-semibold">Music</h2>
+      <h2 className="text-lg font-semibold">Música</h2>
       {event.song_url && (
         <audio controls src={event.song_url} className="w-full" />
       )}
@@ -488,9 +488,9 @@ function MusicSection({ event, isViewer, onRefresh }) {
           <div className="flex-1 min-w-0">
             {event.song_url
               ? <p className="text-sm font-medium truncate">{event.song.split('/').pop()}</p>
-              : <p className="text-sm text-muted-foreground">No song uploaded</p>
+              : <p className="text-sm text-muted-foreground">Sin canción</p>
             }
-            <p className="text-xs text-muted-foreground mt-0.5">MP3 · max 10 MB · autoplays on the RSVP page</p>
+            <p className="text-xs text-muted-foreground mt-0.5">MP3 · máx. 10 MB · se reproduce automáticamente en la invitación</p>
           </div>
         </div>
         {!isViewer && (
@@ -499,7 +499,7 @@ function MusicSection({ event, isViewer, onRefresh }) {
             <div className="flex gap-2">
               <Button variant="outline" size="sm" disabled={uploading} onClick={() => fileRef.current?.click()}>
                 <Upload className="h-4 w-4 mr-1" />
-                {uploading ? 'Uploading…' : event.song_url ? 'Replace' : 'Upload'}
+                {uploading ? 'Cargando…' : event.song_url ? 'Reemplazar' : 'Cargar'}
               </Button>
               {event.song_url && (
                 <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive" onClick={handleRemove}>
@@ -556,26 +556,26 @@ function TagsSection({ event, isViewer }) {
   const createMutation = useMutation({
     mutationFn: (data) => api.post(`/events/${event.id}/tags`, data),
     onSuccess: () => { qc.invalidateQueries({ queryKey: ['tags', activeEvent?.id] }); setAdding(false); setNewName(''); setNewColor('blue') },
-    onError: () => toast.error('Could not create tag.'),
+    onError: () => toast.error('No se pudo crear la etiqueta.'),
   })
 
   const updateMutation = useMutation({
     mutationFn: ({ id, ...data }) => api.put(`/events/${event.id}/tags/${id}`, data),
     onSuccess: () => { qc.invalidateQueries({ queryKey: ['tags', activeEvent?.id] }); setEditingId(null) },
-    onError: () => toast.error('Could not update tag.'),
+    onError: () => toast.error('No se pudo actualizar la etiqueta.'),
   })
 
   const deleteMutation = useMutation({
     mutationFn: (id) => api.delete(`/events/${event.id}/tags/${id}`),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['tags', activeEvent?.id] }),
-    onError: () => toast.error('Could not delete tag.'),
+    onError: () => toast.error('No se pudo eliminar la etiqueta.'),
   })
 
   const startEdit = (tag) => { setEditingId(tag.id); setEditName(tag.name); setEditColor(tag.color) }
 
   return (
     <div className="flex flex-col gap-4">
-      <h2 className="text-lg font-semibold">Tags</h2>
+      <h2 className="text-lg font-semibold">Etiquetas</h2>
 
       <div className="flex flex-col gap-2">
         {tags.map((tag) => (
@@ -631,7 +631,7 @@ function TagsSection({ event, isViewer }) {
           <div className="flex items-center gap-3 border rounded-lg px-3 py-2">
             <input
               className="flex-1 min-w-0 h-7 rounded-md border border-input bg-transparent px-2 text-sm"
-              placeholder="Tag name"
+              placeholder="Nombre de etiqueta"
               value={newName}
               onChange={(e) => setNewName(e.target.value)}
               maxLength={50}
@@ -664,7 +664,7 @@ function TagsSection({ event, isViewer }) {
         <div>
           <Button variant="outline" size="sm" onClick={() => setAdding(true)}>
             <Plus className="h-4 w-4 mr-1" />
-            Add tag
+            Agregar etiqueta
           </Button>
         </div>
       )}

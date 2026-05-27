@@ -30,13 +30,13 @@ export default function ChangePasswordDialog({ open, onOpenChange }) {
         new_password: newPassword,
         new_password_confirmation: newPasswordConfirmation,
       })
-      toast.success('Password updated successfully.')
+      toast.success('Contraseña actualizada.')
       reset()
       onOpenChange(false)
     } catch (err) {
       const msg = err.response?.data?.errors?.current_password?.[0]
         ?? err.response?.data?.errors?.new_password?.[0]
-        ?? 'Something went wrong.'
+        ?? 'Algo salió mal.'
       setError(msg)
     } finally {
       setLoading(false)
@@ -47,11 +47,11 @@ export default function ChangePasswordDialog({ open, onOpenChange }) {
     <Dialog open={open} onOpenChange={(v) => { if (!v) reset(); onOpenChange(v) }}>
       <DialogContent className="max-w-sm">
         <DialogHeader>
-          <DialogTitle>Change password</DialogTitle>
+          <DialogTitle>Cambiar contraseña</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="flex flex-col gap-4 mt-2">
           <div className="flex flex-col gap-1.5">
-            <Label htmlFor="current_password">Current password</Label>
+            <Label htmlFor="current_password">Contraseña actual</Label>
             <Input
               id="current_password"
               type="password"
@@ -61,7 +61,7 @@ export default function ChangePasswordDialog({ open, onOpenChange }) {
             />
           </div>
           <div className="flex flex-col gap-1.5">
-            <Label htmlFor="new_password">New password</Label>
+            <Label htmlFor="new_password">Nueva contraseña</Label>
             <Input
               id="new_password"
               type="password"
@@ -71,7 +71,7 @@ export default function ChangePasswordDialog({ open, onOpenChange }) {
             />
           </div>
           <div className="flex flex-col gap-1.5">
-            <Label htmlFor="new_password_confirmation">Confirm new password</Label>
+            <Label htmlFor="new_password_confirmation">Confirmar nueva contraseña</Label>
             <Input
               id="new_password_confirmation"
               type="password"
@@ -82,7 +82,7 @@ export default function ChangePasswordDialog({ open, onOpenChange }) {
           </div>
           {error && <p className="text-sm text-destructive">{error}</p>}
           <Button type="submit" disabled={loading}>
-            {loading ? 'Updating…' : 'Update password'}
+            {loading ? 'Actualizando…' : 'Actualizar contraseña'}
           </Button>
         </form>
       </DialogContent>

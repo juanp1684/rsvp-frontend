@@ -24,11 +24,11 @@ const roleBadge = {
 const roleLabel = {
   super_admin: 'Super Admin',
   admin: 'Admin',
-  viewer: 'Viewer',
+  viewer: 'Solo lectura',
 }
 
 export default function UsersPage() {
-  useEffect(() => { document.title = 'RSVP Admin | Users' }, [])
+  useEffect(() => { document.title = 'RSVP Admin | Usuarios' }, [])
 
   const qc = useQueryClient()
   const currentUser = useAuthStore((s) => s.user)
@@ -45,11 +45,11 @@ export default function UsersPage() {
     mutationFn: (id) => api.delete(`/users/${id}`),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['users'] })
-      toast.success('User deleted.')
+      toast.success('Usuario eliminado.')
       setDeleteTarget(null)
     },
     onError: (err) => {
-      toast.error(err?.response?.data?.message ?? 'Could not delete user.')
+      toast.error(err?.response?.data?.message ?? 'No se pudo eliminar el usuario.')
       setDeleteTarget(null)
     },
   })
@@ -60,15 +60,15 @@ export default function UsersPage() {
   return (
     <div className="flex flex-col gap-6">
       <div className="flex items-center justify-between gap-2">
-        <h1 className="text-xl font-semibold">Users</h1>
+        <h1 className="text-xl font-semibold">Usuarios</h1>
         <Button size="sm" onClick={handleAdd}>
           <Plus className="h-4 w-4 mr-1" />
-          Add
+          Agregar
         </Button>
       </div>
 
       {isLoading ? (
-        <p className="text-sm text-muted-foreground">Loading…</p>
+        <p className="text-sm text-muted-foreground">Cargando…</p>
       ) : (
         <>
           {/* Desktop table */}
@@ -76,10 +76,10 @@ export default function UsersPage() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Name</TableHead>
+                  <TableHead>Nombre</TableHead>
                   <TableHead>Email</TableHead>
-                  <TableHead>Role</TableHead>
-                  <TableHead>Event</TableHead>
+                  <TableHead>Rol</TableHead>
+                  <TableHead>Evento</TableHead>
                   <TableHead />
                 </TableRow>
               </TableHeader>
@@ -89,7 +89,7 @@ export default function UsersPage() {
                     <TableCell className="font-medium">
                       {u.name}
                       {u.id === currentUser?.id && (
-                        <span className="ml-2 text-xs text-muted-foreground">(you)</span>
+                        <span className="ml-2 text-xs text-muted-foreground">(tú)</span>
                       )}
                     </TableCell>
                     <TableCell className="text-muted-foreground">{u.email}</TableCell>
@@ -125,7 +125,7 @@ export default function UsersPage() {
                   <div className="flex items-center gap-2">
                     <span className="font-medium text-sm">{u.name}</span>
                     {u.id === currentUser?.id && (
-                      <span className="text-xs text-muted-foreground">(you)</span>
+                      <span className="text-xs text-muted-foreground">(tú)</span>
                     )}
                     <Badge variant={roleBadge[u.role]} className="text-xs ml-auto">{roleLabel[u.role]}</Badge>
                   </div>
@@ -163,16 +163,16 @@ export default function UsersPage() {
       <AlertDialog open={!!deleteTarget} onOpenChange={(o) => !o && setDeleteTarget(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete {deleteTarget?.name}?</AlertDialogTitle>
-            <AlertDialogDescription>This action cannot be undone.</AlertDialogDescription>
+            <AlertDialogTitle>¿Eliminar a {deleteTarget?.name}?</AlertDialogTitle>
+            <AlertDialogDescription>Esta acción no se puede deshacer.</AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
             <AlertDialogAction
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
               onClick={() => deleteMutation.mutate(deleteTarget.id)}
             >
-              Delete
+              Eliminar
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

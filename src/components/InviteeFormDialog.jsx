@@ -46,7 +46,7 @@ export default function InviteeFormDialog({ open, onOpenChange, invitee }) {
   const syncTagsMutation = useMutation({
     mutationFn: (tagIds) => api.put(`/events/${activeEvent.id}/invitees/${invitee.id}/tags`, { tag_ids: [...tagIds] }),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['invitees', activeEvent?.id] }),
-    onError: () => toast.error('Could not update tags.'),
+    onError: () => toast.error('No se pudieron actualizar las etiquetas.'),
   })
 
   useEffect(() => {
@@ -78,10 +78,10 @@ export default function InviteeFormDialog({ open, onOpenChange, invitee }) {
         : api.post(`/events/${activeEvent.id}/invitees`, data),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['invitees', activeEvent?.id] })
-      toast.success(isEdit ? 'Invitee updated.' : 'Invitee created.')
+      toast.success(isEdit ? 'Invitado actualizado.' : 'Invitado creado.')
       onOpenChange(false)
     },
-    onError: () => toast.error('Something went wrong.'),
+    onError: () => toast.error('Algo salió mal.'),
   })
 
   const addCompanionMutation = useMutation({
@@ -93,7 +93,7 @@ export default function InviteeFormDialog({ open, onOpenChange, invitee }) {
       setIsAdding(false)
       setAddingName('')
     },
-    onError: () => toast.error('Could not add companion.'),
+    onError: () => toast.error('No se pudo agregar el acompañante.'),
   })
 
   const updateCompanionMutation = useMutation({
@@ -104,7 +104,7 @@ export default function InviteeFormDialog({ open, onOpenChange, invitee }) {
       setLocalCompanions((prev) => prev.map((c) => c.id === data.id ? data : c))
       setEditingId(null)
     },
-    onError: () => toast.error('Could not update companion.'),
+    onError: () => toast.error('No se pudo actualizar el acompañante.'),
   })
 
   const deleteCompanionMutation = useMutation({
@@ -114,7 +114,7 @@ export default function InviteeFormDialog({ open, onOpenChange, invitee }) {
       qc.invalidateQueries({ queryKey: ['invitees', activeEvent?.id] })
       setLocalCompanions((prev) => prev.filter((c) => c.id !== id))
     },
-    onError: () => toast.error('Could not remove companion.'),
+    onError: () => toast.error('No se pudo eliminar el acompañante.'),
   })
 
   const handleSubmit = (e) => {
@@ -136,11 +136,11 @@ export default function InviteeFormDialog({ open, onOpenChange, invitee }) {
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="w-full max-w-md">
         <DialogHeader>
-          <DialogTitle>{isEdit ? 'Edit invitee' : 'Add invitee'}</DialogTitle>
+          <DialogTitle>{isEdit ? 'Editar invitado' : 'Agregar invitado'}</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="flex flex-col gap-4 py-2">
           <div className="flex flex-col gap-1.5">
-            <Label htmlFor="full_name">Full name</Label>
+            <Label htmlFor="full_name">Nombre completo</Label>
             <Input
               id="full_name"
               value={form.full_name}
@@ -150,11 +150,11 @@ export default function InviteeFormDialog({ open, onOpenChange, invitee }) {
             />
           </div>
           <div className="flex flex-col gap-1.5">
-            <Label htmlFor="phone">Phone</Label>
+            <Label htmlFor="phone">Teléfono</Label>
             <Input id="phone" value={form.phone} onChange={set('phone')} maxLength={50} />
           </div>
           <div className="flex flex-col gap-1.5">
-            <Label>Companions allowed</Label>
+            <Label>Acompañantes permitidos</Label>
             <Select
               value={form.allowed_companions}
               onValueChange={(v) => setForm((f) => ({ ...f, allowed_companions: v }))}
@@ -165,20 +165,20 @@ export default function InviteeFormDialog({ open, onOpenChange, invitee }) {
               <SelectContent>
                 {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((n) => (
                   <SelectItem key={n} value={String(n)}>
-                    {n === 0 ? 'None' : `+${n}`}
+                    {n === 0 ? 'Ninguno' : `+${n}`}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
           </div>
           <div className="flex flex-col gap-1.5">
-            <Label htmlFor="notes">Notes</Label>
+            <Label htmlFor="notes">Notas</Label>
             <Input id="notes" value={form.notes} onChange={set('notes')} maxLength={500} />
           </div>
 
           <div className="flex gap-3">
             <div className="flex flex-col gap-1.5 flex-1">
-              <Label>Type</Label>
+              <Label>Tipo</Label>
               <Select
                 value={form.type}
                 onValueChange={(v) => setForm((f) => ({ ...f, type: v }))}
@@ -188,13 +188,13 @@ export default function InviteeFormDialog({ open, onOpenChange, invitee }) {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="regular">Regular</SelectItem>
-                  <SelectItem value="late">Late</SelectItem>
+                  <SelectItem value="late">Rezagado</SelectItem>
                 </SelectContent>
               </Select>
             </div>
             {isEdit && (
               <div className="flex flex-col gap-1.5 flex-1">
-                <Label>Status</Label>
+                <Label>Estado</Label>
                 <Select
                   value={form.status}
                   onValueChange={(v) => setForm((f) => ({ ...f, status: v }))}
@@ -203,9 +203,9 @@ export default function InviteeFormDialog({ open, onOpenChange, invitee }) {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="pending">Pending</SelectItem>
-                    <SelectItem value="attending">Attending</SelectItem>
-                    <SelectItem value="declined">Declined</SelectItem>
+                    <SelectItem value="pending">Pendiente</SelectItem>
+                    <SelectItem value="attending">Asistirá</SelectItem>
+                    <SelectItem value="declined">Rechazó</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -216,7 +216,7 @@ export default function InviteeFormDialog({ open, onOpenChange, invitee }) {
             <div className="flex flex-col gap-2 border-t pt-3">
               <div className="flex items-center justify-between">
                 <Label>
-                  Companions{' '}
+                  Acompañantes{' '}
                   <span className="text-muted-foreground font-normal">
                     ({localCompanions.length}/{form.allowed_companions})
                   </span>
@@ -228,7 +228,7 @@ export default function InviteeFormDialog({ open, onOpenChange, invitee }) {
                     variant="outline"
                     onClick={() => setIsAdding(true)}
                   >
-                    + Add
+                    + Agregar
                   </Button>
                 )}
               </div>
@@ -305,7 +305,7 @@ export default function InviteeFormDialog({ open, onOpenChange, invitee }) {
                 <div className="flex items-center gap-2">
                   <Input
                     className="h-8 text-sm flex-1"
-                    placeholder="Full name"
+                    placeholder="Nombre completo"
                     value={addingName}
                     onChange={(e) => setAddingName(e.target.value)}
                     onKeyDown={(e) => {
@@ -344,7 +344,7 @@ export default function InviteeFormDialog({ open, onOpenChange, invitee }) {
 
           {isEdit && eventTags.length > 0 && (
             <div className="flex flex-col gap-1.5 border-t pt-3">
-              <Label>Tags</Label>
+              <Label>Etiquetas</Label>
               <div className="flex flex-wrap gap-1.5">
                 {eventTags.map((tag) => (
                   <button
@@ -362,7 +362,7 @@ export default function InviteeFormDialog({ open, onOpenChange, invitee }) {
 
           <DialogFooter className="pt-2">
             <Button type="submit" className="w-full" disabled={mutation.isPending}>
-              {mutation.isPending ? 'Saving…' : 'Save'}
+              {mutation.isPending ? 'Guardando…' : 'Guardar'}
             </Button>
           </DialogFooter>
         </form>

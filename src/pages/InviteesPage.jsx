@@ -104,10 +104,16 @@ const statusVariant = {
   pending: 'secondary',
 }
 
+const statusLabel = {
+  attending: 'Asistirá',
+  declined: 'Rechazó',
+  pending: 'Pendiente',
+}
+
 const statusCycle = ['attending', 'pending', 'declined']
 
 export default function InviteesPage() {
-  useEffect(() => { document.title = 'RSVP Admin | Invitees' }, [])
+  useEffect(() => { document.title = 'RSVP Admin | Invitados' }, [])
 
   const qc = useQueryClient()
   const activeEvent = useAuthStore((s) => s.activeEvent)
@@ -140,10 +146,10 @@ export default function InviteesPage() {
     mutationFn: (id) => api.delete(`/events/${activeEvent.id}/invitees/${id}`),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['invitees', activeEvent?.id] })
-      toast.success('Invitee deleted.')
+      toast.success('Invitado eliminado.')
       setDeleteTarget(null)
     },
-    onError: () => toast.error('Could not delete invitee.'),
+    onError: () => toast.error('No se pudo eliminar el invitado.'),
   })
 
   const bulkUpdateMutation = useMutation({
@@ -158,7 +164,7 @@ export default function InviteesPage() {
     },
     onError: (_err, _vars, context) => {
       qc.setQueryData(['invitees', activeEvent?.id], context.previous)
-      toast.error('Could not update invitees.')
+      toast.error('No se pudieron actualizar los invitados.')
     },
     onSettled: () => qc.invalidateQueries({ queryKey: ['invitees', activeEvent?.id] }),
   })
@@ -175,7 +181,7 @@ export default function InviteesPage() {
     },
     onError: (_err, _vars, context) => {
       qc.setQueryData(['invitees', activeEvent?.id], context.previous)
-      toast.error('Could not update invitation status.')
+      toast.error('No se pudo actualizar el estado de la invitación.')
     },
     onSettled: () => qc.invalidateQueries({ queryKey: ['invitees', activeEvent?.id] }),
   })
@@ -184,11 +190,11 @@ export default function InviteesPage() {
     mutationFn: (ids) => api.post(`/events/${activeEvent.id}/invitees/bulk-destroy`, { ids }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['invitees', activeEvent?.id] })
-      toast.success(`Deleted ${selectedIds.size} invitees.`)
+      toast.success(`${selectedIds.size} invitados eliminados.`)
       setSelectedIds(new Set())
       setBulkDeleteOpen(false)
     },
-    onError: () => toast.error('Could not delete invitees.'),
+    onError: () => toast.error('No se pudieron eliminar los invitados.'),
   })
 
   const toggleSelect = (id) => setSelectedIds((prev) => {
@@ -330,26 +336,26 @@ export default function InviteesPage() {
   return (
     <div className="flex flex-col gap-4">
       <div className="flex items-center justify-between gap-2">
-        <h1 className="text-xl font-semibold">Invitees</h1>
+        <h1 className="text-xl font-semibold">Invitados</h1>
         {!isViewer && (
           <div className="flex gap-2 flex-wrap justify-end">
             {selectedIds.size > 0 && (
               <>
                 <Button size="sm" variant="outline" onClick={() => bulkUpdateMutation.mutate({ ids: selectedIds, data: { invitation_sent: true } })}>
-                  Mark sent ({selectedIds.size})
+                  Marcar enviada ({selectedIds.size})
                 </Button>
                 <Button size="sm" variant="outline" onClick={() => bulkUpdateMutation.mutate({ ids: selectedIds, data: { invitation_sent: false } })}>
-                  Mark unsent ({selectedIds.size})
+                  Marcar no enviada ({selectedIds.size})
                 </Button>
                 <Button size="sm" variant="destructive" onClick={() => setBulkDeleteOpen(true)}>
                   <Trash2 className="h-4 w-4 mr-1" />
-                  Delete ({selectedIds.size})
+                  Eliminar ({selectedIds.size})
                 </Button>
               </>
             )}
             <Button size="sm" onClick={handleAdd}>
               <Plus className="h-4 w-4 mr-1" />
-              Add
+              Agregar
             </Button>
           </div>
         )}
@@ -358,7 +364,7 @@ export default function InviteesPage() {
       {/* Search + filter */}
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
         <Input
-          placeholder="Search by name…"
+          placeholder="Buscar por nombre…"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className="sm:max-w-xs"
@@ -369,7 +375,7 @@ export default function InviteesPage() {
             <PopoverTrigger asChild>
               <Button variant="outline" size="sm" className="relative">
                 <SlidersHorizontal className="h-4 w-4 mr-1" />
-                Filter
+                Filtrar
                 {activeFilterCount > 0 && (
                   <span className="ml-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[10px] text-primary-foreground font-medium">
                     {activeFilterCount}
@@ -380,12 +386,12 @@ export default function InviteesPage() {
             <PopoverContent className="w-56 p-3 flex flex-col gap-4" align="start">
               {/* Status */}
               <div className="flex flex-col gap-1.5">
-                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Status</p>
+                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Estado</p>
                 {[
-                  { key: 'all', label: 'All' },
-                  { key: 'attending', label: 'Attending' },
-                  { key: 'pending', label: 'Pending' },
-                  { key: 'declined', label: 'Declined' },
+                  { key: 'all', label: 'Todos' },
+                  { key: 'attending', label: 'Asistirá' },
+                  { key: 'pending', label: 'Pendiente' },
+                  { key: 'declined', label: 'Rechazó' },
                 ].map(({ key, label }) => (
                   <button
                     key={key}
@@ -401,11 +407,11 @@ export default function InviteesPage() {
               {/* Type */}
               {lateCount > 0 && (
                 <div className="flex flex-col gap-1.5">
-                  <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Type</p>
+                  <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Tipo</p>
                   {[
-                    { key: 'all', label: 'All', count: invitees.length },
+                    { key: 'all', label: 'Todos', count: invitees.length },
                     { key: 'regular', label: 'Regular', count: invitees.length - lateCount },
-                    { key: 'late', label: 'Late', count: lateCount },
+                    { key: 'late', label: 'Rezagado', count: lateCount },
                   ].map(({ key, label, count }) => (
                     <button
                       key={key}
@@ -421,11 +427,11 @@ export default function InviteesPage() {
 
               {/* Sent */}
               <div className="flex flex-col gap-1.5">
-                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Invitation</p>
+                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Invitación</p>
                 {[
-                  { key: 'all', label: 'All', count: invitees.length },
-                  { key: 'sent', label: 'Sent', count: sentCount },
-                  { key: 'unsent', label: 'Not sent', count: unsentCount },
+                  { key: 'all', label: 'Todos', count: invitees.length },
+                  { key: 'sent', label: 'Enviada', count: sentCount },
+                  { key: 'unsent', label: 'No enviada', count: unsentCount },
                 ].map(({ key, label, count }) => (
                   <button
                     key={key}
@@ -441,14 +447,14 @@ export default function InviteesPage() {
               {/* Tags */}
               {eventTags.length > 0 && (
                 <div className="flex flex-col gap-1.5">
-                  <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Tag</p>
-                  {[{ id: null, name: 'All' }, ...eventTags].map((tag) => (
+                  <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Etiqueta</p>
+                  {[{ id: null, name: 'Todas' }, ...eventTags].map((tag) => (
                     <button
                       key={tag.id ?? 'all'}
                       onClick={() => setFilter('tag', tag.id)}
                       className={`flex items-center justify-between text-sm px-2 py-1 rounded-md transition-colors ${filters.tag === tag.id ? 'bg-secondary font-medium' : 'hover:bg-muted'}`}
                     >
-                      {tag.id ? <TagChip tag={tag} /> : <span>All</span>}
+                      {tag.id ? <TagChip tag={tag} /> : <span>Todas</span>}
                       <span className="text-xs text-muted-foreground">
                         {tag.id ? invitees.filter((i) => i.tags?.some((t) => t.id === tag.id)).length : invitees.length}
                       </span>
@@ -463,7 +469,7 @@ export default function InviteesPage() {
                   onClick={() => setFilters({ status: 'all', type: 'all', sent: 'all', tag: null })}
                   className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors pt-1 border-t"
                 >
-                  <X className="h-3 w-3" /> Clear all filters
+                  <X className="h-3 w-3" /> Limpiar filtros
                 </button>
               )}
             </PopoverContent>
@@ -480,7 +486,7 @@ export default function InviteesPage() {
             onClick={() => handleSort('full_name')}
             className="flex items-center"
           >
-            Name <SortIcon field="full_name" />
+            Nombre <SortIcon field="full_name" />
           </Button>
           <Button
             variant={sort.field === 'status' ? 'secondary' : 'outline'}
@@ -488,7 +494,7 @@ export default function InviteesPage() {
             onClick={() => handleSort('status')}
             className="flex items-center"
           >
-            Status <SortIcon field="status" />
+            Estado <SortIcon field="status" />
           </Button>
         </div>
         <div className="flex gap-2">
@@ -503,14 +509,14 @@ export default function InviteesPage() {
           {!isViewer && (
             <Button variant="outline" size="sm" onClick={() => setImportOpen(true)}>
               <Upload className="h-4 w-4 mr-1" />
-              Import
+              Importar
             </Button>
           )}
         </div>
       </div>
 
       {isLoading ? (
-        <p className="text-sm text-muted-foreground">Loading…</p>
+        <p className="text-sm text-muted-foreground">Cargando…</p>
       ) : (
         <>
           {/* Mobile: card list */}
@@ -531,18 +537,18 @@ export default function InviteesPage() {
                       <div className="flex items-center gap-1.5 min-w-0">
                         <span className="font-medium text-sm truncate">{invitee.full_name}</span>
                         {invitee.type === 'late' && (
-                          <Badge className="text-xs shrink-0 bg-amber-100 text-amber-800 border-amber-300 hover:bg-amber-100">Late</Badge>
+                          <Badge className="text-xs shrink-0 bg-amber-100 text-amber-800 border-amber-300 hover:bg-amber-100">Rezagado</Badge>
                         )}
                       </div>
                       {invitee.phone && (
                         <span className="text-xs text-muted-foreground">{invitee.phone}</span>
                       )}
                       <div className="flex items-center gap-2 mt-1 flex-wrap">
-                        <Badge variant={statusVariant[invitee.status]} className="text-xs capitalize">
-                          {invitee.status}
+                        <Badge variant={statusVariant[invitee.status]} className="text-xs">
+                          {statusLabel[invitee.status] ?? invitee.status}
                         </Badge>
                         <span className="text-xs text-muted-foreground">
-                          {invitee.companions.length}/{invitee.allowed_companions} companions
+                          {invitee.companions.length}/{invitee.allowed_companions} acompañantes
                         </span>
                         {!isViewer && (
                           <div className="flex items-center gap-1.5">
@@ -551,7 +557,7 @@ export default function InviteesPage() {
                               checked={!!invitee.invitation_sent}
                               onCheckedChange={(v) => toggleSentMutation.mutate({ id: invitee.id, value: v })}
                             />
-                            <label htmlFor={`sent-${invitee.id}`} className="text-xs text-muted-foreground cursor-pointer">Sent</label>
+                            <label htmlFor={`sent-${invitee.id}`} className="text-xs text-muted-foreground cursor-pointer">Enviada</label>
                           </div>
                         )}
                         {invitee.tags?.map((tag) => (
@@ -618,19 +624,19 @@ export default function InviteesPage() {
                   </TableHead>
                   <TableHead>
                     <button onClick={() => handleSort('full_name')} className="flex items-center hover:text-foreground transition-colors cursor-pointer">
-                      Name <SortIcon field="full_name" />
+                      Nombre <SortIcon field="full_name" />
                     </button>
                   </TableHead>
-                  <TableHead>Phone</TableHead>
+                  <TableHead>Teléfono</TableHead>
                   <TableHead>
                     <button onClick={() => handleSort('status')} className="flex items-center hover:text-foreground transition-colors cursor-pointer">
-                      Status <SortIcon field="status" />
+                      Estado <SortIcon field="status" />
                     </button>
                   </TableHead>
-                  <TableHead>Companions</TableHead>
-                  <TableHead>Code</TableHead>
-                  <TableHead>Tags</TableHead>
-                  <TableHead>Sent</TableHead>
+                  <TableHead>Acompañantes</TableHead>
+                  <TableHead>Código</TableHead>
+                  <TableHead>Etiquetas</TableHead>
+                  <TableHead>Enviada</TableHead>
                   <TableHead />
                 </TableRow>
               </TableHeader>
@@ -654,8 +660,8 @@ export default function InviteesPage() {
                       </TableCell>
                       <TableCell className="text-muted-foreground">{invitee.phone ?? '—'}</TableCell>
                       <TableCell>
-                        <Badge variant={statusVariant[invitee.status]} className="capitalize">
-                          {invitee.status}
+                        <Badge variant={statusVariant[invitee.status]}>
+                          {statusLabel[invitee.status] ?? invitee.status}
                         </Badge>
                       </TableCell>
                       <TableCell>
@@ -751,18 +757,18 @@ export default function InviteesPage() {
       <AlertDialog open={bulkDeleteOpen} onOpenChange={setBulkDeleteOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete {selectedIds.size} invitees?</AlertDialogTitle>
+            <AlertDialogTitle>¿Eliminar {selectedIds.size} invitados?</AlertDialogTitle>
             <AlertDialogDescription>
-              This will permanently delete the selected invitees and all their companions.
+              Esta acción eliminará permanentemente los invitados seleccionados y sus acompañantes.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
             <AlertDialogAction
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
               onClick={() => bulkDeleteMutation.mutate([...selectedIds])}
             >
-              Delete
+              Eliminar
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -771,19 +777,19 @@ export default function InviteesPage() {
       <AlertDialog open={!!deleteTarget} onOpenChange={(o) => !o && setDeleteTarget(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete invitee?</AlertDialogTitle>
+            <AlertDialogTitle>¿Eliminar invitado?</AlertDialogTitle>
             <AlertDialogDescription>
-              This will permanently delete{' '}
-              <strong>{deleteTarget?.full_name}</strong> and all their companions.
+              Esta acción eliminará permanentemente a{' '}
+              <strong>{deleteTarget?.full_name}</strong> y sus acompañantes.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
             <AlertDialogAction
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
               onClick={() => deleteMutation.mutate(deleteTarget.id)}
             >
-              Delete
+              Eliminar
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

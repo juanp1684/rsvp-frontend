@@ -10,12 +10,12 @@ import { Menu, Moon, Sun, ArrowLeftRight, ChevronDown } from 'lucide-react'
 
 const navItems = [
   { to: '/', label: 'Dashboard' },
-  { to: '/invitees', label: 'Invitees' },
-  { to: '/event', label: 'Event' },
+  { to: '/invitees', label: 'Invitados' },
+  { to: '/event', label: 'Evento' },
 ]
 
 const superAdminNavItems = [
-  { to: '/users', label: 'Users' },
+  { to: '/users', label: 'Usuarios' },
 ]
 
 function NavLinks({ onNavigate, itemClassName = '', isSuperAdmin = false }) {
@@ -71,18 +71,18 @@ export default function AdminLayout() {
                 {isSuperAdmin && (
                   <Button variant="outline" className="w-full" onClick={() => { setMobileOpen(false); navigate('/events') }}>
                     <ArrowLeftRight className="h-4 w-4 mr-2" />
-                    Switch event
+                    Cambiar evento
                   </Button>
                 )}
                 <Button variant="outline" className="w-full" onClick={() => { setMobileOpen(false); setChangePwOpen(true) }}>
-                  Change password
+                  Cambiar contraseña
                 </Button>
                 <Button variant="outline" className="w-full" onClick={toggleTheme}>
                   {dark ? <Sun className="h-4 w-4 mr-2" /> : <Moon className="h-4 w-4 mr-2" />}
-                  {dark ? 'Light mode' : 'Dark mode'}
+                  {dark ? 'Modo claro' : 'Modo oscuro'}
                 </Button>
                 <Button variant="outline" className="w-full" onClick={handleLogout}>
-                  Log out
+                  Cerrar sesión
                 </Button>
               </div>
             </SheetContent>
@@ -106,7 +106,7 @@ export default function AdminLayout() {
           {isSuperAdmin && (
             <Button variant="ghost" size="sm" onClick={() => navigate('/events')}>
               <ArrowLeftRight className="h-4 w-4 mr-1" />
-              Switch
+              Cambiar
             </Button>
           )}
           <Button variant="ghost" size="icon" onClick={toggleTheme}>
@@ -121,11 +121,11 @@ export default function AdminLayout() {
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuItem onClick={() => setChangePwOpen(true)}>
-                Change password
+                Cambiar contraseña
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={handleLogout}>
-                Log out
+                Cerrar sesión
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

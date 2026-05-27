@@ -31,32 +31,32 @@ export default function DashboardPage() {
     enabled: !!activeEvent?.id,
   })
 
-  const total       = invitees.reduce((sum, i) => sum + 1 + (i.allowed_companions ?? 0), 0)
-  const attending   = invitees.filter((i) => i.status === 'attending').reduce((sum, i) => sum + 1 + (i.companions?.length ?? 0), 0)
-  const declined    = invitees.filter((i) => i.status === 'declined').reduce((sum, i) => sum + 1 + (i.allowed_companions ?? 0), 0)
-  const pending     = invitees.filter((i) => i.status === 'pending').reduce((sum, i) => sum + 1 + (i.allowed_companions ?? 0), 0)
-  const responded   = invitees.filter((i) => i.status !== 'pending').length
+  const total        = invitees.reduce((sum, i) => sum + 1 + (i.allowed_companions ?? 0), 0)
+  const attending    = invitees.filter((i) => i.status === 'attending').reduce((sum, i) => sum + 1 + (i.companions?.length ?? 0), 0)
+  const declined     = invitees.filter((i) => i.status === 'declined').reduce((sum, i) => sum + 1 + (i.allowed_companions ?? 0), 0)
+  const pending      = invitees.filter((i) => i.status === 'pending').reduce((sum, i) => sum + 1 + (i.allowed_companions ?? 0), 0)
+  const responded    = invitees.filter((i) => i.status !== 'pending').length
   const responseRate = invitees.length > 0 ? Math.round((responded / invitees.length) * 100) : 0
-  const sentCount   = invitees.filter((i) => i.invitation_sent).length
-  const lateCount   = invitees.filter((i) => i.type === 'late').length
+  const sentCount    = invitees.filter((i) => i.invitation_sent).length
+  const lateCount    = invitees.filter((i) => i.type === 'late').length
 
   return (
     <div className="flex flex-col gap-6">
       <h1 className="text-xl font-semibold">Dashboard</h1>
 
       {isLoading ? (
-        <p className="text-muted-foreground text-sm">Loading…</p>
+        <p className="text-muted-foreground text-sm">Cargando…</p>
       ) : (
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-          <StatCard label="Total invited"       value={total} />
-          <StatCard label="Attending"           value={attending} />
-          <StatCard label="Declined"            value={declined} />
-          <StatCard label="Pending"             value={pending} />
-          <StatCard label="Unique invitations"  value={invitees.length} sub="invitees only, no companions" />
-          <StatCard label="Response rate"       value={`${responseRate}%`} sub={`${responded} of ${invitees.length} responded`} />
-          <StatCard label="Invitations sent"    value={`${sentCount} / ${invitees.length}`} />
+          <StatCard label="Total invitados"       value={total} />
+          <StatCard label="Asistirá"              value={attending} />
+          <StatCard label="Rechazó"               value={declined} />
+          <StatCard label="Pendiente"             value={pending} />
+          <StatCard label="Invitaciones únicas"   value={invitees.length} sub="solo invitados, sin acompañantes" />
+          <StatCard label="Tasa de respuesta"     value={`${responseRate}%`} sub={`${responded} de ${invitees.length} respondieron`} />
+          <StatCard label="Invitaciones enviadas" value={`${sentCount} / ${invitees.length}`} />
           {lateCount > 0 && (
-            <StatCard label="Late invitees" value={lateCount} />
+            <StatCard label="Invitados rezagados" value={lateCount} />
           )}
         </div>
       )}

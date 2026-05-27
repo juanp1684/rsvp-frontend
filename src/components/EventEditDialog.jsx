@@ -84,17 +84,17 @@ export default function EventEditDialog({ event, open, onOpenChange }) {
     const lateDeadline = form.late_rsvp_deadline ? new Date(form.late_rsvp_deadline) : null
 
     if (deadline >= ceremony) {
-      setError({ field: 'rsvp_deadline', message: 'RSVP deadline must be before the ceremony date.' })
+      setError({ field: 'rsvp_deadline', message: 'La fecha límite debe ser antes de la ceremonia.' })
       return
     }
 
     if (lateDeadline) {
       if (lateDeadline < deadline) {
-        setError({ field: 'late_rsvp_deadline', message: 'Late deadline must be on or after the regular RSVP deadline.' })
+        setError({ field: 'late_rsvp_deadline', message: 'La fecha tardía debe ser igual o posterior a la fecha límite regular.' })
         return
       }
       if (lateDeadline >= ceremony) {
-        setError({ field: 'late_rsvp_deadline', message: 'Late deadline must be before the ceremony date.' })
+        setError({ field: 'late_rsvp_deadline', message: 'La fecha tardía debe ser antes de la ceremonia.' })
         return
       }
     }
@@ -111,10 +111,10 @@ export default function EventEditDialog({ event, open, onOpenChange }) {
       })
       setActiveEvent(updated)
       qc.invalidateQueries({ queryKey: ['event'] })
-      toast.success('Event updated.')
+      toast.success('Evento actualizado.')
       onOpenChange(false)
     } catch {
-      toast.error('Could not save changes.')
+      toast.error('No se pudieron guardar los cambios.')
     } finally {
       setLoading(false)
     }
@@ -124,16 +124,16 @@ export default function EventEditDialog({ event, open, onOpenChange }) {
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-lg sm:max-w-xl md:max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Edit event</DialogTitle>
+          <DialogTitle>Editar evento</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="flex flex-col gap-6 mt-2">
 
           {/* General */}
           <Section title="General">
-            <Field label="Name" id="name" value={form.name} onChange={set('name')} required />
-            <Field label="Subtitle" id="subtitle" value={form.subtitle} onChange={set('subtitle')} placeholder="Una historia de amor" />
+            <Field label="Nombre" id="name" value={form.name} onChange={set('name')} required />
+            <Field label="Subtítulo" id="subtitle" value={form.subtitle} onChange={set('subtitle')} placeholder="Una historia de amor" />
             <div className="flex flex-col gap-1.5">
-              <Label htmlFor="subdomain">Subdomain</Label>
+              <Label htmlFor="subdomain">Subdominio</Label>
               <Input
                 id="subdomain"
                 value={form.subdomain}
@@ -142,7 +142,7 @@ export default function EventEditDialog({ event, open, onOpenChange }) {
               />
               {form.subdomain && (
                 <p className="text-xs text-muted-foreground">
-                  Will be saved as: <span className="font-medium text-foreground">{normalizeSubdomain(form.subdomain) || '—'}</span>
+                  Se guardará como: <span className="font-medium text-foreground">{normalizeSubdomain(form.subdomain) || '—'}</span>
                 </p>
               )}
             </div>
@@ -155,35 +155,35 @@ export default function EventEditDialog({ event, open, onOpenChange }) {
               <Field label="Del novio — 2" id="partner2_parent2" value={form.partner2_parent2} onChange={set('partner2_parent2')} placeholder="Ángel Herbas" />
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <Field label="Dress code" id="dress_code" value={form.dress_code} onChange={set('dress_code')} />
+              <Field label="Vestimenta" id="dress_code" value={form.dress_code} onChange={set('dress_code')} />
               <div /> {/* spacer */}
             </div>
-            <Field label="Notes" id="notes" value={form.notes} onChange={set('notes')} />
+            <Field label="Notas" id="notes" value={form.notes} onChange={set('notes')} />
           </Section>
 
           {/* Civil ceremony */}
-          <Section title="Civil ceremony">
-            <Field label="Date & time" id="civil_at" type="datetime-local" value={form.civil_at} onChange={set('civil_at')} />
+          <Section title="Ceremonia civil">
+            <Field label="Fecha y hora" id="civil_at" type="datetime-local" value={form.civil_at} onChange={set('civil_at')} />
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <Field label="Location" id="civil_location" value={form.civil_location} onChange={set('civil_location')} />
+              <Field label="Lugar" id="civil_location" value={form.civil_location} onChange={set('civil_location')} />
               <Field label="URL" id="civil_url" type="url" value={form.civil_url} onChange={set('civil_url')} />
             </div>
           </Section>
 
           {/* Religious ceremony */}
-          <Section title="Religious ceremony">
-            <Field label="Date & time" id="ceremony_at" type="datetime-local" value={form.ceremony_at} onChange={set('ceremony_at')} required />
+          <Section title="Ceremonia religiosa">
+            <Field label="Fecha y hora" id="ceremony_at" type="datetime-local" value={form.ceremony_at} onChange={set('ceremony_at')} required />
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <Field label="Location" id="ceremony_location" value={form.ceremony_location} onChange={set('ceremony_location')} required />
+              <Field label="Lugar" id="ceremony_location" value={form.ceremony_location} onChange={set('ceremony_location')} required />
               <Field label="URL" id="ceremony_url" type="url" value={form.ceremony_url} onChange={set('ceremony_url')} />
             </div>
           </Section>
 
           {/* Reception */}
-          <Section title="Reception">
-            <Field label="Date & time" id="reception_at" type="datetime-local" value={form.reception_at} onChange={set('reception_at')} required />
+          <Section title="Recepción">
+            <Field label="Fecha y hora" id="reception_at" type="datetime-local" value={form.reception_at} onChange={set('reception_at')} required />
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <Field label="Location" id="reception_location" value={form.reception_location} onChange={set('reception_location')} required />
+              <Field label="Lugar" id="reception_location" value={form.reception_location} onChange={set('reception_location')} required />
               <Field label="URL" id="reception_url" type="url" value={form.reception_url} onChange={set('reception_url')} />
             </div>
           </Section>
@@ -191,12 +191,12 @@ export default function EventEditDialog({ event, open, onOpenChange }) {
           {/* RSVP */}
           <Section title="RSVP">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <Field label="Deadline" id="rsvp_deadline" type="datetime-local" value={form.rsvp_deadline ?? ''} onChange={set('rsvp_deadline')} required hasError={error?.field === 'rsvp_deadline'} />
-              <Field label="Late deadline" id="late_rsvp_deadline" type="datetime-local" value={form.late_rsvp_deadline ?? ''} onChange={set('late_rsvp_deadline')} hasError={error?.field === 'late_rsvp_deadline'} />
+              <Field label="Fecha límite" id="rsvp_deadline" type="datetime-local" value={form.rsvp_deadline ?? ''} onChange={set('rsvp_deadline')} required hasError={error?.field === 'rsvp_deadline'} />
+              <Field label="Fecha límite tardía" id="late_rsvp_deadline" type="datetime-local" value={form.late_rsvp_deadline ?? ''} onChange={set('late_rsvp_deadline')} hasError={error?.field === 'late_rsvp_deadline'} />
             </div>
             {error?.field === 'rsvp_deadline' || error?.field === 'late_rsvp_deadline'
               ? <p className="text-sm text-destructive">{error.message}</p>
-              : <p className="text-xs text-muted-foreground">Late deadline is optional — for invitees marked as "Late".</p>
+              : <p className="text-xs text-muted-foreground">La fecha límite tardía es opcional — para invitados marcados como "Rezagado".</p>
             }
             <div className="flex flex-col gap-3 pt-1">
               <div className="flex items-center gap-2">
@@ -205,11 +205,11 @@ export default function EventEditDialog({ event, open, onOpenChange }) {
                   checked={form.no_kids}
                   onCheckedChange={(checked) => setForm((prev) => ({ ...prev, no_kids: !!checked }))}
                 />
-                <Label htmlFor="no_kids">No kids policy</Label>
+                <Label htmlFor="no_kids">Solo adultos</Label>
               </div>
               {form.no_kids && (
                 <Field
-                  label="Custom message (optional)"
+                  label="Mensaje personalizado (opcional)"
                   id="no_kids_message"
                   value={form.no_kids_message}
                   onChange={set('no_kids_message')}
@@ -220,16 +220,16 @@ export default function EventEditDialog({ event, open, onOpenChange }) {
           </Section>
 
           {/* Gift & Recommendations */}
-          <Section title="Gift & Recommendations">
+          <Section title="Regalos y recomendaciones">
             <Field
-              label="Gift suggestion"
+              label="Sugerencia de regalo"
               id="gift_suggestion"
               value={form.gift_suggestion}
               onChange={set('gift_suggestion')}
               placeholder="Si deseas hacernos un regalo, puedes contribuir a…"
             />
             <Field
-              label="Recommendations"
+              label="Recomendaciones"
               id="recommendations"
               value={form.recommendations}
               onChange={set('recommendations')}
@@ -238,8 +238,8 @@ export default function EventEditDialog({ event, open, onOpenChange }) {
           </Section>
 
           {/* Venue sharing */}
-          <Section title="Venue sharing">
-            <p className="text-xs text-muted-foreground -mt-1">When ceremonies share the same venue, the RSVP page will show them grouped under one photo and address.</p>
+          <Section title="Mismo lugar">
+            <p className="text-xs text-muted-foreground -mt-1">Cuando las ceremonias comparten el mismo lugar, la invitación las mostrará agrupadas bajo una sola foto y dirección.</p>
             <div className="flex flex-col gap-3">
               {form.civil_at !== undefined && (
                 <div className="flex items-center gap-2">
@@ -248,7 +248,7 @@ export default function EventEditDialog({ event, open, onOpenChange }) {
                     checked={form.civil_ceremony_same_venue}
                     onCheckedChange={(v) => setForm((p) => ({ ...p, civil_ceremony_same_venue: !!v }))}
                   />
-                  <Label htmlFor="civil_ceremony_same_venue">Civil ceremony and religious ceremony are at the same venue</Label>
+                  <Label htmlFor="civil_ceremony_same_venue">La ceremonia civil y religiosa son en el mismo lugar</Label>
                 </div>
               )}
               <div className="flex items-center gap-2">
@@ -257,7 +257,7 @@ export default function EventEditDialog({ event, open, onOpenChange }) {
                   checked={form.civil_reception_same_venue}
                   onCheckedChange={(v) => setForm((p) => ({ ...p, civil_reception_same_venue: !!v }))}
                 />
-                <Label htmlFor="civil_reception_same_venue">Civil ceremony and reception are at the same venue</Label>
+                <Label htmlFor="civil_reception_same_venue">La ceremonia civil y la recepción son en el mismo lugar</Label>
               </div>
               <div className="flex items-center gap-2">
                 <Checkbox
@@ -265,22 +265,22 @@ export default function EventEditDialog({ event, open, onOpenChange }) {
                   checked={form.ceremony_reception_same_venue}
                   onCheckedChange={(v) => setForm((p) => ({ ...p, ceremony_reception_same_venue: !!v }))}
                 />
-                <Label htmlFor="ceremony_reception_same_venue">Religious ceremony and reception are at the same venue</Label>
+                <Label htmlFor="ceremony_reception_same_venue">La ceremonia religiosa y la recepción son en el mismo lugar</Label>
               </div>
             </div>
           </Section>
 
           {/* Confirmation */}
-          <Section title="Confirmation">
+          <Section title="Confirmación">
             <Field
-              label="Attending message"
+              label="Mensaje al confirmar asistencia"
               id="confirm_attending_message"
               value={form.confirm_attending_message}
               onChange={set('confirm_attending_message')}
               placeholder="¡Nos vemos pronto!"
             />
             <Field
-              label="Declined message"
+              label="Mensaje al declinar"
               id="confirm_declined_message"
               value={form.confirm_declined_message}
               onChange={set('confirm_declined_message')}
@@ -289,7 +289,7 @@ export default function EventEditDialog({ event, open, onOpenChange }) {
           </Section>
 
           <Button type="submit" disabled={loading}>
-            {loading ? 'Saving…' : 'Save changes'}
+            {loading ? 'Guardando…' : 'Guardar cambios'}
           </Button>
         </form>
       </DialogContent>
