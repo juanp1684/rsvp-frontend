@@ -17,7 +17,7 @@ export function TagChip({ tag, className = '' }) {
   const { bg, text, border } = getTagColor(tag.color)
   return (
     <span
-      className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${className}`}
+      className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium max-w-[160px] truncate ${className}`}
       style={{ backgroundColor: bg, color: text, border: `1px solid ${border}` }}
     >
       {tag.name}
