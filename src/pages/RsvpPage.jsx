@@ -16,14 +16,14 @@ import 'yet-another-react-lightbox/styles.css'
 export default function RsvpPage() {
   const { eventSlug, code } = useParams()
   const [step, setStep] = useState('form') // 'form' | 'confirmed'
-  const [status, setStatus] = useState(null) // 'attending' | 'declined'
+  const [inviteeStatuses, setInviteeStatuses] = useState({}) // { [inviteeId]: 'attending' | 'declined' }
   const [companions, setCompanions] = useState([])
   const [lightboxOpen, setLightboxOpen] = useState(false)
   const [isPlaying, setIsPlaying] = useState(false)
   const audioRef = useRef(null)
   const autoplayedRef = useRef(false)
 
-  const { data: invitee, isLoading, isError } = useQuery({
+  const { data: invitation, isLoading, isError } = useQuery({
     queryKey: ['rsvp', eventSlug, code],
     queryFn: () => api.get(`/rsvp/${eventSlug}/${code}`).then((r) => r.data),
     retry: false,
@@ -36,13 +36,16 @@ export default function RsvpPage() {
 
   useEffect(() => { document.title = 'RSVP | ' + event?.name }, [event?.name])
 
-  const isEditing = invitee?.status !== 'pending'
+  const isEditing = invitation?.invitees?.some((i) => i.status !== 'pending')
+  const hasAttending = Object.values(inviteeStatuses).some((s) => s === 'attending')
+  const allResponded = invitation?.invitees?.length > 0 &&
+    invitation.invitees.every((i) => inviteeStatuses[i.id])
 
-  const effectiveDeadline = invitee?.type === 'late'
+  const effectiveDeadline = invitation?.type === 'late'
     ? (event?.late_rsvp_deadline ?? event?.rsvp_deadline)
     : event?.rsvp_deadline
 
-  const deadlinePassed = invitee?.type === 'late'
+  const deadlinePassed = invitation?.type === 'late'
     ? (effectiveDeadline ? new Date() > new Date(effectiveDeadline) : false)
     : (event?.deadline_passed ?? false)
 
@@ -68,21 +71,25 @@ export default function RsvpPage() {
   }, [event?.song_url])
 
   useEffect(() => {
-    if (!invitee || invitee.status === 'pending') return
-    setStatus(invitee.status)
-    if (invitee.status === 'attending') {
-      setCompanions(invitee.companions.map((c) => ({ full_name: c.full_name })))
+    if (!invitation?.invitees) return
+    const initial = {}
+    invitation.invitees.forEach((i) => {
+      if (i.status !== 'pending') initial[i.id] = i.status
+    })
+    if (Object.keys(initial).length > 0) setInviteeStatuses(initial)
+    if (invitation.companions?.length > 0) {
+      setCompanions(invitation.companions.map((c) => ({ full_name: c.full_name })))
     }
-  }, [invitee])
+  }, [invitation])
 
   const mutation = useMutation({
     mutationFn: (payload) => api.post(`/rsvp/${eventSlug}/${code}`, payload),
     onSuccess: () => setStep('confirmed'),
   })
 
-  const handleStatusSelect = (value) => {
-    setStatus(value)
-    if (value === 'declined') setCompanions([])
+  const handleInviteeStatus = (inviteeId, value) => {
+    setInviteeStatuses((prev) => ({ ...prev, [inviteeId]: value }))
+    if (!hasAttending && value !== 'attending') setCompanions([])
   }
 
   const handleCompanionName = (index, value) => {
@@ -104,10 +111,16 @@ export default function RsvpPage() {
   const handleSubmit = (e) => {
     e.preventDefault()
     mutation.mutate({
-      status,
-      companions: status === 'attending' ? companions.filter((c) => c.full_name.trim()) : [],
+      invitees: (invitation?.invitees ?? []).map((i) => ({
+        id: i.id,
+        status: inviteeStatuses[i.id] ?? 'pending',
+      })),
+      companions: hasAttending ? companions.filter((c) => c.full_name.trim()) : [],
     })
   }
+
+  // Overall status for confirmation screen
+  const confirmStatus = hasAttending ? 'attending' : 'declined'
 
   if (isLoading) {
     return <Screen><p className="text-muted-foreground">Cargando…</p></Screen>
@@ -125,11 +138,11 @@ export default function RsvpPage() {
   }
 
   if (step === 'confirmed') {
-    const confirmImageUrl = status === 'attending'
+    const confirmImageUrl = confirmStatus === 'attending'
       ? event?.confirm_attending_image_url
       : event?.confirm_declined_image_url
 
-    const confirmMessage = status === 'attending'
+    const confirmMessage = confirmStatus === 'attending'
       ? (event?.confirm_attending_message || '¡Nos vemos pronto!')
       : (event?.confirm_declined_message || 'Gracias por avisarnos')
 
@@ -142,7 +155,7 @@ export default function RsvpPage() {
               className="w-64 aspect-[3/4] rounded-2xl object-cover shadow-md"
             />
           : <p className="text-2xl">
-              {status === 'attending' ? '🎉' : '💌'}
+              {confirmStatus === 'attending' ? '🎉' : '💌'}
             </p>
         }
         <p className="text-lg font-semibold mt-4">{confirmMessage}</p>
@@ -209,7 +222,7 @@ export default function RsvpPage() {
         {/* Invitee name + event title */}
         <div className="text-center">
           <p className="text-[#735749]/60 text-xs uppercase tracking-widest mb-2">Invitación</p>
-          <h1 className="text-5xl font-script text-[#A47864]">{invitee.full_name}</h1>
+          <h1 className="text-5xl font-script text-[#A47864]">{invitation?.name_on_invitation}</h1>
         </div>
 
         {/* Parents */}
@@ -347,9 +360,9 @@ export default function RsvpPage() {
           <div className="flex flex-col gap-1 text-sm text-center text-muted-foreground">
             <p>Tu respuesta ya fue registrada. El plazo para hacer cambios ha vencido.</p>
             <p>
-              {invitee.status === 'attending'
-                ? '¡Nos alegra que puedas acompañarnos!'
-                : 'Lamentamos que no puedas asistir.'}
+              {hasAttending
+                ? '¡Nos alegra que puedan acompañarnos!'
+                : 'Lamentamos que no puedan asistir.'}
             </p>
             <p>Si necesitas hacer algún cambio, comunícate directamente con los comprometidos.</p>
           </div>
@@ -372,42 +385,40 @@ export default function RsvpPage() {
         {!deadlinePassed && (
           <form onSubmit={handleSubmit} className="w-full max-w-sm flex flex-col gap-6">
 
-            {/* Attendance */}
-            <div className="flex flex-col gap-2">
-              <p className="text-sm font-medium font-subtitle text-center">¿Asistirás a nuestra boda?</p>
-              <div className="grid grid-cols-2 gap-3">
-                <Button
-                  type="button"
-                  variant={status === 'attending' ? 'default' : 'outline'}
-                  onClick={() => handleStatusSelect('attending')}
-                  className={`w-full ${status === 'attending' ? 'bg-[#412D26] hover:bg-[#735749] text-[#FFF1E9]' : 'border-[#C0A18F] text-[#412D26] hover:bg-[#C0A18F]/10 hover:text-[#412D26]'}`}
-                >
-                  Sí, asistiré
-                </Button>
-                <Button
-                  type="button"
-                  variant={status === 'declined' ? 'default' : 'outline'}
-                  onClick={() => handleStatusSelect('declined')}
-                  className={`w-full ${status === 'declined' ? 'bg-[#412D26] hover:bg-[#735749] text-[#FFF1E9]' : 'border-[#C0A18F] text-[#412D26] hover:bg-[#C0A18F]/10 hover:text-[#412D26]'}`}
-                >
-                  No podré ir
-                </Button>
-              </div>
+            {/* Per-invitee attendance */}
+            <div className="flex flex-col gap-4">
+              {(invitation?.invitees ?? []).map((invitee) => (
+                <div key={invitee.id} className="flex flex-col gap-2">
+                  <p className="text-sm font-medium font-subtitle text-center">{invitee.full_name}</p>
+                  <div className="grid grid-cols-2 gap-3">
+                    <Button
+                      type="button"
+                      variant={inviteeStatuses[invitee.id] === 'attending' ? 'default' : 'outline'}
+                      onClick={() => handleInviteeStatus(invitee.id, 'attending')}
+                      className={`w-full ${inviteeStatuses[invitee.id] === 'attending' ? 'bg-[#412D26] hover:bg-[#735749] text-[#FFF1E9]' : 'border-[#C0A18F] text-[#412D26] hover:bg-[#C0A18F]/10 hover:text-[#412D26]'}`}
+                    >
+                      Sí, asistiré
+                    </Button>
+                    <Button
+                      type="button"
+                      variant={inviteeStatuses[invitee.id] === 'declined' ? 'default' : 'outline'}
+                      onClick={() => handleInviteeStatus(invitee.id, 'declined')}
+                      className={`w-full ${inviteeStatuses[invitee.id] === 'declined' ? 'bg-[#412D26] hover:bg-[#735749] text-[#FFF1E9]' : 'border-[#C0A18F] text-[#412D26] hover:bg-[#C0A18F]/10 hover:text-[#412D26]'}`}
+                    >
+                      No podré ir
+                    </Button>
+                  </div>
+                </div>
+              ))}
             </div>
 
-            {status === 'declined' && invitee.companions.length > 0 && (
-              <p className="text-sm text-center text-muted-foreground">
-                Al seleccionar "No podré ir" se eliminarán los acompañantes registrados.
-              </p>
-            )}
-
             {/* Companions */}
-            {status === 'attending' && invitee.allowed_companions > 0 && (
+            {hasAttending && (invitation?.allowed_companions ?? 0) > 0 && (
               <div className="flex flex-col gap-3">
                 <p className="text-sm font-medium">
-                  ¿Llevarás acompañantes?{' '}
+                  ¿Llevarán acompañantes?{' '}
                   <span className="text-muted-foreground font-normal">
-                    (máx. {invitee.allowed_companions})
+                    (máx. {invitation.allowed_companions})
                   </span>
                 </p>
                 {companions.map((c, i) => (
@@ -434,7 +445,7 @@ export default function RsvpPage() {
                     </Button>
                   </div>
                 ))}
-                {companions.length < invitee.allowed_companions && (
+                {companions.length < invitation.allowed_companions && (
                   <Button
                     type="button"
                     variant="outline"
@@ -448,7 +459,7 @@ export default function RsvpPage() {
               </div>
             )}
 
-            {status && (
+            {allResponded && (
               <Button type="submit" className="w-full bg-[#412D26] hover:bg-[#735749] text-[#FFF1E9]" disabled={mutation.isPending}>
                 {mutation.isPending ? 'Enviando…' : isEditing ? 'Actualizar respuesta' : 'Confirmar'}
               </Button>
