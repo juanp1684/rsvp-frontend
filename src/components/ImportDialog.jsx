@@ -9,11 +9,12 @@ import api from '@/lib/api'
 import { useAuthStore } from '@/store/authStore'
 
 const COLUMNS = [
-  { col: 'nombre',       required: true },
-  { col: 'teléfono',     required: false },
-  { col: 'acompañantes', required: false },
-  { col: 'notas',        required: false },
-  { col: 'tipo',         required: false, hint: 'regular o tarde' },
+  { col: 'nombre_invitacion', required: true,  hint: 'nombre que aparece en la invitación' },
+  { col: 'invitados',         required: false, hint: 'nombres separados por | (ej. Pedro|María)' },
+  { col: 'teléfono',          required: false },
+  { col: 'acompañantes',      required: false },
+  { col: 'notas',             required: false },
+  { col: 'tipo',              required: false, hint: 'regular o tarde' },
 ]
 
 function validateStructure(file) {
@@ -66,7 +67,9 @@ export default function ImportDialog({ open, onOpenChange }) {
   }
 
   const handleTemplateDownload = () => {
-    const csv = 'nombre,teléfono,acompañantes,notas,tipo\nJuan García,+52 55 1234 5678,1,,regular\n'
+    const csv = 'nombre_invitacion,invitados,teléfono,acompañantes,notas,tipo\n' +
+      'Ana García,,70123456,0,,regular\n' +
+      'Sr. Pedro Vargas y Sra.,Pedro Vargas|María Vargas,65987654,0,,regular\n'
     const blob = new Blob([csv], { type: 'text/csv' })
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
@@ -96,11 +99,12 @@ export default function ImportDialog({ open, onOpenChange }) {
 
     try {
       const { data } = await api.post(
-        `/events/${activeEvent.id}/invitees/import`,
+        `/events/${activeEvent.id}/invitations/import`,
         formData,
         { headers: { 'Content-Type': 'multipart/form-data' } }
       )
       qc.invalidateQueries({ queryKey: ['invitees', activeEvent?.id] })
+      qc.invalidateQueries({ queryKey: ['invitations', activeEvent?.id] })
       toast.success(`${data.imported} invitados importados.`)
       handleClose(false)
     } catch (err) {
