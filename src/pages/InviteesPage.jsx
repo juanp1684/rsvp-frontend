@@ -579,95 +579,104 @@ export default function InviteesPage() {
         <p className="text-sm text-muted-foreground">Cargando…</p>
       ) : (
         <>
-          {/* Mobile: card list */}
+          {/* Mobile: card list — one card per invitation group */}
           <div className="flex flex-col gap-3 md:hidden">
-            {filtered.map((invitee, idx) => (
-              <>
-                {(idx === 0 || filtered[idx - 1].invitation_id !== invitee.invitation_id) && (
-                  <div key={`hdr-${invitee.invitation_id}`} className="flex items-center gap-2 flex-wrap px-1 pt-1">
+            {Object.values(
+              filtered.reduce((groups, invitee) => {
+                if (!groups[invitee.invitation_id]) groups[invitee.invitation_id] = []
+                groups[invitee.invitation_id].push(invitee)
+                return groups
+              }, {})
+            ).map((group) => {
+              const first = group[0]
+              const invitationId = first.invitation_id
+              return (
+                <div key={invitationId} className="flex flex-col gap-1">
+                  {/* Group label */}
+                  <div className="flex items-center gap-2 flex-wrap px-1">
                     {!isViewer && (
                       <Checkbox
-                        checked={selectedIds.has(invitee.invitation_id)}
-                        onCheckedChange={() => toggleSelect(invitee.invitation_id)}
+                        checked={selectedIds.has(invitationId)}
+                        onCheckedChange={() => toggleSelect(invitationId)}
                         className="shrink-0"
                       />
                     )}
                     <p className="text-[10px] font-medium uppercase tracking-widest text-muted-foreground">
-                      {invitee.name_on_invitation}
+                      {first.name_on_invitation}
                     </p>
-                    {invitee.tags?.map((tag) => <TagChip key={tag.id} tag={tag} />)}
+                    {first.tags?.map((tag) => <TagChip key={tag.id} tag={tag} />)}
                   </div>
-                )}
-              <div key={invitee.id} className={`border rounded-lg overflow-hidden${invitee.type === 'late' ? ' border-l-4 border-l-amber-400' : ''}`}>
-                {/* Invitation-level info — only on first invitee of group */}
-                {(idx === 0 || filtered[idx - 1].invitation_id !== invitee.invitation_id) && (
-                  <div className={`px-4 py-2.5 flex items-center justify-between gap-3 border-b${invitee.type === 'late' ? ' bg-amber-100 dark:bg-amber-950/20' : ' bg-slate-200 dark:bg-muted'}`}>
-                    <div className="flex flex-col gap-0.5 min-w-0">
-                      {invitee.phone && <span className="text-xs text-muted-foreground">{invitee.phone}</span>}
-                      <span className="text-xs text-muted-foreground">{invitee.companions.length}/{invitee.allowed_companions} acompañantes</span>
-                    </div>
-                    <div className="flex items-center gap-1 shrink-0">
-                      {!isViewer && (
-                        <div className="flex items-center gap-1.5 mr-1">
-                          <Switch
-                            id={`sent-${invitee.invitation_id}`}
-                            checked={!!invitee.invitation_sent}
-                            onCheckedChange={(v) => toggleSentMutation.mutate({ invitationId: invitee.invitation_id, value: v })}
-                          />
-                          <label htmlFor={`sent-${invitee.invitation_id}`} className="text-xs text-muted-foreground cursor-pointer">Enviada</label>
-                        </div>
-                      )}
-                      {getWhatsAppUrl(invitee, activeEvent) && (
-                        <Button variant="ghost" size="icon" asChild>
-                          <a href={getWhatsAppUrl(invitee, activeEvent)} target="_blank" rel="noopener noreferrer" className="text-green-600">
-                            <WhatsAppIcon className="h-4 w-4" />
-                          </a>
-                        </Button>
-                      )}
-                      <Button variant="ghost" size="icon" onClick={() => setQrInvitee(invitee)}>
-                        <QrCode className="h-4 w-4" />
-                      </Button>
-                      {!isViewer && (
-                        <Button variant="ghost" size="icon" onClick={() => handleEdit(invitee)}>
-                          <Pencil className="h-4 w-4" />
-                        </Button>
-                      )}
-                      {!isViewer && (
-                        <Button variant="ghost" size="icon" className="text-destructive" onClick={() => setDeleteTarget(invitee)}>
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      )}
-                    </div>
-                  </div>
-                )}
-                {/* Per-invitee row */}
-                <div className="px-4 py-2.5 flex items-center gap-3">
-                  <TruncatedName name={invitee.full_name} className="flex-1 text-sm font-medium" />
-                  <StatusSelect invitee={invitee} onChange={(status) => updateStatusMutation.mutate({ invitee, status })} readonly={isViewer} />
-                  {!isViewer && (
-                    <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive shrink-0"
-                      onClick={() => {
-                        const isLast = filtered.filter((i) => i.invitation_id === invitee.invitation_id).length === 1
-                        isLast ? setDeleteTarget(invitee) : setDeleteInviteeTarget(invitee)
-                      }}>
-                      <Trash2 className="h-3.5 w-3.5" />
-                    </Button>
-                  )}
-                </div>
 
-                {/* Companion rows — only after the last invitee of this invitation */}
-                {filtered[idx + 1]?.invitation_id !== invitee.invitation_id && invitee.companions.map((companion) => (
-                  <div
-                    key={companion.id}
-                    className="px-4 py-2.5 flex items-center gap-2 border-t bg-muted/40"
-                  >
-                    <span className="text-muted-foreground text-xs w-3">↳</span>
-                    <span className="text-sm text-muted-foreground">{companion.full_name}</span>
+                  {/* Single card for the whole household */}
+                  <div className={`border rounded-lg overflow-hidden${first.type === 'late' ? ' border-l-4 border-l-amber-400' : ''}`}>
+                    {/* Invitation info bar */}
+                    <div className={`px-4 py-2.5 flex items-center justify-between gap-3 border-b${first.type === 'late' ? ' bg-amber-100 dark:bg-amber-950/20' : ' bg-slate-200 dark:bg-muted'}`}>
+                      <div className="flex flex-col gap-0.5 min-w-0">
+                        {first.phone && <span className="text-xs text-muted-foreground">{first.phone}</span>}
+                        <span className="text-xs text-muted-foreground">{first.companions.length}/{first.allowed_companions} acompañantes</span>
+                      </div>
+                      <div className="flex items-center gap-1 shrink-0">
+                        {!isViewer && (
+                          <div className="flex items-center gap-1.5 mr-1">
+                            <Switch
+                              id={`sent-${invitationId}`}
+                              checked={!!first.invitation_sent}
+                              onCheckedChange={(v) => toggleSentMutation.mutate({ invitationId, value: v })}
+                            />
+                            <label htmlFor={`sent-${invitationId}`} className="text-xs text-muted-foreground cursor-pointer">Enviada</label>
+                          </div>
+                        )}
+                        {getWhatsAppUrl(first, activeEvent) && (
+                          <Button variant="ghost" size="icon" asChild>
+                            <a href={getWhatsAppUrl(first, activeEvent)} target="_blank" rel="noopener noreferrer" className="text-green-600">
+                              <WhatsAppIcon className="h-4 w-4" />
+                            </a>
+                          </Button>
+                        )}
+                        <Button variant="ghost" size="icon" onClick={() => setQrInvitee(first)}>
+                          <QrCode className="h-4 w-4" />
+                        </Button>
+                        {!isViewer && (
+                          <Button variant="ghost" size="icon" onClick={() => handleEdit(first)}>
+                            <Pencil className="h-4 w-4" />
+                          </Button>
+                        )}
+                        {!isViewer && (
+                          <Button variant="ghost" size="icon" className="text-destructive" onClick={() => setDeleteTarget(first)}>
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Invitee rows */}
+                    {group.map((invitee) => (
+                      <div key={invitee.id} className="px-4 py-2.5 flex items-center gap-3 border-t first:border-t-0">
+                        <TruncatedName name={invitee.full_name} className="flex-1 text-sm font-medium" />
+                        <StatusSelect invitee={invitee} onChange={(status) => updateStatusMutation.mutate({ invitee, status })} readonly={isViewer} />
+                        {!isViewer && (
+                          <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive shrink-0"
+                            onClick={() => {
+                              const isLast = group.length === 1
+                              isLast ? setDeleteTarget(invitee) : setDeleteInviteeTarget(invitee)
+                            }}>
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </Button>
+                        )}
+                      </div>
+                    ))}
+
+                    {/* Companion rows */}
+                    {first.companions?.map((companion) => (
+                      <div key={companion.id} className="px-4 py-2.5 flex items-center gap-2 border-t bg-muted/40">
+                        <span className="text-muted-foreground text-xs w-3">↳</span>
+                        <span className="text-sm text-muted-foreground">{companion.full_name}</span>
+                      </div>
+                    ))}
                   </div>
-                ))}
-              </div>
-              </>
-            ))}
+                </div>
+              )
+            })}
           </div>
 
           {/* Desktop: table */}
