@@ -684,6 +684,7 @@ export default function InviteesPage() {
                     )}
                   </TableHead>
                   <TableHead>Invitación / Invitado</TableHead>
+                  <TableHead>Etiquetas</TableHead>
                   <TableHead>Teléfono</TableHead>
                   <TableHead>Estado</TableHead>
                   <TableHead>Acompañantes</TableHead>
@@ -704,12 +705,16 @@ export default function InviteesPage() {
                             />
                           )}
                         </TableCell>
-                        <TableCell className="py-2 font-medium max-w-[220px]">
+                        <TableCell className="py-2 font-medium max-w-[200px]">
                           <div className="flex items-center gap-1.5 min-w-0">
                             <TruncatedName name={invitee.name_on_invitation} />
                             {invitee.type === 'late' && (
                               <Badge className="text-xs bg-amber-100 text-amber-800 border-amber-300 hover:bg-amber-100 shrink-0">Rezagado</Badge>
                             )}
+                          </div>
+                        </TableCell>
+                        <TableCell className="py-2">
+                          <div className="flex flex-wrap gap-1">
                             {invitee.tags?.map((tag) => <TagChip key={tag.id} tag={tag} />)}
                           </div>
                         </TableCell>
@@ -751,9 +756,10 @@ export default function InviteesPage() {
                     {/* Per-invitee row */}
                     <TableRow key={invitee.id}>
                       <TableCell />
-                      <TableCell className="pl-8 max-w-[220px]">
+                      <TableCell className="pl-8 max-w-[200px]">
                         <TruncatedName name={invitee.full_name} />
                       </TableCell>
+                      <TableCell />
                       <TableCell />
                       <TableCell>
                         <StatusSelect invitee={invitee} onChange={(status) => updateStatusMutation.mutate({ invitee, status })} readonly={isViewer} />
@@ -777,12 +783,13 @@ export default function InviteesPage() {
                     {filtered[idx + 1]?.invitation_id !== invitee.invitation_id && invitee.companions.map((companion) => (
                       <TableRow key={companion.id} className="bg-muted/40 hover:bg-muted/40">
                         <TableCell />
-                        <TableCell className="text-muted-foreground pl-8 max-w-[220px]">
+                        <TableCell className="text-muted-foreground pl-8 max-w-[200px]">
                           <div className="flex items-center gap-1 min-w-0">
                             <span className="text-xs shrink-0">↳</span>
                             <TruncatedName name={companion.full_name} />
                           </div>
                         </TableCell>
+                        <TableCell />
                         <TableCell />
                         <TableCell />
                         <TableCell />
