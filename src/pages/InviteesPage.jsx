@@ -655,8 +655,8 @@ export default function InviteesPage() {
                   </div>
                 </div>
 
-                {/* Companion rows */}
-                {invitee.companions.map((companion) => (
+                {/* Companion rows — only after the last invitee of this invitation */}
+                {filtered[idx + 1]?.invitation_id !== invitee.invitation_id && invitee.companions.map((companion) => (
                   <div
                     key={companion.id}
                     className="px-4 py-2.5 flex items-center gap-2 border-t bg-muted/40"
@@ -776,8 +776,8 @@ export default function InviteesPage() {
                       </TableCell>
                     </TableRow>
 
-                    {/* Companion rows */}
-                    {invitee.companions.map((companion) => (
+                    {/* Companion rows — only after the last invitee of this invitation */}
+                    {filtered[idx + 1]?.invitation_id !== invitee.invitation_id && invitee.companions.map((companion) => (
                       <TableRow key={companion.id} className="bg-muted/40 hover:bg-muted/40">
                         <TableCell />
                         <TableCell className="text-muted-foreground pl-8 max-w-[220px]">
