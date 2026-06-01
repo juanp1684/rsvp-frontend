@@ -150,7 +150,8 @@ export default function InviteesPage() {
   const setFilter = (key, value) => setFilters((prev) => ({ ...prev, [key]: value }))
   const [formOpen, setFormOpen] = useState(false)
   const [editInvitee, setEditInvitee] = useState(null)
-  const [deleteTarget, setDeleteTarget] = useState(null)
+  const [deleteTarget, setDeleteTarget] = useState(null)   // { type: 'invitation'|'invitee', invitee, isLast }
+  const [deleteInviteeTarget, setDeleteInviteeTarget] = useState(null)
   const [qrInvitee, setQrInvitee] = useState(null)
   const [importOpen, setImportOpen] = useState(false)
   const [sort, setSort] = useState({ field: 'full_name', dir: 'asc' })
@@ -169,11 +170,6 @@ export default function InviteesPage() {
     enabled: !!activeEvent?.id,
   })
 
-  // Helper: get unique invitation IDs from a set of invitee IDs
-  const invitationIdsFor = (inviteeIds) => [
-    ...new Set(invitees.filter((i) => inviteeIds.has(i.id)).map((i) => i.invitation_id))
-  ]
-
   const deleteMutation = useMutation({
     mutationFn: (invitationId) => api.delete(`/events/${activeEvent.id}/invitations/${invitationId}`),
     onSuccess: () => {
@@ -184,17 +180,24 @@ export default function InviteesPage() {
     onError: () => toast.error('No se pudo eliminar la invitación.'),
   })
 
-  const bulkUpdateMutation = useMutation({
-    mutationFn: ({ ids, data }) => {
-      const invitationIds = invitationIdsFor(ids)
-      return api.post(`/events/${activeEvent.id}/invitations/bulk-update`, { ids: invitationIds, data })
+  const deleteInviteeMutation = useMutation({
+    mutationFn: (invitee) => api.delete(`/events/${activeEvent.id}/invitations/${invitee.invitation_id}/invitees/${invitee.id}`),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['invitees', activeEvent?.id] })
+      toast.success('Invitado eliminado.')
+      setDeleteInviteeTarget(null)
     },
+    onError: () => toast.error('No se pudo eliminar el invitado.'),
+  })
+
+  const bulkUpdateMutation = useMutation({
+    mutationFn: ({ ids, data }) =>
+      api.post(`/events/${activeEvent.id}/invitations/bulk-update`, { ids: [...ids], data }),
     onMutate: async ({ ids, data }) => {
       await qc.cancelQueries({ queryKey: ['invitees', activeEvent?.id] })
       const previous = qc.getQueryData(['invitees', activeEvent?.id])
-      const invitationIds = new Set(invitationIdsFor(ids))
       qc.setQueryData(['invitees', activeEvent?.id], (old) =>
-        old?.map((i) => invitationIds.has(i.invitation_id) ? { ...i, ...data } : i)
+        old?.map((i) => ids.has(i.invitation_id) ? { ...i, ...data } : i)
       )
       return { previous }
     },
@@ -242,10 +245,8 @@ export default function InviteesPage() {
   })
 
   const bulkDeleteMutation = useMutation({
-    mutationFn: (inviteeIds) => {
-      const invitationIds = invitationIdsFor(inviteeIds)
-      return api.post(`/events/${activeEvent.id}/invitations/bulk-destroy`, { ids: invitationIds })
-    },
+    mutationFn: (invitationIds) =>
+      api.post(`/events/${activeEvent.id}/invitations/bulk-destroy`, { ids: [...invitationIds] }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['invitees', activeEvent?.id] })
       toast.success('Invitaciones eliminadas.')
@@ -253,12 +254,6 @@ export default function InviteesPage() {
       setBulkDeleteOpen(false)
     },
     onError: () => toast.error('No se pudieron eliminar las invitaciones.'),
-  })
-
-  const toggleSelect = (id) => setSelectedIds((prev) => {
-    const next = new Set(prev)
-    next.has(id) ? next.delete(id) : next.add(id)
-    return next
   })
 
   const handleSort = (field) => {
@@ -330,13 +325,20 @@ export default function InviteesPage() {
       return 0
     })
 
-  const allFilteredSelected = filtered.length > 0 && filtered.every((i) => selectedIds.has(i.id))
+  const filteredInvitationIds = [...new Set(filtered.map((i) => i.invitation_id))]
+  const allFilteredSelected = filteredInvitationIds.length > 0 && filteredInvitationIds.every((id) => selectedIds.has(id))
+
+  const toggleSelect = (invitationId) => setSelectedIds((prev) => {
+    const next = new Set(prev)
+    next.has(invitationId) ? next.delete(invitationId) : next.add(invitationId)
+    return next
+  })
 
   const toggleSelectAll = () => {
     if (allFilteredSelected) {
       setSelectedIds(new Set())
     } else {
-      setSelectedIds(new Set(filtered.map((i) => i.id)))
+      setSelectedIds(new Set(filteredInvitationIds))
     }
   }
 
@@ -583,6 +585,13 @@ export default function InviteesPage() {
               <>
                 {(idx === 0 || filtered[idx - 1].invitation_id !== invitee.invitation_id) && (
                   <div key={`hdr-${invitee.invitation_id}`} className="flex items-center gap-2 flex-wrap px-1 pt-1">
+                    {!isViewer && (
+                      <Checkbox
+                        checked={selectedIds.has(invitee.invitation_id)}
+                        onCheckedChange={() => toggleSelect(invitee.invitation_id)}
+                        className="shrink-0"
+                      />
+                    )}
                     <p className="text-[10px] font-medium uppercase tracking-widest text-muted-foreground">
                       {invitee.name_on_invitation}
                     </p>
@@ -590,71 +599,60 @@ export default function InviteesPage() {
                   </div>
                 )}
               <div key={invitee.id} className={`border rounded-lg overflow-hidden${invitee.type === 'late' ? ' border-l-4 border-l-amber-400' : ''}`}>
-                {/* Invitee row */}
-                <div className={`p-4 flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3${invitee.type === 'late' ? ' bg-amber-50/60 dark:bg-amber-950/20' : ''}`}>
-                  <div className="flex items-start gap-3 flex-1 min-w-0">
-                    {!isViewer && (
-                      <Checkbox
-                        checked={selectedIds.has(invitee.id)}
-                        onCheckedChange={() => toggleSelect(invitee.id)}
-                        className="mt-0.5 shrink-0"
-                      />
-                    )}
-                    <div className="flex flex-col gap-1 min-w-0 flex-1">
-                      <div className="flex items-center gap-1.5 min-w-0">
-                        <TruncatedName name={invitee.full_name} className="font-medium text-sm" />
-                        {invitee.type === 'late' && (
-                          <Badge className="text-xs shrink-0 bg-amber-100 text-amber-800 border-amber-300 hover:bg-amber-100">Rezagado</Badge>
-                        )}
-                      </div>
-                      {invitee.phone && (
-                        <span className="text-xs text-muted-foreground">{invitee.phone}</span>
+                {/* Invitation-level info — only on first invitee of group */}
+                {(idx === 0 || filtered[idx - 1].invitation_id !== invitee.invitation_id) && (
+                  <div className={`px-4 py-2.5 flex items-center justify-between gap-3 border-b${invitee.type === 'late' ? ' bg-amber-50/60 dark:bg-amber-950/20' : ' bg-muted/20'}`}>
+                    <div className="flex flex-col gap-0.5 min-w-0">
+                      {invitee.phone && <span className="text-xs text-muted-foreground">{invitee.phone}</span>}
+                      <span className="text-xs text-muted-foreground">{invitee.companions.length}/{invitee.allowed_companions} acompañantes</span>
+                    </div>
+                    <div className="flex items-center gap-1 shrink-0">
+                      {!isViewer && (
+                        <div className="flex items-center gap-1.5 mr-1">
+                          <Switch
+                            id={`sent-${invitee.invitation_id}`}
+                            checked={!!invitee.invitation_sent}
+                            onCheckedChange={(v) => toggleSentMutation.mutate({ invitationId: invitee.invitation_id, value: v })}
+                          />
+                          <label htmlFor={`sent-${invitee.invitation_id}`} className="text-xs text-muted-foreground cursor-pointer">Enviada</label>
+                        </div>
                       )}
-                      <div className="flex items-center gap-2 mt-1 flex-wrap">
-                        <StatusSelect invitee={invitee} onChange={(status) => updateStatusMutation.mutate({ invitee, status })} readonly={isViewer} />
-                        <span className="text-xs text-muted-foreground">
-                          {invitee.companions.length}/{invitee.allowed_companions} acompañantes
-                        </span>
-                        {!isViewer && (
-                          <div className="flex items-center gap-1.5">
-                            <Switch
-                              id={`sent-${invitee.id}`}
-                              checked={!!invitee.invitation_sent}
-                              onCheckedChange={(v) => toggleSentMutation.mutate({ invitationId: invitee.invitation_id, value: v })}
-                            />
-                            <label htmlFor={`sent-${invitee.id}`} className="text-xs text-muted-foreground cursor-pointer">Enviada</label>
-                          </div>
-                        )}
-                      </div>
+                      {getWhatsAppUrl(invitee, activeEvent) && (
+                        <Button variant="ghost" size="icon" asChild>
+                          <a href={getWhatsAppUrl(invitee, activeEvent)} target="_blank" rel="noopener noreferrer" className="text-green-600">
+                            <WhatsAppIcon className="h-4 w-4" />
+                          </a>
+                        </Button>
+                      )}
+                      <Button variant="ghost" size="icon" onClick={() => setQrInvitee(invitee)}>
+                        <QrCode className="h-4 w-4" />
+                      </Button>
+                      {!isViewer && (
+                        <Button variant="ghost" size="icon" onClick={() => handleEdit(invitee)}>
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                      )}
+                      {!isViewer && (
+                        <Button variant="ghost" size="icon" className="text-destructive" onClick={() => setDeleteTarget(invitee)}>
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      )}
                     </div>
                   </div>
-                  <div className="flex gap-1 shrink-0 border-t pt-2 -mx-4 px-3 sm:border-0 sm:pt-0 sm:mx-0 sm:px-0">
-                    {getWhatsAppUrl(invitee, activeEvent) && (
-                      <Button variant="ghost" size="icon" asChild>
-                        <a href={getWhatsAppUrl(invitee, activeEvent)} target="_blank" rel="noopener noreferrer" className="text-green-600">
-                          <WhatsAppIcon className="h-4 w-4" />
-                        </a>
-                      </Button>
-                    )}
-                    <Button variant="ghost" size="icon" onClick={() => setQrInvitee(invitee)}>
-                      <QrCode className="h-4 w-4" />
+                )}
+                {/* Per-invitee row */}
+                <div className="px-4 py-2.5 flex items-center gap-3">
+                  <TruncatedName name={invitee.full_name} className="flex-1 text-sm font-medium" />
+                  <StatusSelect invitee={invitee} onChange={(status) => updateStatusMutation.mutate({ invitee, status })} readonly={isViewer} />
+                  {!isViewer && (
+                    <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive shrink-0"
+                      onClick={() => {
+                        const isLast = filtered.filter((i) => i.invitation_id === invitee.invitation_id).length === 1
+                        isLast ? setDeleteTarget(invitee) : setDeleteInviteeTarget(invitee)
+                      }}>
+                      <Trash2 className="h-3.5 w-3.5" />
                     </Button>
-                    {!isViewer && (
-                      <Button variant="ghost" size="icon" onClick={() => handleEdit(invitee)}>
-                        <Pencil className="h-4 w-4" />
-                      </Button>
-                    )}
-                    {!isViewer && (
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="text-destructive"
-                        onClick={() => setDeleteTarget(invitee)}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    )}
-                  </div>
+                  )}
                 </div>
 
                 {/* Companion rows — only after the last invitee of this invitation */}
@@ -685,17 +683,9 @@ export default function InviteesPage() {
                       />
                     )}
                   </TableHead>
-                  <TableHead>
-                    <button onClick={() => handleSort('full_name')} className="flex items-center hover:text-foreground transition-colors cursor-pointer">
-                      Nombre <SortIcon field="full_name" />
-                    </button>
-                  </TableHead>
+                  <TableHead>Invitación / Invitado</TableHead>
                   <TableHead>Teléfono</TableHead>
-                  <TableHead>
-                    <button onClick={() => handleSort('status')} className="flex items-center hover:text-foreground transition-colors cursor-pointer">
-                      Estado <SortIcon field="status" />
-                    </button>
-                  </TableHead>
+                  <TableHead>Estado</TableHead>
                   <TableHead>Acompañantes</TableHead>
                   <TableHead>Enviada</TableHead>
                   <TableHead />
@@ -705,71 +695,79 @@ export default function InviteesPage() {
                 {filtered.map((invitee, idx) => (
                   <>
                     {(idx === 0 || filtered[idx - 1].invitation_id !== invitee.invitation_id) && (
-                      <TableRow key={`hdr-${invitee.invitation_id}`} className="bg-muted/30 hover:bg-muted/30">
-                        <TableCell colSpan={8} className="py-1.5 px-4">
-                          <div className="flex items-center gap-2 flex-wrap">
-                            <span className="text-[10px] font-medium uppercase tracking-widest text-muted-foreground">
-                              {invitee.name_on_invitation}
-                            </span>
+                      <TableRow key={`hdr-${invitee.invitation_id}`} className={`hover:bg-muted/40 ${invitee.type === 'late' ? 'bg-amber-50/60 dark:bg-amber-950/20' : 'bg-muted/20'}`}>
+                        <TableCell className="py-2 px-4">
+                          {!isViewer && (
+                            <Checkbox
+                              checked={selectedIds.has(invitee.invitation_id)}
+                              onCheckedChange={() => toggleSelect(invitee.invitation_id)}
+                            />
+                          )}
+                        </TableCell>
+                        <TableCell className="py-2 font-medium max-w-[220px]">
+                          <div className="flex items-center gap-1.5 min-w-0">
+                            <TruncatedName name={invitee.name_on_invitation} />
+                            {invitee.type === 'late' && (
+                              <Badge className="text-xs bg-amber-100 text-amber-800 border-amber-300 hover:bg-amber-100 shrink-0">Rezagado</Badge>
+                            )}
                             {invitee.tags?.map((tag) => <TagChip key={tag.id} tag={tag} />)}
                           </div>
                         </TableCell>
+                        <TableCell className="py-2 text-muted-foreground">{invitee.phone ?? '—'}</TableCell>
+                        <TableCell />
+                        <TableCell className="py-2">{invitee.companions.length} / {invitee.allowed_companions}</TableCell>
+                        <TableCell className="py-2">
+                          {!isViewer && (
+                            <Switch
+                              checked={!!invitee.invitation_sent}
+                              onCheckedChange={(v) => toggleSentMutation.mutate({ invitationId: invitee.invitation_id, value: v })}
+                            />
+                          )}
+                        </TableCell>
+                        <TableCell className="py-2 text-right">
+                          {getWhatsAppUrl(invitee, activeEvent) && (
+                            <Button variant="ghost" size="icon" asChild>
+                              <a href={getWhatsAppUrl(invitee, activeEvent)} target="_blank" rel="noopener noreferrer" className="text-green-600">
+                                <WhatsAppIcon className="h-4 w-4" />
+                              </a>
+                            </Button>
+                          )}
+                          <Button variant="ghost" size="icon" onClick={() => setQrInvitee(invitee)}>
+                            <QrCode className="h-4 w-4" />
+                          </Button>
+                          {!isViewer && (
+                            <Button variant="ghost" size="icon" onClick={() => handleEdit(invitee)}>
+                              <Pencil className="h-4 w-4" />
+                            </Button>
+                          )}
+                          {!isViewer && (
+                            <Button variant="ghost" size="icon" className="text-destructive" onClick={() => setDeleteTarget(invitee)}>
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          )}
+                        </TableCell>
                       </TableRow>
                     )}
-                    <TableRow key={invitee.id} className={invitee.type === 'late' ? 'bg-amber-50/60 dark:bg-amber-950/20' : ''}>
-                      <TableCell>
-                        <Checkbox
-                          checked={selectedIds.has(invitee.id)}
-                          onCheckedChange={() => toggleSelect(invitee.id)}
-                        />
+                    {/* Per-invitee row */}
+                    <TableRow key={invitee.id}>
+                      <TableCell />
+                      <TableCell className="pl-8 max-w-[220px]">
+                        <TruncatedName name={invitee.full_name} />
                       </TableCell>
-                      <TableCell className="font-medium max-w-[220px]">
-                        <div className="flex items-center gap-1.5 min-w-0">
-                          <TruncatedName name={invitee.full_name} />
-                          {invitee.type === 'late' && (
-                            <Badge className="text-xs bg-amber-100 text-amber-800 border-amber-300 hover:bg-amber-100 shrink-0">Rezagado</Badge>
-                          )}
-                        </div>
-                      </TableCell>
-                      <TableCell className="text-muted-foreground">{invitee.phone ?? '—'}</TableCell>
+                      <TableCell />
                       <TableCell>
                         <StatusSelect invitee={invitee} onChange={(status) => updateStatusMutation.mutate({ invitee, status })} readonly={isViewer} />
                       </TableCell>
-                      <TableCell>
-                        {invitee.companions.length} / {invitee.allowed_companions}
-                      </TableCell>
-                      <TableCell>
-                        {!isViewer && (
-                          <Switch
-                            checked={!!invitee.invitation_sent}
-                            onCheckedChange={(v) => toggleSentMutation.mutate({ invitationId: invitee.invitation_id, value: v })}
-                          />
-                        )}
-                      </TableCell>
+                      <TableCell />
+                      <TableCell />
                       <TableCell className="text-right">
-                        {getWhatsAppUrl(invitee, activeEvent) && (
-                          <Button variant="ghost" size="icon" asChild>
-                            <a href={getWhatsAppUrl(invitee, activeEvent)} target="_blank" rel="noopener noreferrer" className="text-green-600">
-                              <WhatsAppIcon className="h-4 w-4" />
-                            </a>
-                          </Button>
-                        )}
-                        <Button variant="ghost" size="icon" onClick={() => setQrInvitee(invitee)}>
-                          <QrCode className="h-4 w-4" />
-                        </Button>
                         {!isViewer && (
-                          <Button variant="ghost" size="icon" onClick={() => handleEdit(invitee)}>
-                            <Pencil className="h-4 w-4" />
-                          </Button>
-                        )}
-                        {!isViewer && (
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="text-destructive"
-                            onClick={() => setDeleteTarget(invitee)}
-                          >
-                            <Trash2 className="h-4 w-4" />
+                          <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive"
+                            onClick={() => {
+                              const isLast = filtered.filter((i) => i.invitation_id === invitee.invitation_id).length === 1
+                              isLast ? setDeleteTarget(invitee) : setDeleteInviteeTarget(invitee)
+                            }}>
+                            <Trash2 className="h-3.5 w-3.5" />
                           </Button>
                         )}
                       </TableCell>
@@ -820,7 +818,7 @@ export default function InviteesPage() {
       <AlertDialog open={bulkDeleteOpen} onOpenChange={setBulkDeleteOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>¿Eliminar {invitationIdsFor(selectedIds).length} invitación(es)?</AlertDialogTitle>
+            <AlertDialogTitle>¿Eliminar {selectedIds.size} invitación(es)?</AlertDialogTitle>
             <AlertDialogDescription>
               Esta acción eliminará permanentemente las invitaciones seleccionadas y todos sus datos.
             </AlertDialogDescription>
@@ -851,6 +849,27 @@ export default function InviteesPage() {
             <AlertDialogAction
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
               onClick={() => deleteMutation.mutate(deleteTarget.invitation_id)}
+            >
+              Eliminar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={!!deleteInviteeTarget} onOpenChange={(o) => !o && setDeleteInviteeTarget(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>¿Eliminar invitado?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Esto eliminará a <strong>{deleteInviteeTarget?.full_name}</strong> de la invitación de{' '}
+              <strong>{deleteInviteeTarget?.name_on_invitation}</strong>.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={() => deleteInviteeMutation.mutate(deleteInviteeTarget)}
             >
               Eliminar
             </AlertDialogAction>
