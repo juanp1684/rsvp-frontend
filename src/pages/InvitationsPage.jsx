@@ -236,6 +236,11 @@ function InvitationFormDialog({ open, onOpenChange, invitation, activeEvent, onS
   const [addingName, setAddingName] = useState('')
   const [isAdding, setIsAdding] = useState(false)
   const [localInvitees, setLocalInvitees] = useState([])
+  const [localCompanions, setLocalCompanions] = useState([])
+  const [addingCompanion, setAddingCompanion] = useState(false)
+  const [addingCompanionName, setAddingCompanionName] = useState('')
+  const [editingCompanionId, setEditingCompanionId] = useState(null)
+  const [editingCompanionName, setEditingCompanionName] = useState('')
 
   useEffect(() => {
     if (invitation) {
@@ -247,13 +252,18 @@ function InvitationFormDialog({ open, onOpenChange, invitation, activeEvent, onS
         type: invitation.type ?? 'regular',
       })
       setLocalInvitees(invitation.invitees ?? [])
+      setLocalCompanions(invitation.companions ?? [])
     } else {
       setForm(emptyForm)
       setInvitees([{ full_name: '' }])
       setLocalInvitees([])
+      setLocalCompanions([])
     }
     setAddingName('')
     setIsAdding(false)
+    setAddingCompanion(false)
+    setAddingCompanionName('')
+    setEditingCompanionId(null)
   }, [invitation, open])
 
   const set = (field) => (e) => setForm((f) => ({ ...f, [field]: e.target.value }))
@@ -269,6 +279,48 @@ function InvitationFormDialog({ open, onOpenChange, invitation, activeEvent, onS
       onOpenChange(false)
     },
     onError: () => toast.error('Algo salió mal.'),
+  })
+
+  const updateInviteeStatusMutation = useMutation({
+    mutationFn: ({ inviteeId, status }) =>
+      api.put(`/events/${activeEvent.id}/invitations/${invitation.id}/invitees/${inviteeId}`, { status }),
+    onSuccess: (_, { inviteeId, status }) => {
+      setLocalInvitees((prev) => prev.map((i) => i.id === inviteeId ? { ...i, status } : i))
+      qc.invalidateQueries({ queryKey: ['invitees', activeEvent?.id] })
+    },
+    onError: () => toast.error('No se pudo actualizar el estado.'),
+  })
+
+  const addCompanionMutation = useMutation({
+    mutationFn: (name) => api.post(`/events/${activeEvent.id}/invitations/${invitation.id}/companions`, { full_name: name }),
+    onSuccess: ({ data }) => {
+      setLocalCompanions((prev) => [...prev, data])
+      qc.invalidateQueries({ queryKey: ['invitations', activeEvent?.id] })
+      qc.invalidateQueries({ queryKey: ['invitees', activeEvent?.id] })
+      setAddingCompanion(false)
+      setAddingCompanionName('')
+    },
+    onError: () => toast.error('No se pudo agregar el acompañante.'),
+  })
+
+  const updateCompanionMutation = useMutation({
+    mutationFn: ({ id, name }) => api.put(`/events/${activeEvent.id}/invitations/${invitation.id}/companions/${id}`, { full_name: name }),
+    onSuccess: ({ data }) => {
+      setLocalCompanions((prev) => prev.map((c) => c.id === data.id ? data : c))
+      setEditingCompanionId(null)
+      qc.invalidateQueries({ queryKey: ['invitations', activeEvent?.id] })
+    },
+    onError: () => toast.error('No se pudo actualizar el acompañante.'),
+  })
+
+  const deleteCompanionMutation = useMutation({
+    mutationFn: (id) => api.delete(`/events/${activeEvent.id}/invitations/${invitation.id}/companions/${id}`),
+    onSuccess: (_, id) => {
+      setLocalCompanions((prev) => prev.filter((c) => c.id !== id))
+      qc.invalidateQueries({ queryKey: ['invitations', activeEvent?.id] })
+      qc.invalidateQueries({ queryKey: ['invitees', activeEvent?.id] })
+    },
+    onError: () => toast.error('No se pudo eliminar el acompañante.'),
   })
 
   const addInviteeMutation = useMutation({
@@ -386,8 +438,20 @@ function InvitationFormDialog({ open, onOpenChange, invitation, activeEvent, onS
               <Label>Invitados</Label>
               {localInvitees.map((inv) => (
                 <div key={inv.id} className="flex items-center gap-2">
-                  <span className="flex-1 text-sm">{inv.full_name}</span>
-                  <Badge variant={statusVariant[inv.status]} className="text-xs">{statusLabel[inv.status]}</Badge>
+                  <span className="flex-1 text-sm truncate">{inv.full_name}</span>
+                  <select
+                    value={inv.status}
+                    onChange={(e) => updateInviteeStatusMutation.mutate({ inviteeId: inv.id, status: e.target.value })}
+                    className={`rounded-full px-2 py-0.5 text-xs font-medium border-0 outline-none cursor-pointer shrink-0 ${
+                      inv.status === 'attending' ? 'bg-primary text-primary-foreground' :
+                      inv.status === 'declined'  ? 'bg-destructive text-destructive-foreground' :
+                                                   'bg-secondary text-secondary-foreground'
+                    }`}
+                  >
+                    <option value="pending">Pendiente</option>
+                    <option value="attending">Asistirá</option>
+                    <option value="declined">Rechazó</option>
+                  </select>
                   {localInvitees.length > 1 && (
                     <Button type="button" size="icon" variant="ghost" className="h-7 w-7 text-destructive shrink-0"
                       disabled={removeInviteeMutation.isPending}
@@ -424,6 +488,89 @@ function InvitationFormDialog({ open, onOpenChange, invitation, activeEvent, onS
               ) : (
                 <Button type="button" variant="outline" size="sm" onClick={() => setIsAdding(true)}>
                   + Agregar invitado
+                </Button>
+              )}
+            </div>
+          )}
+
+          {/* Companions — edit mode */}
+          {isEdit && (
+            <div className="flex flex-col gap-2 border-t pt-3">
+              <Label>
+                Acompañantes{' '}
+                <span className="text-muted-foreground font-normal text-xs">
+                  ({localCompanions.length}/{form.allowed_companions})
+                </span>
+              </Label>
+              {localCompanions.map((c) => (
+                <div key={c.id} className="flex items-center gap-2">
+                  {editingCompanionId === c.id ? (
+                    <>
+                      <Input
+                        className="h-8 text-sm flex-1"
+                        value={editingCompanionName}
+                        onChange={(e) => setEditingCompanionName(e.target.value)}
+                        autoFocus
+                        maxLength={255}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') { e.preventDefault(); if (editingCompanionName.trim()) updateCompanionMutation.mutate({ id: c.id, name: editingCompanionName.trim() }) }
+                          if (e.key === 'Escape') setEditingCompanionId(null)
+                        }}
+                      />
+                      <Button type="button" size="icon" variant="ghost" className="h-8 w-8 shrink-0"
+                        disabled={!editingCompanionName.trim() || updateCompanionMutation.isPending}
+                        onClick={() => updateCompanionMutation.mutate({ id: c.id, name: editingCompanionName.trim() })}>
+                        <Check className="h-3.5 w-3.5" />
+                      </Button>
+                      <Button type="button" size="icon" variant="ghost" className="h-8 w-8 shrink-0 text-muted-foreground"
+                        onClick={() => setEditingCompanionId(null)}>
+                        <X className="h-3.5 w-3.5" />
+                      </Button>
+                    </>
+                  ) : (
+                    <>
+                      <span className="flex-1 text-sm truncate">{c.full_name}</span>
+                      <Button type="button" size="icon" variant="ghost" className="h-7 w-7 text-muted-foreground shrink-0"
+                        onClick={() => { setEditingCompanionId(c.id); setEditingCompanionName(c.full_name) }}>
+                        <Pencil className="h-3.5 w-3.5" />
+                      </Button>
+                      <Button type="button" size="icon" variant="ghost" className="h-7 w-7 text-destructive shrink-0"
+                        disabled={deleteCompanionMutation.isPending}
+                        onClick={() => deleteCompanionMutation.mutate(c.id)}>
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </Button>
+                    </>
+                  )}
+                </div>
+              ))}
+              {addingCompanion ? (
+                <div className="flex gap-2">
+                  <Input
+                    className="h-8 text-sm flex-1"
+                    placeholder="Nombre completo"
+                    value={addingCompanionName}
+                    onChange={(e) => setAddingCompanionName(e.target.value)}
+                    autoFocus
+                    maxLength={255}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') { e.preventDefault(); if (addingCompanionName.trim()) addCompanionMutation.mutate(addingCompanionName.trim()) }
+                      if (e.key === 'Escape') { setAddingCompanion(false); setAddingCompanionName('') }
+                    }}
+                  />
+                  <Button type="button" size="icon" variant="ghost" className="h-8 w-8 shrink-0"
+                    disabled={!addingCompanionName.trim() || addCompanionMutation.isPending}
+                    onClick={() => addCompanionMutation.mutate(addingCompanionName.trim())}>
+                    <Check className="h-3.5 w-3.5" />
+                  </Button>
+                  <Button type="button" size="icon" variant="ghost" className="h-8 w-8 shrink-0 text-muted-foreground"
+                    onClick={() => { setAddingCompanion(false); setAddingCompanionName('') }}>
+                    <X className="h-3.5 w-3.5" />
+                  </Button>
+                </div>
+              ) : localCompanions.length < Number(form.allowed_companions) && (
+                <Button type="button" variant="outline" size="sm"
+                  onClick={() => setAddingCompanion(true)}>
+                  + Agregar acompañante
                 </Button>
               )}
             </div>
