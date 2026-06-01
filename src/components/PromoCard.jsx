@@ -5,7 +5,7 @@ export default function PromoCard({ className = '' }) {
       <p className="text-[9px] uppercase tracking-[0.2em] text-[#A47864]/60">gestión de invitaciones</p>
       <p className="text-[10px] italic tracking-widest text-[#A47864]/70 mt-0.5">by JP Chávez</p>
       <a
-        href="https://wa.me/59177977988"
+        href={`https://wa.me/59177977988?text=${encodeURIComponent('Hola, vi una invitación de rsvp-lat y me interesa hacer una para mi boda.')}`}
         target="_blank"
         rel="noopener noreferrer"
         className="mt-3 inline-flex items-center gap-1.5 text-[11px] text-green-700 hover:text-green-800 font-medium"
