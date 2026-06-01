@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import * as XLSX from 'xlsx'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
@@ -32,6 +32,7 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { Switch } from '@/components/ui/switch'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Plus, Pencil, Trash2, Upload, Download, ChevronUp, ChevronDown, ChevronsUpDown, QrCode, SlidersHorizontal, X } from 'lucide-react'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { useIsViewer } from '@/hooks/useIsViewer'
 import { TagChip } from '@/lib/tagColors.jsx'
 
@@ -108,6 +109,31 @@ const statusLabel = {
   attending: 'Asistirá',
   declined: 'Rechazó',
   pending: 'Pendiente',
+}
+
+function TruncatedName({ name, className = '' }) {
+  const [open, setOpen] = useState(false)
+  const timerRef = useRef(null)
+
+  const handleTouchStart = () => {
+    setOpen(true)
+    clearTimeout(timerRef.current)
+    timerRef.current = setTimeout(() => setOpen(false), 2000)
+  }
+
+  return (
+    <Tooltip open={open} onOpenChange={setOpen}>
+      <TooltipTrigger asChild>
+        <span
+          className={`truncate cursor-default ${className}`}
+          onTouchStart={handleTouchStart}
+        >
+          {name}
+        </span>
+      </TooltipTrigger>
+      <TooltipContent>{name}</TooltipContent>
+    </Tooltip>
+  )
 }
 
 const statusCycle = ['attending', 'pending', 'declined']
@@ -535,7 +561,7 @@ export default function InviteesPage() {
                     )}
                     <div className="flex flex-col gap-1 min-w-0 flex-1">
                       <div className="flex items-center gap-1.5 min-w-0">
-                        <span className="font-medium text-sm truncate">{invitee.full_name}</span>
+                        <TruncatedName name={invitee.full_name} className="font-medium text-sm" />
                         {invitee.type === 'late' && (
                           <Badge className="text-xs shrink-0 bg-amber-100 text-amber-800 border-amber-300 hover:bg-amber-100">Rezagado</Badge>
                         )}
@@ -651,7 +677,7 @@ export default function InviteesPage() {
                       </TableCell>
                       <TableCell className="font-medium max-w-[220px]">
                         <div className="flex items-center gap-1.5 min-w-0">
-                          <span className="truncate">{invitee.full_name}</span>
+                          <TruncatedName name={invitee.full_name} />
                           {invitee.type === 'late' && (
                             <Badge className="text-xs bg-amber-100 text-amber-800 border-amber-300 hover:bg-amber-100 shrink-0">Rezagado</Badge>
                           )}
@@ -717,7 +743,7 @@ export default function InviteesPage() {
                         <TableCell className="text-muted-foreground pl-8 max-w-[220px]">
                           <div className="flex items-center gap-1 min-w-0">
                             <span className="text-xs shrink-0">↳</span>
-                            <span className="truncate">{companion.full_name}</span>
+                            <TruncatedName name={companion.full_name} />
                           </div>
                         </TableCell>
                         <TableCell />
