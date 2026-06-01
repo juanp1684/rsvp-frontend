@@ -610,7 +610,7 @@ export default function InviteesPage() {
           </div>
 
           {/* Desktop: table */}
-          <div className="hidden md:block border rounded-lg overflow-hidden">
+          <div className="hidden md:block border rounded-lg overflow-x-auto">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -634,7 +634,6 @@ export default function InviteesPage() {
                     </button>
                   </TableHead>
                   <TableHead>Acompañantes</TableHead>
-                  <TableHead>Código</TableHead>
                   <TableHead>Etiquetas</TableHead>
                   <TableHead>Enviada</TableHead>
                   <TableHead />
@@ -650,11 +649,11 @@ export default function InviteesPage() {
                           onCheckedChange={() => toggleSelect(invitee.id)}
                         />
                       </TableCell>
-                      <TableCell className="font-medium">
-                        <div className="flex items-center gap-1.5">
-                          {invitee.full_name}
+                      <TableCell className="font-medium max-w-[220px]">
+                        <div className="flex items-center gap-1.5 min-w-0">
+                          <span className="truncate">{invitee.full_name}</span>
                           {invitee.type === 'late' && (
-                            <Badge className="text-xs bg-amber-100 text-amber-800 border-amber-300 hover:bg-amber-100">Late</Badge>
+                            <Badge className="text-xs bg-amber-100 text-amber-800 border-amber-300 hover:bg-amber-100 shrink-0">Rezagado</Badge>
                           )}
                         </div>
                       </TableCell>
@@ -666,9 +665,6 @@ export default function InviteesPage() {
                       </TableCell>
                       <TableCell>
                         {invitee.companions.length} / {invitee.allowed_companions}
-                      </TableCell>
-                      <TableCell className="font-mono text-xs text-muted-foreground">
-                        {invitee.code}
                       </TableCell>
                       <TableCell>
                         <div className="flex flex-wrap gap-1">
@@ -718,9 +714,11 @@ export default function InviteesPage() {
                     {invitee.companions.map((companion) => (
                       <TableRow key={companion.id} className="bg-muted/40 hover:bg-muted/40">
                         <TableCell />
-                        <TableCell className="text-muted-foreground pl-8">
-                          <span className="mr-2 text-xs">↳</span>
-                          {companion.full_name}
+                        <TableCell className="text-muted-foreground pl-8 max-w-[220px]">
+                          <div className="flex items-center gap-1 min-w-0">
+                            <span className="text-xs shrink-0">↳</span>
+                            <span className="truncate">{companion.full_name}</span>
+                          </div>
                         </TableCell>
                         <TableCell />
                         <TableCell />
@@ -736,7 +734,7 @@ export default function InviteesPage() {
           </div>
 
           {filtered.length === 0 && (
-            <p className="text-sm text-muted-foreground text-center py-8">No invitees found.</p>
+            <p className="text-sm text-muted-foreground text-center py-8">No se encontraron invitados.</p>
           )}
         </>
       )}
