@@ -169,23 +169,32 @@ export default function InviteesPage() {
     enabled: !!activeEvent?.id,
   })
 
+  // Helper: get unique invitation IDs from a set of invitee IDs
+  const invitationIdsFor = (inviteeIds) => [
+    ...new Set(invitees.filter((i) => inviteeIds.has(i.id)).map((i) => i.invitation_id))
+  ]
+
   const deleteMutation = useMutation({
-    mutationFn: (id) => api.delete(`/events/${activeEvent.id}/invitees/${id}`),
+    mutationFn: (invitationId) => api.delete(`/events/${activeEvent.id}/invitations/${invitationId}`),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['invitees', activeEvent?.id] })
-      toast.success('Invitado eliminado.')
+      toast.success('Invitación eliminada.')
       setDeleteTarget(null)
     },
-    onError: () => toast.error('No se pudo eliminar el invitado.'),
+    onError: () => toast.error('No se pudo eliminar la invitación.'),
   })
 
   const bulkUpdateMutation = useMutation({
-    mutationFn: ({ ids, data }) => api.post(`/events/${activeEvent.id}/invitees/bulk-update`, { ids: [...ids], data }),
+    mutationFn: ({ ids, data }) => {
+      const invitationIds = invitationIdsFor(ids)
+      return api.post(`/events/${activeEvent.id}/invitations/bulk-update`, { ids: invitationIds, data })
+    },
     onMutate: async ({ ids, data }) => {
       await qc.cancelQueries({ queryKey: ['invitees', activeEvent?.id] })
       const previous = qc.getQueryData(['invitees', activeEvent?.id])
+      const invitationIds = new Set(invitationIdsFor(ids))
       qc.setQueryData(['invitees', activeEvent?.id], (old) =>
-        old?.map((i) => ids.has(i.id) ? { ...i, ...data } : i)
+        old?.map((i) => invitationIds.has(i.invitation_id) ? { ...i, ...data } : i)
       )
       return { previous }
     },
@@ -197,12 +206,13 @@ export default function InviteesPage() {
   })
 
   const toggleSentMutation = useMutation({
-    mutationFn: ({ id, value }) => api.put(`/events/${activeEvent.id}/invitees/${id}`, { invitation_sent: value }),
-    onMutate: async ({ id, value }) => {
+    mutationFn: ({ invitationId, value }) =>
+      api.put(`/events/${activeEvent.id}/invitations/${invitationId}`, { invitation_sent: value }),
+    onMutate: async ({ invitationId, value }) => {
       await qc.cancelQueries({ queryKey: ['invitees', activeEvent?.id] })
       const previous = qc.getQueryData(['invitees', activeEvent?.id])
       qc.setQueryData(['invitees', activeEvent?.id], (old) =>
-        old?.map((i) => i.id === id ? { ...i, invitation_sent: value } : i)
+        old?.map((i) => i.invitation_id === invitationId ? { ...i, invitation_sent: value } : i)
       )
       return { previous }
     },
@@ -214,14 +224,17 @@ export default function InviteesPage() {
   })
 
   const bulkDeleteMutation = useMutation({
-    mutationFn: (ids) => api.post(`/events/${activeEvent.id}/invitees/bulk-destroy`, { ids }),
+    mutationFn: (inviteeIds) => {
+      const invitationIds = invitationIdsFor(inviteeIds)
+      return api.post(`/events/${activeEvent.id}/invitations/bulk-destroy`, { ids: invitationIds })
+    },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['invitees', activeEvent?.id] })
-      toast.success(`${selectedIds.size} invitados eliminados.`)
+      toast.success('Invitaciones eliminadas.')
       setSelectedIds(new Set())
       setBulkDeleteOpen(false)
     },
-    onError: () => toast.error('No se pudieron eliminar los invitados.'),
+    onError: () => toast.error('No se pudieron eliminar las invitaciones.'),
   })
 
   const toggleSelect = (id) => setSelectedIds((prev) => {
@@ -548,7 +561,11 @@ export default function InviteesPage() {
         <>
           {/* Mobile: card list */}
           <div className="flex flex-col gap-3 md:hidden">
-            {filtered.map((invitee) => (
+            {filtered.map((invitee, idx) => (
+              <>
+                {idx > 0 && filtered[idx - 1].invitation_id !== invitee.invitation_id && (
+                  <hr key={`sep-${invitee.invitation_id}`} className="border-border/60" />
+                )}
               <div key={invitee.id} className={`border rounded-lg overflow-hidden${invitee.type === 'late' ? ' border-l-4 border-l-amber-400' : ''}`}>
                 {/* Invitee row */}
                 <div className={`p-4 flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3${invitee.type === 'late' ? ' bg-amber-50/60 dark:bg-amber-950/20' : ''}`}>
@@ -582,7 +599,7 @@ export default function InviteesPage() {
                             <Switch
                               id={`sent-${invitee.id}`}
                               checked={!!invitee.invitation_sent}
-                              onCheckedChange={(v) => toggleSentMutation.mutate({ id: invitee.id, value: v })}
+                              onCheckedChange={(v) => toggleSentMutation.mutate({ invitationId: invitee.invitation_id, value: v })}
                             />
                             <label htmlFor={`sent-${invitee.id}`} className="text-xs text-muted-foreground cursor-pointer">Enviada</label>
                           </div>
@@ -633,6 +650,7 @@ export default function InviteesPage() {
                   </div>
                 ))}
               </div>
+              </>
             ))}
           </div>
 
@@ -667,8 +685,15 @@ export default function InviteesPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filtered.map((invitee) => (
+                {filtered.map((invitee, idx) => (
                   <>
+                    {idx > 0 && filtered[idx - 1].invitation_id !== invitee.invitation_id && (
+                      <TableRow key={`sep-${invitee.invitation_id}`} className="h-0">
+                        <TableCell colSpan={8} className="p-0">
+                          <div className="border-t border-border/60" />
+                        </TableCell>
+                      </TableRow>
+                    )}
                     <TableRow key={invitee.id} className={invitee.type === 'late' ? 'bg-amber-50/60 dark:bg-amber-950/20' : ''}>
                       <TableCell>
                         <Checkbox
@@ -704,7 +729,7 @@ export default function InviteesPage() {
                         {!isViewer && (
                           <Switch
                             checked={!!invitee.invitation_sent}
-                            onCheckedChange={(v) => toggleSentMutation.mutate({ id: invitee.id, value: v })}
+                            onCheckedChange={(v) => toggleSentMutation.mutate({ invitationId: invitee.invitation_id, value: v })}
                           />
                         )}
                       </TableCell>
@@ -782,9 +807,9 @@ export default function InviteesPage() {
       <AlertDialog open={bulkDeleteOpen} onOpenChange={setBulkDeleteOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>¿Eliminar {selectedIds.size} invitados?</AlertDialogTitle>
+            <AlertDialogTitle>¿Eliminar {invitationIdsFor(selectedIds).length} invitación(es)?</AlertDialogTitle>
             <AlertDialogDescription>
-              Esta acción eliminará permanentemente los invitados seleccionados y sus acompañantes.
+              Esta acción eliminará permanentemente las invitaciones seleccionadas y todos sus datos.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -802,17 +827,17 @@ export default function InviteesPage() {
       <AlertDialog open={!!deleteTarget} onOpenChange={(o) => !o && setDeleteTarget(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>¿Eliminar invitado?</AlertDialogTitle>
+            <AlertDialogTitle>¿Eliminar invitación?</AlertDialogTitle>
             <AlertDialogDescription>
-              Esta acción eliminará permanentemente a{' '}
-              <strong>{deleteTarget?.full_name}</strong> y sus acompañantes.
+              Esta acción eliminará permanentemente la invitación de{' '}
+              <strong>{deleteTarget?.name_on_invitation}</strong> y todos sus datos.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
             <AlertDialogAction
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-              onClick={() => deleteMutation.mutate(deleteTarget.id)}
+              onClick={() => deleteMutation.mutate(deleteTarget.invitation_id)}
             >
               Eliminar
             </AlertDialogAction>

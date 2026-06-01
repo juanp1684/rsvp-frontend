@@ -44,7 +44,7 @@ export default function InviteeFormDialog({ open, onOpenChange, invitee }) {
   })
 
   const syncTagsMutation = useMutation({
-    mutationFn: (tagIds) => api.put(`/events/${activeEvent.id}/invitees/${invitee.id}/tags`, { tag_ids: [...tagIds] }),
+    mutationFn: (tagIds) => api.put(`/events/${activeEvent.id}/invitations/${invitee.invitation_id}/tags`, { tag_ids: [...tagIds] }),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['invitees', activeEvent?.id] }),
     onError: () => toast.error('No se pudieron actualizar las etiquetas.'),
   })
@@ -72,10 +72,24 @@ export default function InviteeFormDialog({ open, onOpenChange, invitee }) {
   const set = (field) => (e) => setForm((f) => ({ ...f, [field]: e.target.value }))
 
   const mutation = useMutation({
-    mutationFn: (data) =>
-      isEdit
-        ? api.put(`/events/${activeEvent.id}/invitees/${invitee.id}`, data)
-        : api.post(`/events/${activeEvent.id}/invitees`, data),
+    mutationFn: async (data) => {
+      if (isEdit) {
+        const { full_name, status, ...invitationData } = data
+        await Promise.all([
+          api.put(`/events/${activeEvent.id}/invitations/${invitee.invitation_id}/invitees/${invitee.id}`, { full_name, status }),
+          api.put(`/events/${activeEvent.id}/invitations/${invitee.invitation_id}`, invitationData),
+        ])
+      } else {
+        return api.post(`/events/${activeEvent.id}/invitations`, {
+          name_on_invitation: data.full_name,
+          phone: data.phone,
+          allowed_companions: data.allowed_companions,
+          notes: data.notes,
+          type: data.type,
+          invitees: [{ full_name: data.full_name }],
+        })
+      }
+    },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['invitees', activeEvent?.id] })
       toast.success(isEdit ? 'Invitado actualizado.' : 'Invitado creado.')
@@ -86,7 +100,7 @@ export default function InviteeFormDialog({ open, onOpenChange, invitee }) {
 
   const addCompanionMutation = useMutation({
     mutationFn: (name) =>
-      api.post(`/events/${activeEvent.id}/invitees/${invitee.id}/companions`, { full_name: name }),
+      api.post(`/events/${activeEvent.id}/invitations/${invitee.invitation_id}/companions`, { full_name: name }),
     onSuccess: ({ data }) => {
       qc.invalidateQueries({ queryKey: ['invitees', activeEvent?.id] })
       setLocalCompanions((prev) => [...prev, data])
@@ -98,7 +112,7 @@ export default function InviteeFormDialog({ open, onOpenChange, invitee }) {
 
   const updateCompanionMutation = useMutation({
     mutationFn: ({ id, name }) =>
-      api.put(`/events/${activeEvent.id}/invitees/${invitee.id}/companions/${id}`, { full_name: name }),
+      api.put(`/events/${activeEvent.id}/invitations/${invitee.invitation_id}/companions/${id}`, { full_name: name }),
     onSuccess: ({ data }) => {
       qc.invalidateQueries({ queryKey: ['invitees', activeEvent?.id] })
       setLocalCompanions((prev) => prev.map((c) => c.id === data.id ? data : c))
@@ -109,7 +123,7 @@ export default function InviteeFormDialog({ open, onOpenChange, invitee }) {
 
   const deleteCompanionMutation = useMutation({
     mutationFn: (id) =>
-      api.delete(`/events/${activeEvent.id}/invitees/${invitee.id}/companions/${id}`),
+      api.delete(`/events/${activeEvent.id}/invitations/${invitee.invitation_id}/companions/${id}`),
     onSuccess: (_, id) => {
       qc.invalidateQueries({ queryKey: ['invitees', activeEvent?.id] })
       setLocalCompanions((prev) => prev.filter((c) => c.id !== id))
