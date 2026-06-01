@@ -31,10 +31,21 @@ export default function DashboardPage() {
     enabled: !!activeEvent?.id,
   })
 
-  const total        = invitees.reduce((sum, i) => sum + 1 + (i.allowed_companions ?? 0), 0)
-  const attending    = invitees.filter((i) => i.status === 'attending').reduce((sum, i) => sum + 1 + (i.companions?.length ?? 0), 0)
-  const declined     = invitees.filter((i) => i.status === 'declined').reduce((sum, i) => sum + 1 + (i.allowed_companions ?? 0), 0)
-  const pending      = invitees.filter((i) => i.status === 'pending').reduce((sum, i) => sum + 1 + (i.allowed_companions ?? 0), 0)
+  // Companions belong to invitations — count once per invitation to avoid duplication
+  const companionsByInvitation = invitees.reduce((acc, i) => {
+    if (!acc[i.invitation_id]) acc[i.invitation_id] = { companions: i.companions?.length ?? 0, allowed: i.allowed_companions ?? 0 }
+    return acc
+  }, {})
+  const invGroups = Object.values(companionsByInvitation)
+  const totalCompanions  = invGroups.reduce((sum, g) => sum + g.companions, 0)
+  const allowedCompanions = invGroups.reduce((sum, g) => sum + g.allowed, 0)
+  const attendingInvIds  = new Set(invitees.filter((i) => i.status === 'attending').map((i) => i.invitation_id))
+  const attendingCompanions = [...attendingInvIds].reduce((sum, id) => sum + (companionsByInvitation[id]?.companions ?? 0), 0)
+
+  const total     = invitees.length + allowedCompanions
+  const attending = invitees.filter((i) => i.status === 'attending').length + attendingCompanions
+  const declined  = invitees.filter((i) => i.status === 'declined').length
+  const pending   = invitees.filter((i) => i.status === 'pending').length + allowedCompanions
   const responded    = invitees.filter((i) => i.status !== 'pending').length
   const responseRate = invitees.length > 0 ? Math.round((responded / invitees.length) * 100) : 0
   const sentCount    = invitees.filter((i) => i.invitation_sent).length

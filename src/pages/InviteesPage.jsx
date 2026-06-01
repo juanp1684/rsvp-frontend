@@ -280,16 +280,19 @@ export default function InviteesPage() {
   const normalize = (str) =>
     str.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase()
 
-  const countInvitee = (i) =>
-    i.status === 'attending'
-      ? 1 + (i.companions?.length ?? 0)
-      : 1 + (i.allowed_companions ?? 0)
+  // Companions live at invitation level — count them once per invitation (for attending invitations only)
+  const companionsByInvitation = invitees.reduce((acc, i) => {
+    if (!acc[i.invitation_id]) acc[i.invitation_id] = i.companions?.length ?? 0
+    return acc
+  }, {})
+  const attendingInvitationIds = new Set(invitees.filter((i) => i.status === 'attending').map((i) => i.invitation_id))
+  const totalCompanions = [...attendingInvitationIds].reduce((sum, id) => sum + (companionsByInvitation[id] ?? 0), 0)
 
   const statusCounts = {
-    all:       invitees.reduce((sum, i) => sum + countInvitee(i), 0),
-    attending: invitees.filter((i) => i.status === 'attending').reduce((sum, i) => sum + countInvitee(i), 0),
-    pending:   invitees.filter((i) => i.status === 'pending').reduce((sum, i) => sum + countInvitee(i), 0),
-    declined:  invitees.filter((i) => i.status === 'declined').reduce((sum, i) => sum + countInvitee(i), 0),
+    all:       invitees.length + totalCompanions,
+    attending: invitees.filter((i) => i.status === 'attending').length + totalCompanions,
+    pending:   invitees.filter((i) => i.status === 'pending').length,
+    declined:  invitees.filter((i) => i.status === 'declined').length,
   }
 
   const lateCount = invitees.filter((i) => i.type === 'late').length
