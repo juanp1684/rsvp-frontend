@@ -235,6 +235,7 @@ function InvitationFormDialog({ open, onOpenChange, invitation, activeEvent, onS
   const [invitees, setInvitees] = useState([{ full_name: '' }])
   const [addingName, setAddingName] = useState('')
   const [isAdding, setIsAdding] = useState(false)
+  const [localInvitees, setLocalInvitees] = useState([])
 
   useEffect(() => {
     if (invitation) {
@@ -245,9 +246,11 @@ function InvitationFormDialog({ open, onOpenChange, invitation, activeEvent, onS
         notes: invitation.notes ?? '',
         type: invitation.type ?? 'regular',
       })
+      setLocalInvitees(invitation.invitees ?? [])
     } else {
       setForm(emptyForm)
       setInvitees([{ full_name: '' }])
+      setLocalInvitees([])
     }
     setAddingName('')
     setIsAdding(false)
@@ -270,13 +273,23 @@ function InvitationFormDialog({ open, onOpenChange, invitation, activeEvent, onS
 
   const addInviteeMutation = useMutation({
     mutationFn: (name) => api.post(`/events/${activeEvent.id}/invitations/${invitation.id}/invitees`, { full_name: name }),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['invitations', activeEvent?.id] }); setIsAdding(false); setAddingName('') },
+    onSuccess: ({ data }) => {
+      setLocalInvitees((prev) => [...prev, data])
+      qc.invalidateQueries({ queryKey: ['invitations', activeEvent?.id] })
+      qc.invalidateQueries({ queryKey: ['invitees', activeEvent?.id] })
+      setIsAdding(false)
+      setAddingName('')
+    },
     onError: () => toast.error('No se pudo agregar el invitado.'),
   })
 
   const removeInviteeMutation = useMutation({
     mutationFn: (inviteeId) => api.delete(`/events/${activeEvent.id}/invitations/${invitation.id}/invitees/${inviteeId}`),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['invitations', activeEvent?.id] }),
+    onSuccess: (_, inviteeId) => {
+      setLocalInvitees((prev) => prev.filter((i) => i.id !== inviteeId))
+      qc.invalidateQueries({ queryKey: ['invitations', activeEvent?.id] })
+      qc.invalidateQueries({ queryKey: ['invitees', activeEvent?.id] })
+    },
     onError: (err) => toast.error(err?.response?.data?.message ?? 'No se pudo eliminar el invitado.'),
   })
 
@@ -371,11 +384,11 @@ function InvitationFormDialog({ open, onOpenChange, invitation, activeEvent, onS
           {isEdit && (
             <div className="flex flex-col gap-2 border-t pt-3">
               <Label>Invitados</Label>
-              {invitation?.invitees?.map((inv) => (
+              {localInvitees.map((inv) => (
                 <div key={inv.id} className="flex items-center gap-2">
                   <span className="flex-1 text-sm">{inv.full_name}</span>
                   <Badge variant={statusVariant[inv.status]} className="text-xs">{statusLabel[inv.status]}</Badge>
-                  {invitation.invitees.length > 1 && (
+                  {localInvitees.length > 1 && (
                     <Button type="button" size="icon" variant="ghost" className="h-7 w-7 text-destructive shrink-0"
                       disabled={removeInviteeMutation.isPending}
                       onClick={() => removeInviteeMutation.mutate(inv.id)}>
