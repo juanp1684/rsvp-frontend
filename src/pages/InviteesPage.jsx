@@ -223,6 +223,24 @@ export default function InviteesPage() {
     onSettled: () => qc.invalidateQueries({ queryKey: ['invitees', activeEvent?.id] }),
   })
 
+  const updateStatusMutation = useMutation({
+    mutationFn: ({ invitee, status }) =>
+      api.put(`/events/${activeEvent.id}/invitations/${invitee.invitation_id}/invitees/${invitee.id}`, { status }),
+    onMutate: async ({ invitee, status }) => {
+      await qc.cancelQueries({ queryKey: ['invitees', activeEvent?.id] })
+      const previous = qc.getQueryData(['invitees', activeEvent?.id])
+      qc.setQueryData(['invitees', activeEvent?.id], (old) =>
+        old?.map((i) => i.id === invitee.id ? { ...i, status } : i)
+      )
+      return { previous }
+    },
+    onError: (_err, _vars, context) => {
+      qc.setQueryData(['invitees', activeEvent?.id], context.previous)
+      toast.error('No se pudo actualizar el estado.')
+    },
+    onSettled: () => qc.invalidateQueries({ queryKey: ['invitees', activeEvent?.id] }),
+  })
+
   const bulkDeleteMutation = useMutation({
     mutationFn: (inviteeIds) => {
       const invitationIds = invitationIdsFor(inviteeIds)
@@ -588,9 +606,7 @@ export default function InviteesPage() {
                         <span className="text-xs text-muted-foreground">{invitee.phone}</span>
                       )}
                       <div className="flex items-center gap-2 mt-1 flex-wrap">
-                        <Badge variant={statusVariant[invitee.status]} className="text-xs">
-                          {statusLabel[invitee.status] ?? invitee.status}
-                        </Badge>
+                        <StatusSelect invitee={invitee} onChange={(status) => updateStatusMutation.mutate({ invitee, status })} readonly={isViewer} />
                         <span className="text-xs text-muted-foreground">
                           {invitee.companions.length}/{invitee.allowed_companions} acompañantes
                         </span>
@@ -711,9 +727,7 @@ export default function InviteesPage() {
                       </TableCell>
                       <TableCell className="text-muted-foreground">{invitee.phone ?? '—'}</TableCell>
                       <TableCell>
-                        <Badge variant={statusVariant[invitee.status]}>
-                          {statusLabel[invitee.status] ?? invitee.status}
-                        </Badge>
+                        <StatusSelect invitee={invitee} onChange={(status) => updateStatusMutation.mutate({ invitee, status })} readonly={isViewer} />
                       </TableCell>
                       <TableCell>
                         {invitee.companions.length} / {invitee.allowed_companions}
@@ -847,5 +861,32 @@ export default function InviteesPage() {
 
       <ImportDialog open={importOpen} onOpenChange={setImportOpen} />
     </div>
+  )
+}
+
+const statusColors = {
+  attending: 'bg-primary text-primary-foreground',
+  declined:  'bg-destructive text-destructive-foreground',
+  pending:   'bg-secondary text-secondary-foreground',
+}
+
+function StatusSelect({ invitee, onChange, readonly }) {
+  if (readonly) {
+    return (
+      <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${statusColors[invitee.status]}`}>
+        {statusLabel[invitee.status] ?? invitee.status}
+      </span>
+    )
+  }
+  return (
+    <select
+      value={invitee.status}
+      onChange={(e) => onChange(e.target.value)}
+      className={`rounded-full px-2 py-0.5 text-xs font-medium border-0 outline-none cursor-pointer ${statusColors[invitee.status]}`}
+    >
+      <option value="pending">Pendiente</option>
+      <option value="attending">Asistirá</option>
+      <option value="declined">Rechazó</option>
+    </select>
   )
 }
