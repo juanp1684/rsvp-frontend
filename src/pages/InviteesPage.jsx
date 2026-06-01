@@ -582,9 +582,12 @@ export default function InviteesPage() {
             {filtered.map((invitee, idx) => (
               <>
                 {(idx === 0 || filtered[idx - 1].invitation_id !== invitee.invitation_id) && (
-                  <p key={`hdr-${invitee.invitation_id}`} className="text-[10px] font-medium uppercase tracking-widest text-muted-foreground px-1 pt-1">
-                    {invitee.name_on_invitation}
-                  </p>
+                  <div key={`hdr-${invitee.invitation_id}`} className="flex items-center gap-2 flex-wrap px-1 pt-1">
+                    <p className="text-[10px] font-medium uppercase tracking-widest text-muted-foreground">
+                      {invitee.name_on_invitation}
+                    </p>
+                    {invitee.tags?.map((tag) => <TagChip key={tag.id} tag={tag} />)}
+                  </div>
                 )}
               <div key={invitee.id} className={`border rounded-lg overflow-hidden${invitee.type === 'late' ? ' border-l-4 border-l-amber-400' : ''}`}>
                 {/* Invitee row */}
@@ -622,9 +625,6 @@ export default function InviteesPage() {
                             <label htmlFor={`sent-${invitee.id}`} className="text-xs text-muted-foreground cursor-pointer">Enviada</label>
                           </div>
                         )}
-                        {invitee.tags?.map((tag) => (
-                          <TagChip key={tag.id} tag={tag} />
-                        ))}
                       </div>
                     </div>
                   </div>
@@ -697,7 +697,6 @@ export default function InviteesPage() {
                     </button>
                   </TableHead>
                   <TableHead>Acompañantes</TableHead>
-                  <TableHead>Etiquetas</TableHead>
                   <TableHead>Enviada</TableHead>
                   <TableHead />
                 </TableRow>
@@ -708,9 +707,12 @@ export default function InviteesPage() {
                     {(idx === 0 || filtered[idx - 1].invitation_id !== invitee.invitation_id) && (
                       <TableRow key={`hdr-${invitee.invitation_id}`} className="bg-muted/30 hover:bg-muted/30">
                         <TableCell colSpan={8} className="py-1.5 px-4">
-                          <span className="text-[10px] font-medium uppercase tracking-widest text-muted-foreground">
-                            {invitee.name_on_invitation}
-                          </span>
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className="text-[10px] font-medium uppercase tracking-widest text-muted-foreground">
+                              {invitee.name_on_invitation}
+                            </span>
+                            {invitee.tags?.map((tag) => <TagChip key={tag.id} tag={tag} />)}
+                          </div>
                         </TableCell>
                       </TableRow>
                     )}
@@ -735,13 +737,6 @@ export default function InviteesPage() {
                       </TableCell>
                       <TableCell>
                         {invitee.companions.length} / {invitee.allowed_companions}
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex flex-wrap gap-1">
-                          {invitee.tags?.map((tag) => (
-                            <TagChip key={tag.id} tag={tag} />
-                          ))}
-                        </div>
                       </TableCell>
                       <TableCell>
                         {!isViewer && (
