@@ -581,8 +581,10 @@ export default function InviteesPage() {
           <div className="flex flex-col gap-3 md:hidden">
             {filtered.map((invitee, idx) => (
               <>
-                {idx > 0 && filtered[idx - 1].invitation_id !== invitee.invitation_id && (
-                  <hr key={`sep-${invitee.invitation_id}`} className="border-border/60" />
+                {(idx === 0 || filtered[idx - 1].invitation_id !== invitee.invitation_id) && (
+                  <p key={`hdr-${invitee.invitation_id}`} className="text-[10px] font-medium uppercase tracking-widest text-muted-foreground px-1 pt-1">
+                    {invitee.name_on_invitation}
+                  </p>
                 )}
               <div key={invitee.id} className={`border rounded-lg overflow-hidden${invitee.type === 'late' ? ' border-l-4 border-l-amber-400' : ''}`}>
                 {/* Invitee row */}
@@ -703,10 +705,12 @@ export default function InviteesPage() {
               <TableBody>
                 {filtered.map((invitee, idx) => (
                   <>
-                    {idx > 0 && filtered[idx - 1].invitation_id !== invitee.invitation_id && (
-                      <TableRow key={`sep-${invitee.invitation_id}`} className="h-0">
-                        <TableCell colSpan={8} className="p-0">
-                          <div className="border-t border-border/60" />
+                    {(idx === 0 || filtered[idx - 1].invitation_id !== invitee.invitation_id) && (
+                      <TableRow key={`hdr-${invitee.invitation_id}`} className="bg-muted/30 hover:bg-muted/30">
+                        <TableCell colSpan={8} className="py-1.5 px-4">
+                          <span className="text-[10px] font-medium uppercase tracking-widest text-muted-foreground">
+                            {invitee.name_on_invitation}
+                          </span>
                         </TableCell>
                       </TableRow>
                     )}
