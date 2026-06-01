@@ -10,6 +10,7 @@ import { Menu, Moon, Sun, ArrowLeftRight, ChevronDown } from 'lucide-react'
 
 const navItems = [
   { to: '/', label: 'Dashboard' },
+  { to: '/invitations', label: 'Invitaciones' },
   { to: '/invitees', label: 'Invitados' },
   { to: '/event', label: 'Evento' },
 ]

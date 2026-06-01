@@ -9,6 +9,7 @@ import DashboardPage from '@/pages/DashboardPage'
 import EventPage from '@/pages/EventPage'
 import EventPickerPage from '@/pages/EventPickerPage'
 import InviteesPage from '@/pages/InviteesPage'
+import InvitationsPage from '@/pages/InvitationsPage'
 import UsersPage from '@/pages/UsersPage'
 import RsvpPage from '@/pages/RsvpPage'
 
@@ -31,6 +32,7 @@ export default function App() {
           >
             <Route index element={<DashboardPage />} />
             <Route path="invitees" element={<InviteesPage />} />
+            <Route path="invitations" element={<InvitationsPage />} />
             <Route path="event" element={<EventPage />} />
             <Route path="events" element={<EventPickerPage />} />
             <Route path="users" element={<UsersPage />} />
