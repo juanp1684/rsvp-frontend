@@ -601,7 +601,7 @@ export default function InviteesPage() {
               <div key={invitee.id} className={`border rounded-lg overflow-hidden${invitee.type === 'late' ? ' border-l-4 border-l-amber-400' : ''}`}>
                 {/* Invitation-level info — only on first invitee of group */}
                 {(idx === 0 || filtered[idx - 1].invitation_id !== invitee.invitation_id) && (
-                  <div className={`px-4 py-2.5 flex items-center justify-between gap-3 border-b${invitee.type === 'late' ? ' bg-amber-50/60 dark:bg-amber-950/20' : ' bg-secondary'}`}>
+                  <div className={`px-4 py-2.5 flex items-center justify-between gap-3 border-b${invitee.type === 'late' ? ' bg-amber-100 dark:bg-amber-950/30' : ' bg-slate-200 dark:bg-slate-700'}`}>
                     <div className="flex flex-col gap-0.5 min-w-0">
                       {invitee.phone && <span className="text-xs text-muted-foreground">{invitee.phone}</span>}
                       <span className="text-xs text-muted-foreground">{invitee.companions.length}/{invitee.allowed_companions} acompañantes</span>
@@ -696,7 +696,7 @@ export default function InviteesPage() {
                 {filtered.map((invitee, idx) => (
                   <>
                     {(idx === 0 || filtered[idx - 1].invitation_id !== invitee.invitation_id) && (
-                      <TableRow key={`hdr-${invitee.invitation_id}`} className={`border-t-2 border-border ${invitee.type === 'late' ? 'bg-amber-50/60 dark:bg-amber-950/20 hover:bg-amber-50/80' : 'bg-secondary hover:bg-secondary/80'}`}>
+                      <TableRow key={`hdr-${invitee.invitation_id}`} className={`border-t-2 border-border ${invitee.type === 'late' ? 'bg-amber-100 dark:bg-amber-950/30 hover:bg-amber-100' : 'bg-slate-200 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-700'}`}>
                         <TableCell className="py-2 px-4">
                           {!isViewer && (
                             <Checkbox
