@@ -115,7 +115,8 @@ function TruncatedName({ name, className = '' }) {
   const [open, setOpen] = useState(false)
   const timerRef = useRef(null)
 
-  const handleTouchStart = () => {
+  const handleTouchStart = (e) => {
+    e.preventDefault()
     setOpen(true)
     clearTimeout(timerRef.current)
     timerRef.current = setTimeout(() => setOpen(false), 2000)
@@ -125,7 +126,7 @@ function TruncatedName({ name, className = '' }) {
     <Tooltip open={open} onOpenChange={setOpen}>
       <TooltipTrigger asChild>
         <span
-          className={`truncate cursor-default ${className}`}
+          className={`truncate cursor-default select-none ${className}`}
           onTouchStart={handleTouchStart}
         >
           {name}
