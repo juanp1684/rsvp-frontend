@@ -663,6 +663,7 @@ export default function InviteesPage() {
                           </Button>
                         )}
                       </div>
+                    </div>{/* end actions row */}
                     </div>{/* end header bar */}
 
                     {/* Invitee rows */}
