@@ -385,34 +385,40 @@ export default function RsvpPage() {
         {!deadlinePassed && (
           <form onSubmit={handleSubmit} className="w-full max-w-sm flex flex-col gap-6">
 
-            {/* Attendance — single invitee: classic question; multiple: per-person */}
+            {/* Attendance */}
             <div className="flex flex-col gap-4">
               {(invitation?.invitees ?? []).length === 1 && (
                 <p className="text-sm font-medium font-subtitle text-center">¿Asistirás a nuestra boda?</p>
               )}
               {(invitation?.invitees ?? []).map((invitee) => (
-                <div key={invitee.id} className="flex flex-col gap-2">
+                <div key={invitee.id} className="flex flex-col gap-4">
                   {(invitation?.invitees ?? []).length > 1 && (
                     <p className="text-sm font-medium font-subtitle text-center">{invitee.full_name}</p>
                   )}
-                  <div className="grid grid-cols-2 gap-3">
-                    <Button
-                      type="button"
-                      variant={inviteeStatuses[invitee.id] === 'attending' ? 'default' : 'outline'}
-                      onClick={() => handleInviteeStatus(invitee.id, 'attending')}
-                      className={`w-full ${inviteeStatuses[invitee.id] === 'attending' ? 'bg-[#412D26] hover:bg-[#735749] text-[#FFF1E9]' : 'border-[#C0A18F] text-[#412D26] hover:bg-[#C0A18F]/10 hover:text-[#412D26]'}`}
-                    >
-                      Sí, asistiré
-                    </Button>
-                    <Button
-                      type="button"
-                      variant={inviteeStatuses[invitee.id] === 'declined' ? 'default' : 'outline'}
-                      onClick={() => handleInviteeStatus(invitee.id, 'declined')}
-                      className={`w-full ${inviteeStatuses[invitee.id] === 'declined' ? 'bg-[#412D26] hover:bg-[#735749] text-[#FFF1E9]' : 'border-[#C0A18F] text-[#412D26] hover:bg-[#C0A18F]/10 hover:text-[#412D26]'}`}
-                    >
-                      No podré ir
-                    </Button>
+
+                  <div className="flex justify-center gap-8">
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="radio"
+                        name={`status-${invitee.id}`}
+                        checked={inviteeStatuses[invitee.id] === 'attending'}
+                        onChange={() => handleInviteeStatus(invitee.id, 'attending')}
+                        className="accent-[#412D26] w-4 h-4"
+                      />
+                      <span className="text-sm text-[#412D26]">Sí, asistiré</span>
+                    </label>
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="radio"
+                        name={`status-${invitee.id}`}
+                        checked={inviteeStatuses[invitee.id] === 'declined'}
+                        onChange={() => handleInviteeStatus(invitee.id, 'declined')}
+                        className="accent-[#412D26] w-4 h-4"
+                      />
+                      <span className="text-sm text-[#412D26]">No podré ir</span>
+                    </label>
                   </div>
+
                 </div>
               ))}
             </div>
