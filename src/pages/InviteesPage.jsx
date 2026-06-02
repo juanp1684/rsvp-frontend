@@ -33,6 +33,7 @@ import { Switch } from '@/components/ui/switch'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Plus, Pencil, Trash2, Upload, Download, ChevronUp, ChevronDown, ChevronsUpDown, QrCode, SlidersHorizontal, X } from 'lucide-react'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { useIsViewer } from '@/hooks/useIsViewer'
 import { TagChip } from '@/lib/tagColors.jsx'
 
@@ -930,14 +931,15 @@ function StatusSelect({ invitee, onChange, readonly }) {
     )
   }
   return (
-    <select
-      value={invitee.status}
-      onChange={(e) => onChange(e.target.value)}
-      className={`rounded-full px-2 py-0.5 text-xs font-medium border-0 outline-none cursor-pointer ${statusColors[invitee.status]}`}
-    >
-      <option value="pending">Pendiente</option>
-      <option value="attending">Asistirá</option>
-      <option value="declined">Rechazó</option>
-    </select>
+    <Select value={invitee.status} onValueChange={onChange}>
+      <SelectTrigger className={`h-auto px-2 py-0.5 text-xs font-medium rounded-full border-0 focus:ring-0 w-auto gap-1 shrink-0 ${statusColors[invitee.status]}`}>
+        <SelectValue />
+      </SelectTrigger>
+      <SelectContent>
+        <SelectItem value="pending">Pendiente</SelectItem>
+        <SelectItem value="attending">Asistirá</SelectItem>
+        <SelectItem value="declined">Rechazó</SelectItem>
+      </SelectContent>
+    </Select>
   )
 }

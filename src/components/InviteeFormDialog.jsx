@@ -279,19 +279,23 @@ export default function InviteeFormDialog({ open, onOpenChange, invitee }) {
               {localInvitees.map((inv) => (
                 <div key={inv.id} className="flex items-center gap-2">
                   <span className="flex-1 text-sm truncate">{inv.full_name}</span>
-                  <select
+                  <Select
                     value={pendingStatuses[inv.id] ?? inv.status}
-                    onChange={(e) => setPendingStatuses((prev) => ({ ...prev, [inv.id]: e.target.value }))}
-                    className={`rounded-full px-2 py-0.5 text-xs font-medium border-0 outline-none cursor-pointer shrink-0 ${
+                    onValueChange={(v) => setPendingStatuses((prev) => ({ ...prev, [inv.id]: v }))}
+                  >
+                    <SelectTrigger className={`h-auto px-2 py-0.5 text-xs font-medium rounded-full border-0 focus:ring-0 w-auto gap-1 shrink-0 ${
                       (pendingStatuses[inv.id] ?? inv.status) === 'attending' ? 'bg-primary text-primary-foreground' :
                       (pendingStatuses[inv.id] ?? inv.status) === 'declined'  ? 'bg-destructive text-destructive-foreground' :
                                                                                  'bg-secondary text-secondary-foreground'
-                    }`}
-                  >
-                    <option value="pending">Pendiente</option>
-                    <option value="attending">Asistirá</option>
-                    <option value="declined">Rechazó</option>
-                  </select>
+                    }`}>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="pending">Pendiente</SelectItem>
+                      <SelectItem value="attending">Asistirá</SelectItem>
+                      <SelectItem value="declined">Rechazó</SelectItem>
+                    </SelectContent>
+                  </Select>
                   {localInvitees.length > 1 && (
                     <Button type="button" size="icon" variant="ghost" className="h-7 w-7 text-destructive shrink-0"
                       disabled={removeInviteeMutation.isPending}
@@ -505,19 +509,23 @@ export default function InviteeFormDialog({ open, onOpenChange, invitee }) {
                     maxLength={255}
                     className="flex-1"
                   />
-                  <select
+                  <Select
                     value={inv.status}
-                    onChange={(e) => setCreateInvitees((prev) => prev.map((x, j) => j === i ? { ...x, status: e.target.value } : x))}
-                    className={`rounded-full px-2 py-0.5 text-xs font-medium border-0 outline-none cursor-pointer shrink-0 ${
+                    onValueChange={(v) => setCreateInvitees((prev) => prev.map((x, j) => j === i ? { ...x, status: v } : x))}
+                  >
+                    <SelectTrigger className={`h-auto px-2 py-0.5 text-xs font-medium rounded-full border-0 focus:ring-0 w-auto gap-1 shrink-0 ${
                       inv.status === 'attending' ? 'bg-primary text-primary-foreground' :
                       inv.status === 'declined'  ? 'bg-destructive text-destructive-foreground' :
                                                    'bg-secondary text-secondary-foreground'
-                    }`}
-                  >
-                    <option value="pending">Pendiente</option>
-                    <option value="attending">Asistirá</option>
-                    <option value="declined">Rechazó</option>
-                  </select>
+                    }`}>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="pending">Pendiente</SelectItem>
+                      <SelectItem value="attending">Asistirá</SelectItem>
+                      <SelectItem value="declined">Rechazó</SelectItem>
+                    </SelectContent>
+                  </Select>
                   {createInvitees.length > 1 && (
                     <Button type="button" size="icon" variant="ghost" className="shrink-0 text-muted-foreground"
                       onClick={() => setCreateInvitees((prev) => prev.filter((_, j) => j !== i))}>
