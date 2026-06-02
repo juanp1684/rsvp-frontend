@@ -36,7 +36,8 @@ export default function InviteeFormDialog({ open, onOpenChange, invitee }) {
   const [addingName, setAddingName] = useState('')
   const [localCompanions, setLocalCompanions] = useState([])
   const [localInvitees, setLocalInvitees] = useState([])
-  const [createInvitees, setCreateInvitees] = useState([{ full_name: '' }])
+  const [createInvitees, setCreateInvitees] = useState([{ full_name: '', status: 'pending' }])
+  const [createCompanions, setCreateCompanions] = useState([])
   const [pendingStatuses, setPendingStatuses] = useState({})
   const [addingInviteeName, setAddingInviteeName] = useState('')
   const [isAddingInvitee, setIsAddingInvitee] = useState(false)
@@ -74,7 +75,8 @@ export default function InviteeFormDialog({ open, onOpenChange, invitee }) {
       setLocalInvitees([])
       setLocalCompanions([])
       setSelectedTagIds(new Set())
-      setCreateInvitees([{ full_name: '' }])
+      setCreateInvitees([{ full_name: '', status: 'pending' }])
+      setCreateCompanions([])
     }
     setPendingStatuses({})
     setEditingId(null)
@@ -127,14 +129,22 @@ export default function InviteeFormDialog({ open, onOpenChange, invitee }) {
         await Promise.all(calls)
       } else {
         const validInvitees = createInvitees.filter((i) => i.full_name.trim())
-        return api.post(`/events/${activeEvent.id}/invitations`, {
+        const res = await api.post(`/events/${activeEvent.id}/invitations`, {
           name_on_invitation: data.full_name,
           phone: data.phone,
           allowed_companions: data.allowed_companions,
           notes: data.notes,
           type: data.type,
-          invitees: validInvitees.length > 0 ? validInvitees : [{ full_name: data.full_name }],
+          invitees: validInvitees.length > 0
+            ? validInvitees.map((i) => ({ full_name: i.full_name, status: i.status }))
+            : [{ full_name: data.full_name, status: 'pending' }],
         })
+        const invitationId = res.data.id
+        // Create companions if any
+        for (const c of createCompanions.filter((c) => c.trim())) {
+          await api.post(`/events/${activeEvent.id}/invitations/${invitationId}/companions`, { full_name: c })
+        }
+        return res
       }
     },
     onSuccess: () => {
@@ -255,6 +265,67 @@ export default function InviteeFormDialog({ open, onOpenChange, invitee }) {
               </Select>
             </div>
           </div>
+
+          {/* Invitees section — edit mode */}
+          {isEdit && (
+            <div className="flex flex-col gap-2 border-t pt-3">
+              <Label>Invitados</Label>
+              {localInvitees.map((inv) => (
+                <div key={inv.id} className="flex items-center gap-2">
+                  <span className="flex-1 text-sm truncate">{inv.full_name}</span>
+                  <select
+                    value={pendingStatuses[inv.id] ?? inv.status}
+                    onChange={(e) => setPendingStatuses((prev) => ({ ...prev, [inv.id]: e.target.value }))}
+                    className={`rounded-full px-2 py-0.5 text-xs font-medium border-0 outline-none cursor-pointer shrink-0 ${
+                      (pendingStatuses[inv.id] ?? inv.status) === 'attending' ? 'bg-primary text-primary-foreground' :
+                      (pendingStatuses[inv.id] ?? inv.status) === 'declined'  ? 'bg-destructive text-destructive-foreground' :
+                                                                                 'bg-secondary text-secondary-foreground'
+                    }`}
+                  >
+                    <option value="pending">Pendiente</option>
+                    <option value="attending">Asistirá</option>
+                    <option value="declined">Rechazó</option>
+                  </select>
+                  {localInvitees.length > 1 && (
+                    <Button type="button" size="icon" variant="ghost" className="h-7 w-7 text-destructive shrink-0"
+                      disabled={removeInviteeMutation.isPending}
+                      onClick={() => removeInviteeMutation.mutate(inv.id)}>
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </Button>
+                  )}
+                </div>
+              ))}
+              {isAddingInvitee ? (
+                <div className="flex gap-2">
+                  <Input
+                    className="h-8 text-sm flex-1"
+                    placeholder="Nombre completo"
+                    value={addingInviteeName}
+                    onChange={(e) => setAddingInviteeName(e.target.value)}
+                    autoFocus
+                    maxLength={255}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') { e.preventDefault(); if (addingInviteeName.trim()) addInviteeMutation.mutate(addingInviteeName.trim()) }
+                      if (e.key === 'Escape') { setIsAddingInvitee(false); setAddingInviteeName('') }
+                    }}
+                  />
+                  <Button type="button" size="icon" variant="ghost" className="h-8 w-8 shrink-0"
+                    disabled={!addingInviteeName.trim() || addInviteeMutation.isPending}
+                    onClick={() => addInviteeMutation.mutate(addingInviteeName.trim())}>
+                    <Check className="h-3.5 w-3.5" />
+                  </Button>
+                  <Button type="button" size="icon" variant="ghost" className="h-8 w-8 shrink-0 text-muted-foreground"
+                    onClick={() => { setIsAddingInvitee(false); setAddingInviteeName('') }}>
+                    <X className="h-3.5 w-3.5" />
+                  </Button>
+                </div>
+              ) : (
+                <Button type="button" variant="outline" size="sm" onClick={() => setIsAddingInvitee(true)}>
+                  + Agregar invitado
+                </Button>
+              )}
+            </div>
+          )}
 
           {showCompanions && (
             <div className="flex flex-col gap-2 border-t pt-3">
@@ -386,67 +457,6 @@ export default function InviteeFormDialog({ open, onOpenChange, invitee }) {
             </div>
           )}
 
-          {/* Invitees section — edit mode */}
-          {isEdit && (
-            <div className="flex flex-col gap-2 border-t pt-3">
-              <Label>Invitados</Label>
-              {localInvitees.map((inv) => (
-                <div key={inv.id} className="flex items-center gap-2">
-                  <span className="flex-1 text-sm truncate">{inv.full_name}</span>
-                  <select
-                    value={pendingStatuses[inv.id] ?? inv.status}
-                    onChange={(e) => setPendingStatuses((prev) => ({ ...prev, [inv.id]: e.target.value }))}
-                    className={`rounded-full px-2 py-0.5 text-xs font-medium border-0 outline-none cursor-pointer shrink-0 ${
-                      (pendingStatuses[inv.id] ?? inv.status) === 'attending' ? 'bg-primary text-primary-foreground' :
-                      (pendingStatuses[inv.id] ?? inv.status) === 'declined'  ? 'bg-destructive text-destructive-foreground' :
-                                                                                 'bg-secondary text-secondary-foreground'
-                    }`}
-                  >
-                    <option value="pending">Pendiente</option>
-                    <option value="attending">Asistirá</option>
-                    <option value="declined">Rechazó</option>
-                  </select>
-                  {localInvitees.length > 1 && (
-                    <Button type="button" size="icon" variant="ghost" className="h-7 w-7 text-destructive shrink-0"
-                      disabled={removeInviteeMutation.isPending}
-                      onClick={() => removeInviteeMutation.mutate(inv.id)}>
-                      <Trash2 className="h-3.5 w-3.5" />
-                    </Button>
-                  )}
-                </div>
-              ))}
-              {isAddingInvitee ? (
-                <div className="flex gap-2">
-                  <Input
-                    className="h-8 text-sm flex-1"
-                    placeholder="Nombre completo"
-                    value={addingInviteeName}
-                    onChange={(e) => setAddingInviteeName(e.target.value)}
-                    autoFocus
-                    maxLength={255}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter') { e.preventDefault(); if (addingInviteeName.trim()) addInviteeMutation.mutate(addingInviteeName.trim()) }
-                      if (e.key === 'Escape') { setIsAddingInvitee(false); setAddingInviteeName('') }
-                    }}
-                  />
-                  <Button type="button" size="icon" variant="ghost" className="h-8 w-8 shrink-0"
-                    disabled={!addingInviteeName.trim() || addInviteeMutation.isPending}
-                    onClick={() => addInviteeMutation.mutate(addingInviteeName.trim())}>
-                    <Check className="h-3.5 w-3.5" />
-                  </Button>
-                  <Button type="button" size="icon" variant="ghost" className="h-8 w-8 shrink-0 text-muted-foreground"
-                    onClick={() => { setIsAddingInvitee(false); setAddingInviteeName('') }}>
-                    <X className="h-3.5 w-3.5" />
-                  </Button>
-                </div>
-              ) : (
-                <Button type="button" variant="outline" size="sm" onClick={() => setIsAddingInvitee(true)}>
-                  + Agregar invitado
-                </Button>
-              )}
-            </div>
-          )}
-
           {isEdit && eventTags.length > 0 && (
             <div className="flex flex-col gap-1.5 border-t pt-3">
               <Label>Etiquetas</Label>
@@ -470,13 +480,27 @@ export default function InviteeFormDialog({ open, onOpenChange, invitee }) {
             <div className="flex flex-col gap-2 border-t pt-3">
               <Label>Invitados <span className="text-muted-foreground font-normal text-xs">(mín. 1)</span></Label>
               {createInvitees.map((inv, i) => (
-                <div key={i} className="flex gap-2">
+                <div key={i} className="flex gap-2 items-center">
                   <Input
                     placeholder="Nombre completo"
                     value={inv.full_name}
-                    onChange={(e) => setCreateInvitees((prev) => prev.map((x, j) => j === i ? { full_name: e.target.value } : x))}
+                    onChange={(e) => setCreateInvitees((prev) => prev.map((x, j) => j === i ? { ...x, full_name: e.target.value } : x))}
                     maxLength={255}
+                    className="flex-1"
                   />
+                  <select
+                    value={inv.status}
+                    onChange={(e) => setCreateInvitees((prev) => prev.map((x, j) => j === i ? { ...x, status: e.target.value } : x))}
+                    className={`rounded-full px-2 py-0.5 text-xs font-medium border-0 outline-none cursor-pointer shrink-0 ${
+                      inv.status === 'attending' ? 'bg-primary text-primary-foreground' :
+                      inv.status === 'declined'  ? 'bg-destructive text-destructive-foreground' :
+                                                   'bg-secondary text-secondary-foreground'
+                    }`}
+                  >
+                    <option value="pending">Pendiente</option>
+                    <option value="attending">Asistirá</option>
+                    <option value="declined">Rechazó</option>
+                  </select>
                   {createInvitees.length > 1 && (
                     <Button type="button" size="icon" variant="ghost" className="shrink-0 text-muted-foreground"
                       onClick={() => setCreateInvitees((prev) => prev.filter((_, j) => j !== i))}>
@@ -486,9 +510,36 @@ export default function InviteeFormDialog({ open, onOpenChange, invitee }) {
                 </div>
               ))}
               <Button type="button" variant="outline" size="sm"
-                onClick={() => setCreateInvitees((prev) => [...prev, { full_name: '' }])}>
+                onClick={() => setCreateInvitees((prev) => [...prev, { full_name: '', status: 'pending' }])}>
                 + Agregar invitado
               </Button>
+            </div>
+          )}
+
+          {/* Companions — create mode */}
+          {!isEdit && Number(form.allowed_companions) > 0 && (
+            <div className="flex flex-col gap-2 border-t pt-3">
+              <Label>Acompañantes <span className="text-muted-foreground font-normal text-xs">(máx. {form.allowed_companions})</span></Label>
+              {createCompanions.map((name, i) => (
+                <div key={i} className="flex gap-2">
+                  <Input
+                    placeholder="Nombre completo"
+                    value={name}
+                    onChange={(e) => setCreateCompanions((prev) => prev.map((x, j) => j === i ? e.target.value : x))}
+                    maxLength={255}
+                  />
+                  <Button type="button" size="icon" variant="ghost" className="shrink-0 text-muted-foreground"
+                    onClick={() => setCreateCompanions((prev) => prev.filter((_, j) => j !== i))}>
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+              ))}
+              {createCompanions.length < Number(form.allowed_companions) && (
+                <Button type="button" variant="outline" size="sm"
+                  onClick={() => setCreateCompanions((prev) => [...prev, ''])}>
+                  + Agregar acompañante
+                </Button>
+              )}
             </div>
           )}
 
