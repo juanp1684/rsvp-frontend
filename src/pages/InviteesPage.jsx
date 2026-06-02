@@ -619,7 +619,7 @@ export default function InviteesPage() {
                             className="shrink-0"
                           />
                         )}
-                        <span className="font-semibold text-sm flex-1 truncate">{first.name_on_invitation}</span>
+                        <span className="font-bold text-base flex-1 truncate">{first.name_on_invitation}</span>
                         {first.type === 'late' && (
                           <Badge className="text-xs bg-amber-100 text-amber-800 border-amber-300 hover:bg-amber-100 shrink-0">Rezagado</Badge>
                         )}
