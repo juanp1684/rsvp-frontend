@@ -285,7 +285,7 @@ export default function InviteeFormDialog({ open, onOpenChange, invitee }) {
                   >
                     <SelectTrigger className={`h-auto px-2 py-0.5 text-xs font-medium rounded-full border-0 focus:ring-0 w-auto gap-1 shrink-0 ${
                       (pendingStatuses[inv.id] ?? inv.status) === 'attending' ? 'bg-primary text-primary-foreground' :
-                      (pendingStatuses[inv.id] ?? inv.status) === 'declined'  ? 'bg-destructive text-destructive-foreground' :
+                      (pendingStatuses[inv.id] ?? inv.status) === 'declined'  ? 'bg-red-100 text-red-700 dark:bg-red-950/60 dark:text-red-400' :
                                                                                  'bg-secondary text-secondary-foreground'
                     }`}>
                       <SelectValue />
@@ -515,7 +515,7 @@ export default function InviteeFormDialog({ open, onOpenChange, invitee }) {
                   >
                     <SelectTrigger className={`h-auto px-2 py-0.5 text-xs font-medium rounded-full border-0 focus:ring-0 w-auto gap-1 shrink-0 ${
                       inv.status === 'attending' ? 'bg-primary text-primary-foreground' :
-                      inv.status === 'declined'  ? 'bg-destructive text-destructive-foreground' :
+                      inv.status === 'declined'  ? 'bg-red-100 text-red-700 dark:bg-red-950/60 dark:text-red-400' :
                                                    'bg-secondary text-secondary-foreground'
                     }`}>
                       <SelectValue />
