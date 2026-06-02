@@ -36,6 +36,7 @@ export default function InviteeFormDialog({ open, onOpenChange, invitee }) {
   const [addingName, setAddingName] = useState('')
   const [localCompanions, setLocalCompanions] = useState([])
   const [localInvitees, setLocalInvitees] = useState([])
+  const [createInvitees, setCreateInvitees] = useState([{ full_name: '' }])
   const [pendingStatuses, setPendingStatuses] = useState({})
   const [addingInviteeName, setAddingInviteeName] = useState('')
   const [isAddingInvitee, setIsAddingInvitee] = useState(false)
@@ -73,6 +74,7 @@ export default function InviteeFormDialog({ open, onOpenChange, invitee }) {
       setLocalInvitees([])
       setLocalCompanions([])
       setSelectedTagIds(new Set())
+      setCreateInvitees([{ full_name: '' }])
     }
     setPendingStatuses({})
     setEditingId(null)
@@ -124,13 +126,14 @@ export default function InviteeFormDialog({ open, onOpenChange, invitee }) {
         ]
         await Promise.all(calls)
       } else {
+        const validInvitees = createInvitees.filter((i) => i.full_name.trim())
         return api.post(`/events/${activeEvent.id}/invitations`, {
           name_on_invitation: data.full_name,
           phone: data.phone,
           allowed_companions: data.allowed_companions,
           notes: data.notes,
           type: data.type,
-          invitees: [{ full_name: data.full_name }],
+          invitees: validInvitees.length > 0 ? validInvitees : [{ full_name: data.full_name }],
         })
       }
     },
@@ -199,7 +202,7 @@ export default function InviteeFormDialog({ open, onOpenChange, invitee }) {
         </DialogHeader>
         <form onSubmit={handleSubmit} className="flex flex-col gap-4 py-2">
           <div className="flex flex-col gap-1.5">
-            <Label htmlFor="full_name">{isEdit ? 'Nombre en la invitación' : 'Nombre completo'}</Label>
+            <Label htmlFor="full_name">Nombre en la invitación</Label>
             <Input
               id="full_name"
               value={form.full_name}
@@ -459,6 +462,33 @@ export default function InviteeFormDialog({ open, onOpenChange, invitee }) {
                   </button>
                 ))}
               </div>
+            </div>
+          )}
+
+          {/* Invitees — create mode */}
+          {!isEdit && (
+            <div className="flex flex-col gap-2 border-t pt-3">
+              <Label>Invitados <span className="text-muted-foreground font-normal text-xs">(mín. 1)</span></Label>
+              {createInvitees.map((inv, i) => (
+                <div key={i} className="flex gap-2">
+                  <Input
+                    placeholder="Nombre completo"
+                    value={inv.full_name}
+                    onChange={(e) => setCreateInvitees((prev) => prev.map((x, j) => j === i ? { full_name: e.target.value } : x))}
+                    maxLength={255}
+                  />
+                  {createInvitees.length > 1 && (
+                    <Button type="button" size="icon" variant="ghost" className="shrink-0 text-muted-foreground"
+                      onClick={() => setCreateInvitees((prev) => prev.filter((_, j) => j !== i))}>
+                      <X className="h-4 w-4" />
+                    </Button>
+                  )}
+                </div>
+              ))}
+              <Button type="button" variant="outline" size="sm"
+                onClick={() => setCreateInvitees((prev) => [...prev, { full_name: '' }])}>
+                + Agregar invitado
+              </Button>
             </div>
           )}
 
