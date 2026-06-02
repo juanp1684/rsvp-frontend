@@ -35,6 +35,10 @@ export default function InviteeFormDialog({ open, onOpenChange, invitee }) {
   const [isAdding, setIsAdding] = useState(false)
   const [addingName, setAddingName] = useState('')
   const [localCompanions, setLocalCompanions] = useState([])
+  const [localInvitees, setLocalInvitees] = useState([])
+  const [pendingStatuses, setPendingStatuses] = useState({})
+  const [addingInviteeName, setAddingInviteeName] = useState('')
+  const [isAddingInvitee, setIsAddingInvitee] = useState(false)
   const [selectedTagIds, setSelectedTagIds] = useState(new Set())
 
   const { data: eventTags = [] } = useQuery({
@@ -50,35 +54,75 @@ export default function InviteeFormDialog({ open, onOpenChange, invitee }) {
   })
 
   useEffect(() => {
-    setForm(
-      invitee
-        ? {
-            full_name: invitee.full_name,
-            phone: invitee.phone ?? '',
-            allowed_companions: String(invitee.allowed_companions),
-            notes: invitee.notes ?? '',
-            type: invitee.type ?? 'regular',
-            status: invitee.status ?? 'pending',
-          }
-        : empty
-    )
-    setLocalCompanions(invitee?.companions ?? [])
-    setSelectedTagIds(new Set(invitee?.tags?.map((t) => t.id) ?? []))
+    if (invitee) {
+      setForm({
+        full_name: invitee.name_on_invitation ?? invitee.full_name,
+        phone: invitee.phone ?? '',
+        allowed_companions: String(invitee.allowed_companions),
+        notes: invitee.notes ?? '',
+        type: invitee.type ?? 'regular',
+      })
+      // Pull all invitees for this invitation from the query cache
+      const allInvitees = qc.getQueryData(['invitees', activeEvent?.id]) ?? []
+      const siblings = allInvitees.filter((i) => i.invitation_id === invitee.invitation_id)
+      setLocalInvitees(siblings)
+      setLocalCompanions(invitee.companions ?? [])
+      setSelectedTagIds(new Set(invitee.tags?.map((t) => t.id) ?? []))
+    } else {
+      setForm(empty)
+      setLocalInvitees([])
+      setLocalCompanions([])
+      setSelectedTagIds(new Set())
+    }
+    setPendingStatuses({})
     setEditingId(null)
     setIsAdding(false)
     setAddingName('')
+    setIsAddingInvitee(false)
+    setAddingInviteeName('')
   }, [invitee, open])
 
   const set = (field) => (e) => setForm((f) => ({ ...f, [field]: e.target.value }))
 
+  const addInviteeMutation = useMutation({
+    mutationFn: (name) =>
+      api.post(`/events/${activeEvent.id}/invitations/${invitee.invitation_id}/invitees`, { full_name: name }),
+    onSuccess: ({ data }) => {
+      setLocalInvitees((prev) => [...prev, data])
+      qc.invalidateQueries({ queryKey: ['invitees', activeEvent?.id] })
+      setIsAddingInvitee(false)
+      setAddingInviteeName('')
+    },
+    onError: () => toast.error('No se pudo agregar el invitado.'),
+  })
+
+  const removeInviteeMutation = useMutation({
+    mutationFn: (inviteeId) =>
+      api.delete(`/events/${activeEvent.id}/invitations/${invitee.invitation_id}/invitees/${inviteeId}`),
+    onSuccess: (_, inviteeId) => {
+      setLocalInvitees((prev) => prev.filter((i) => i.id !== inviteeId))
+      qc.invalidateQueries({ queryKey: ['invitees', activeEvent?.id] })
+    },
+    onError: (err) => toast.error(err?.response?.data?.message ?? 'No se pudo eliminar el invitado.'),
+  })
+
   const mutation = useMutation({
     mutationFn: async (data) => {
       if (isEdit) {
-        const { full_name, status, ...invitationData } = data
-        await Promise.all([
-          api.put(`/events/${activeEvent.id}/invitations/${invitee.invitation_id}/invitees/${invitee.id}`, { full_name, status }),
-          api.put(`/events/${activeEvent.id}/invitations/${invitee.invitation_id}`, invitationData),
-        ])
+        const calls = [
+          api.put(`/events/${activeEvent.id}/invitations/${invitee.invitation_id}`, {
+            name_on_invitation: data.full_name,
+            phone: data.phone,
+            allowed_companions: data.allowed_companions,
+            notes: data.notes,
+            type: data.type,
+          }),
+          // Apply only touched status changes
+          ...Object.entries(pendingStatuses).map(([id, status]) =>
+            api.put(`/events/${activeEvent.id}/invitations/${invitee.invitation_id}/invitees/${id}`, { status })
+          ),
+        ]
+        await Promise.all(calls)
       } else {
         return api.post(`/events/${activeEvent.id}/invitations`, {
           name_on_invitation: data.full_name,
@@ -92,7 +136,7 @@ export default function InviteeFormDialog({ open, onOpenChange, invitee }) {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['invitees', activeEvent?.id] })
-      toast.success(isEdit ? 'Invitado actualizado.' : 'Invitado creado.')
+      toast.success(isEdit ? 'Invitación actualizada.' : 'Invitación creada.')
       onOpenChange(false)
     },
     onError: () => toast.error('Algo salió mal.'),
@@ -134,7 +178,8 @@ export default function InviteeFormDialog({ open, onOpenChange, invitee }) {
   const handleSubmit = (e) => {
     e.preventDefault()
     if (isEdit) syncTagsMutation.mutate(selectedTagIds)
-    mutation.mutate({ ...form, allowed_companions: Number(form.allowed_companions) })
+    const { status: _removed, ...formData } = form
+    mutation.mutate({ ...formData, allowed_companions: Number(form.allowed_companions) })
   }
 
   const toggleTag = (id) => setSelectedTagIds((prev) => {
@@ -144,7 +189,7 @@ export default function InviteeFormDialog({ open, onOpenChange, invitee }) {
   })
 
   const showCompanions =
-    isEdit && form.status === 'attending' && Number(form.allowed_companions) > 0
+    isEdit && localInvitees.some((i) => (pendingStatuses[i.id] ?? i.status) === 'attending') && Number(form.allowed_companions) > 0
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -154,7 +199,7 @@ export default function InviteeFormDialog({ open, onOpenChange, invitee }) {
         </DialogHeader>
         <form onSubmit={handleSubmit} className="flex flex-col gap-4 py-2">
           <div className="flex flex-col gap-1.5">
-            <Label htmlFor="full_name">Nombre completo</Label>
+            <Label htmlFor="full_name">{isEdit ? 'Nombre en la invitación' : 'Nombre completo'}</Label>
             <Input
               id="full_name"
               value={form.full_name}
@@ -206,24 +251,6 @@ export default function InviteeFormDialog({ open, onOpenChange, invitee }) {
                 </SelectContent>
               </Select>
             </div>
-            {isEdit && (
-              <div className="flex flex-col gap-1.5 flex-1">
-                <Label>Estado</Label>
-                <Select
-                  value={form.status}
-                  onValueChange={(v) => setForm((f) => ({ ...f, status: v }))}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="pending">Pendiente</SelectItem>
-                    <SelectItem value="attending">Asistirá</SelectItem>
-                    <SelectItem value="declined">Rechazó</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
           </div>
 
           {showCompanions && (
@@ -352,6 +379,67 @@ export default function InviteeFormDialog({ open, onOpenChange, invitee }) {
                     <X className="h-3.5 w-3.5" />
                   </Button>
                 </div>
+              )}
+            </div>
+          )}
+
+          {/* Invitees section — edit mode */}
+          {isEdit && (
+            <div className="flex flex-col gap-2 border-t pt-3">
+              <Label>Invitados</Label>
+              {localInvitees.map((inv) => (
+                <div key={inv.id} className="flex items-center gap-2">
+                  <span className="flex-1 text-sm truncate">{inv.full_name}</span>
+                  <select
+                    value={pendingStatuses[inv.id] ?? inv.status}
+                    onChange={(e) => setPendingStatuses((prev) => ({ ...prev, [inv.id]: e.target.value }))}
+                    className={`rounded-full px-2 py-0.5 text-xs font-medium border-0 outline-none cursor-pointer shrink-0 ${
+                      (pendingStatuses[inv.id] ?? inv.status) === 'attending' ? 'bg-primary text-primary-foreground' :
+                      (pendingStatuses[inv.id] ?? inv.status) === 'declined'  ? 'bg-destructive text-destructive-foreground' :
+                                                                                 'bg-secondary text-secondary-foreground'
+                    }`}
+                  >
+                    <option value="pending">Pendiente</option>
+                    <option value="attending">Asistirá</option>
+                    <option value="declined">Rechazó</option>
+                  </select>
+                  {localInvitees.length > 1 && (
+                    <Button type="button" size="icon" variant="ghost" className="h-7 w-7 text-destructive shrink-0"
+                      disabled={removeInviteeMutation.isPending}
+                      onClick={() => removeInviteeMutation.mutate(inv.id)}>
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </Button>
+                  )}
+                </div>
+              ))}
+              {isAddingInvitee ? (
+                <div className="flex gap-2">
+                  <Input
+                    className="h-8 text-sm flex-1"
+                    placeholder="Nombre completo"
+                    value={addingInviteeName}
+                    onChange={(e) => setAddingInviteeName(e.target.value)}
+                    autoFocus
+                    maxLength={255}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') { e.preventDefault(); if (addingInviteeName.trim()) addInviteeMutation.mutate(addingInviteeName.trim()) }
+                      if (e.key === 'Escape') { setIsAddingInvitee(false); setAddingInviteeName('') }
+                    }}
+                  />
+                  <Button type="button" size="icon" variant="ghost" className="h-8 w-8 shrink-0"
+                    disabled={!addingInviteeName.trim() || addInviteeMutation.isPending}
+                    onClick={() => addInviteeMutation.mutate(addingInviteeName.trim())}>
+                    <Check className="h-3.5 w-3.5" />
+                  </Button>
+                  <Button type="button" size="icon" variant="ghost" className="h-8 w-8 shrink-0 text-muted-foreground"
+                    onClick={() => { setIsAddingInvitee(false); setAddingInviteeName('') }}>
+                    <X className="h-3.5 w-3.5" />
+                  </Button>
+                </div>
+              ) : (
+                <Button type="button" variant="outline" size="sm" onClick={() => setIsAddingInvitee(true)}>
+                  + Agregar invitado
+                </Button>
               )}
             </div>
           )}
