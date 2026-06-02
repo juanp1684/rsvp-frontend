@@ -932,7 +932,7 @@ function StatusSelect({ invitee, onChange, readonly }) {
   }
   return (
     <Select value={invitee.status} onValueChange={onChange}>
-      <SelectTrigger className={`h-auto px-2 py-0.5 text-xs font-medium rounded-full border-0 focus:ring-0 w-auto gap-1 shrink-0 ${statusColors[invitee.status]}`}>
+      <SelectTrigger className={`h-auto px-2 py-0.5 text-xs font-medium rounded-full border-0 focus:ring-0 w-24 gap-1 shrink-0 ${statusColors[invitee.status]}`}>
         <SelectValue />
       </SelectTrigger>
       <SelectContent>
