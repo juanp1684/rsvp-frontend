@@ -470,11 +470,9 @@ export default function RsvpPage() {
               </div>
             )}
 
-            {allResponded && (
-              <Button type="submit" className="w-full bg-[#412D26] hover:bg-[#735749] text-[#FFF1E9]" disabled={mutation.isPending}>
+            <Button type="submit" className="w-full bg-[#412D26] hover:bg-[#735749] text-[#FFF1E9]" disabled={!allResponded || mutation.isPending}>
                 {mutation.isPending ? 'Enviando…' : isEditing ? 'Actualizar respuesta' : 'Confirmar'}
               </Button>
-            )}
 
             {mutation.isError && (
               <p className="text-sm text-destructive text-center">
