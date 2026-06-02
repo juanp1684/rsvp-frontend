@@ -427,10 +427,11 @@ export default function RsvpPage() {
             {hasAttending && (invitation?.allowed_companions ?? 0) > 0 && (
               <div className="flex flex-col gap-3">
                 <p className="text-sm font-medium">
-                  ¿Llevarán acompañantes?{' '}
-                  <span className="text-muted-foreground font-normal">
-                    (máx. {invitation.allowed_companions})
-                  </span>
+                  Tu invitación incluye{' '}
+                  {invitation.allowed_companions === 1
+                    ? '1 lugar adicional'
+                    : `${invitation.allowed_companions} lugares adicionales`}.{' '}
+                  <span className="text-muted-foreground font-normal">Opcional.</span>
                 </p>
                 {companions.map((c, i) => (
                   <div key={i} className="flex gap-2 items-center">
