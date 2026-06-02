@@ -35,6 +35,7 @@ export default function InviteeFormDialog({ open, onOpenChange, invitee }) {
   const [isAdding, setIsAdding] = useState(false)
   const [addingName, setAddingName] = useState('')
   const [localCompanions, setLocalCompanions] = useState([])
+  const [pendingNewCompanions, setPendingNewCompanions] = useState([])
   const [localInvitees, setLocalInvitees] = useState([])
   const [createInvitees, setCreateInvitees] = useState([{ full_name: '', status: 'pending' }])
   const [createCompanions, setCreateCompanions] = useState([])
@@ -79,6 +80,7 @@ export default function InviteeFormDialog({ open, onOpenChange, invitee }) {
       setCreateCompanions([])
     }
     setPendingStatuses({})
+    setPendingNewCompanions([])
     setEditingId(null)
     setIsAdding(false)
     setAddingName('')
@@ -127,6 +129,10 @@ export default function InviteeFormDialog({ open, onOpenChange, invitee }) {
           ),
         ]
         await Promise.all(calls)
+        // Create pending new companions after statuses are saved
+        for (const name of pendingNewCompanions.filter((n) => n.trim())) {
+          await api.post(`/events/${activeEvent.id}/invitations/${invitee.invitation_id}/companions`, { full_name: name })
+        }
       } else {
         const validInvitees = createInvitees.filter((i) => i.full_name.trim())
         const res = await api.post(`/events/${activeEvent.id}/invitations`, {
@@ -333,10 +339,10 @@ export default function InviteeFormDialog({ open, onOpenChange, invitee }) {
                 <Label>
                   Acompañantes{' '}
                   <span className="text-muted-foreground font-normal">
-                    ({localCompanions.length}/{form.allowed_companions})
+                    ({localCompanions.length + pendingNewCompanions.length}/{form.allowed_companions})
                   </span>
                 </Label>
-                {!isAdding && localCompanions.length < Number(form.allowed_companions) && (
+                {!isAdding && (localCompanions.length + pendingNewCompanions.length) < Number(form.allowed_companions) && (
                   <Button
                     type="button"
                     size="sm"
@@ -416,6 +422,17 @@ export default function InviteeFormDialog({ open, onOpenChange, invitee }) {
                 </div>
               ))}
 
+              {/* Pending new companions (held locally until save) */}
+              {pendingNewCompanions.map((name, i) => (
+                <div key={`pending-${i}`} className="flex items-center gap-2">
+                  <span className="text-sm flex-1 truncate text-muted-foreground italic">{name}</span>
+                  <Button type="button" size="icon" variant="ghost" className="h-7 w-7 shrink-0 text-muted-foreground"
+                    onClick={() => setPendingNewCompanions((prev) => prev.filter((_, j) => j !== i))}>
+                    <X className="h-3.5 w-3.5" />
+                  </Button>
+                </div>
+              ))}
+
               {isAdding && (
                 <div className="flex items-center gap-2">
                   <Input
@@ -426,7 +443,7 @@ export default function InviteeFormDialog({ open, onOpenChange, invitee }) {
                     onKeyDown={(e) => {
                       if (e.key === 'Enter') {
                         e.preventDefault()
-                        if (addingName.trim()) addCompanionMutation.mutate(addingName.trim())
+                        if (addingName.trim()) { setPendingNewCompanions((prev) => [...prev, addingName.trim()]); setAddingName(''); setIsAdding(false) }
                       }
                       if (e.key === 'Escape') { setIsAdding(false); setAddingName('') }
                     }}
@@ -438,8 +455,8 @@ export default function InviteeFormDialog({ open, onOpenChange, invitee }) {
                     size="icon"
                     variant="ghost"
                     className="h-8 w-8 shrink-0"
-                    disabled={!addingName.trim() || addCompanionMutation.isPending}
-                    onClick={() => addCompanionMutation.mutate(addingName.trim())}
+                    disabled={!addingName.trim()}
+                    onClick={() => { setPendingNewCompanions((prev) => [...prev, addingName.trim()]); setAddingName(''); setIsAdding(false) }}
                   >
                     <Check className="h-3.5 w-3.5" />
                   </Button>
