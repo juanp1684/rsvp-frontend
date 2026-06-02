@@ -605,26 +605,28 @@ export default function InviteesPage() {
               const first = group[0]
               const invitationId = first.invitation_id
               return (
-                <div key={invitationId} className="flex flex-col gap-1">
-                  {/* Group label */}
-                  <div className="flex items-center gap-2 flex-wrap px-1">
-                    {!isViewer && (
-                      <Checkbox
-                        checked={selectedIds.has(invitationId)}
-                        onCheckedChange={() => toggleSelect(invitationId)}
-                        className="shrink-0"
-                      />
-                    )}
-                    <p className="text-[10px] font-medium uppercase tracking-widest text-muted-foreground">
-                      {first.name_on_invitation}
-                    </p>
-                    {first.tags?.map((tag) => <TagChip key={tag.id} tag={tag} />)}
-                  </div>
-
-                  {/* Single card for the whole household */}
+                <div key={invitationId} className="flex flex-col gap-0">
+                  {/* Single card — name in the header */}
                   <div className={`border rounded-lg overflow-hidden${first.type === 'late' ? ' border-l-4 border-l-amber-400' : ''}`}>
-                    {/* Invitation info bar */}
-                    <div className={`px-4 py-2.5 flex items-center justify-between gap-3 border-b${first.type === 'late' ? ' bg-amber-100 dark:bg-amber-950/20' : ' bg-slate-200 dark:bg-muted'}`}>
+                    {/* Invitation header bar */}
+                    <div className={`px-4 py-3 border-b${first.type === 'late' ? ' bg-amber-100 dark:bg-amber-950/20' : ' bg-slate-200 dark:bg-muted'}`}>
+                      {/* Name row */}
+                      <div className="flex items-center gap-2 mb-2 min-w-0">
+                        {!isViewer && (
+                          <Checkbox
+                            checked={selectedIds.has(invitationId)}
+                            onCheckedChange={() => toggleSelect(invitationId)}
+                            className="shrink-0"
+                          />
+                        )}
+                        <span className="font-semibold text-sm flex-1 truncate">{first.name_on_invitation}</span>
+                        {first.type === 'late' && (
+                          <Badge className="text-xs bg-amber-100 text-amber-800 border-amber-300 hover:bg-amber-100 shrink-0">Rezagado</Badge>
+                        )}
+                        {first.tags?.map((tag) => <TagChip key={tag.id} tag={tag} />)}
+                      </div>
+                      {/* Actions row */}
+                    <div className="flex items-center justify-between gap-3">
                       <div className="flex flex-col gap-0.5 min-w-0">
                         {first.phone && <span className="text-xs text-muted-foreground">{first.phone}</span>}
                         <span className="text-xs text-muted-foreground">{first.companions.length}/{first.allowed_companions} acompañantes</span>
@@ -661,7 +663,7 @@ export default function InviteesPage() {
                           </Button>
                         )}
                       </div>
-                    </div>
+                    </div>{/* end header bar */}
 
                     {/* Invitee rows */}
                     {group.map((invitee) => (
