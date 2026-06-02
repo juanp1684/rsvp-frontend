@@ -612,7 +612,7 @@ export default function InviteesPage() {
                     {/* Invitation header bar */}
                     <div className={`px-4 py-3 border-b${first.type === 'late' ? ' bg-amber-100 dark:bg-amber-950/20' : ' bg-slate-200 dark:bg-muted'}`}>
                       {/* Name row */}
-                      <div className="flex items-center gap-2 mb-2 min-w-0">
+                      <div className="flex items-center gap-2 min-w-0">
                         {!isViewer && (
                           <Checkbox
                             checked={selectedIds.has(invitationId)}
@@ -624,8 +624,12 @@ export default function InviteesPage() {
                         {first.type === 'late' && (
                           <Badge className="text-xs bg-amber-100 text-amber-800 border-amber-300 hover:bg-amber-100 shrink-0">Rezagado</Badge>
                         )}
-                        {first.tags?.map((tag) => <TagChip key={tag.id} tag={tag} />)}
                       </div>
+                      {first.tags?.length > 0 && (
+                        <div className="flex flex-wrap gap-1 mt-1.5 ml-6">
+                          {first.tags.map((tag) => <TagChip key={tag.id} tag={tag} />)}
+                        </div>
+                      )}
                       {/* Actions row */}
                     <div className="flex items-center justify-between gap-3">
                       <div className="flex flex-col gap-0.5 min-w-0">
