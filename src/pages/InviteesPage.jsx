@@ -313,6 +313,17 @@ export default function InviteesPage() {
       )
     })
     .sort((a, b) => {
+      // Always group by invitation first
+      const invitationCmp = a.name_on_invitation.localeCompare(b.name_on_invitation)
+      if (invitationCmp !== 0) {
+        if (sort.field === 'full_name') {
+          const dir = sort.dir === 'asc' ? 1 : -1
+          return invitationCmp * dir
+        }
+        if (sort.field === 'status') return invitationCmp
+        return invitationCmp
+      }
+      // Within the same invitation, sort by the selected field
       if (sort.field === 'full_name') {
         const dir = sort.dir === 'asc' ? 1 : -1
         return a.full_name.localeCompare(b.full_name) * dir
