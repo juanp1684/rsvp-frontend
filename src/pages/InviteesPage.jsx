@@ -418,7 +418,7 @@ export default function InviteesPage() {
             )}
             <Button size="sm" onClick={handleAdd}>
               <Plus className="h-4 w-4 mr-1" />
-              Agregar
+              Nueva invitación
             </Button>
           </div>
         )}

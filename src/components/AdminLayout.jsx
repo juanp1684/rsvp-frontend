@@ -10,8 +10,7 @@ import { Menu, Moon, Sun, ArrowLeftRight, ChevronDown } from 'lucide-react'
 
 const navItems = [
   { to: '/', label: 'Dashboard' },
-  { to: '/invitations', label: 'Invitaciones', sub: 'Gestionar' },
-  { to: '/invitees', label: 'Invitados', sub: 'Confirmaciones' },
+  { to: '/invitees', label: 'Invitados' },
   { to: '/event', label: 'Evento' },
 ]
 
@@ -21,18 +20,17 @@ const superAdminNavItems = [
 
 function NavLinks({ onNavigate, itemClassName = '', isSuperAdmin = false }) {
   const items = isSuperAdmin ? [...navItems, ...superAdminNavItems] : navItems
-  return items.map(({ to, label, sub }) => (
+  return items.map(({ to, label }) => (
     <NavLink
       key={to}
       to={to}
       end={to === '/'}
       onClick={onNavigate}
       className={({ isActive }) =>
-        `flex flex-col text-sm transition-colors ${itemClassName} ${isActive ? 'text-foreground font-medium' : 'text-muted-foreground hover:text-foreground'}`
+        `text-sm transition-colors ${itemClassName} ${isActive ? 'text-foreground font-medium' : 'text-muted-foreground hover:text-foreground'}`
       }
     >
-      <span>{label}</span>
-      {sub && <span className="text-[10px] font-normal opacity-60 leading-none">{sub}</span>}
+      {label}
     </NavLink>
   ))
 }
