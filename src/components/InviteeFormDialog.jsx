@@ -534,7 +534,7 @@ export default function InviteeFormDialog({ open, onOpenChange, invitee }) {
           )}
 
           {/* Companions — create mode */}
-          {!isEdit && Number(form.allowed_companions) > 0 && (
+          {!isEdit && Number(form.allowed_companions) > 0 && createInvitees.some((i) => i.status === 'attending') && (
             <div className="flex flex-col gap-2 border-t pt-3">
               <Label>Acompañantes <span className="text-muted-foreground font-normal text-xs">(máx. {form.allowed_companions})</span></Label>
               {createCompanions.map((name, i) => (
