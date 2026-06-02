@@ -385,11 +385,16 @@ export default function RsvpPage() {
         {!deadlinePassed && (
           <form onSubmit={handleSubmit} className="w-full max-w-sm flex flex-col gap-6">
 
-            {/* Per-invitee attendance */}
+            {/* Attendance — single invitee: classic question; multiple: per-person */}
             <div className="flex flex-col gap-4">
+              {(invitation?.invitees ?? []).length === 1 && (
+                <p className="text-sm font-medium font-subtitle text-center">¿Asistirás a nuestra boda?</p>
+              )}
               {(invitation?.invitees ?? []).map((invitee) => (
                 <div key={invitee.id} className="flex flex-col gap-2">
-                  <p className="text-sm font-medium font-subtitle text-center">{invitee.full_name}</p>
+                  {(invitation?.invitees ?? []).length > 1 && (
+                    <p className="text-sm font-medium font-subtitle text-center">{invitee.full_name}</p>
+                  )}
                   <div className="grid grid-cols-2 gap-3">
                     <Button
                       type="button"

@@ -150,7 +150,7 @@ export default function InviteeFormDialog({ open, onOpenChange, invitee }) {
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="w-full max-w-md">
         <DialogHeader>
-          <DialogTitle>{isEdit ? 'Editar invitado' : 'Agregar invitado'}</DialogTitle>
+          <DialogTitle>{isEdit ? 'Editar invitación' : 'Nueva invitación'}</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="flex flex-col gap-4 py-2">
           <div className="flex flex-col gap-1.5">
