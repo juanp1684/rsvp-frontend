@@ -917,7 +917,7 @@ export default function InviteesPage() {
 }
 
 const statusColors = {
-  attending: 'bg-primary text-primary-foreground',
+  attending: 'bg-green-100 text-green-700 dark:bg-green-950/60 dark:text-green-400',
   declined:  'bg-red-100 text-red-700 dark:bg-red-950/60 dark:text-red-400',
   pending:   'bg-secondary text-secondary-foreground',
 }
