@@ -23,9 +23,9 @@ function ceremonies(event) {
 
   const parent = Object.fromEntries(nodes.map((n) => [n, n]))
   const find = (x) => (parent[x] === x ? x : (parent[x] = find(parent[x])))
-  if (event.civil_ceremony_same_venue) { parent[find('civil')] = find('ceremony') }
-  if (event.civil_reception_same_venue) { parent[find('civil')] = find('reception') }
-  if (event.ceremony_reception_same_venue) { parent[find('ceremony')] = find('reception') }
+  if (event.civil_ceremony_same_venue) parent[find('civil')] = find('ceremony')
+  if (event.civil_reception_same_venue) parent[find('civil')] = find('reception')
+  if (event.ceremony_reception_same_venue) parent[find('ceremony')] = find('reception')
 
   const map = {}
   nodes.forEach((n) => { const r = find(n); map[r] = map[r] ? [...map[r], n] : [n] })
@@ -63,7 +63,7 @@ function ceremonies(event) {
 
     const span = groups.length >= 2 && groups.length % 2 !== 0 && gi === groups.length - 1 ? ' style="grid-column:1/-1"' : ''
     return `<div${span}>
-      <div style="width:100%;aspect-ratio:16/9;background:#C0A18F20;border-radius:12px;overflow:hidden;margin-bottom:12px">${imageContent}</div>
+      <div style="width:100%;aspect-ratio:16/9;background:rgba(192,161,143,.1);border-radius:12px;overflow:hidden;margin-bottom:12px">${imageContent}</div>
       <div style="display:flex;flex-direction:column;gap:8px">${times}${locationHtml}</div>
     </div>`
   }).join('')
@@ -82,35 +82,48 @@ function infoBlock(label, text, imageUrl) {
   </div>`
 }
 
-function carousel(images, intervalMs) {
+function buildCarousel(images, intervalMs) {
   if (!images?.length) return ''
+
   const imgs = images.map((img, i) =>
-    `<img src="${img.url}" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transition:opacity .5s;opacity:${i === 0 ? 1 : 0}" data-ci="${i}"/>`
+    `<img src="${img.url}" alt="" class="cimg" data-idx="${i}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transition:opacity .5s;opacity:${i === 0 ? 1 : 0}"/>`
   ).join('')
+
   const dots = images.map((_, i) =>
-    `<button onclick="cGo(${i})" data-cd="${i}" style="width:${i === 0 ? 16 : 8}px;height:8px;border-radius:9999px;background:${i === 0 ? '#A47864' : 'rgba(192,161,143,.5)'};border:none;cursor:pointer;padding:0;transition:all .3s"></button>`
+    `<button class="cdot" data-idx="${i}" onclick="cGo(${i})" style="width:${i === 0 ? 16 : 8}px;height:8px;border-radius:9999px;background:${i === 0 ? '#A47864' : 'rgba(192,161,143,.5)'};border:none;cursor:pointer;padding:0;transition:all .3s"></button>`
   ).join('')
 
   return `<div style="width:100%;display:flex;flex-direction:column;gap:12px">
     <div style="position:relative;width:100%;aspect-ratio:4/5;border-radius:12px;overflow:hidden;background:rgba(192,161,143,.1)">
       ${imgs}
-      <button onclick="cPrev()" style="position:absolute;left:8px;top:50%;transform:translateY(-50%);width:32px;height:32px;border-radius:50%;background:rgba(0,0,0,.3);border:none;cursor:pointer;color:#fff;font-size:20px;line-height:1;display:flex;align-items:center;justify-content:center">&#8249;</button>
-      <button onclick="cNext()" style="position:absolute;right:8px;top:50%;transform:translateY(-50%);width:32px;height:32px;border-radius:50%;background:rgba(0,0,0,.3);border:none;cursor:pointer;color:#fff;font-size:20px;line-height:1;display:flex;align-items:center;justify-content:center">&#8250;</button>
+      <button onclick="cPrev()" style="position:absolute;left:8px;top:50%;transform:translateY(-50%);width:32px;height:32px;border-radius:50%;background:rgba(0,0,0,.3);border:none;cursor:pointer;color:#fff;font-size:22px;line-height:32px;display:flex;align-items:center;justify-content:center">&#8249;</button>
+      <button onclick="cNext()" style="position:absolute;right:8px;top:50%;transform:translateY(-50%);width:32px;height:32px;border-radius:50%;background:rgba(0,0,0,.3);border:none;cursor:pointer;color:#fff;font-size:22px;line-height:32px;display:flex;align-items:center;justify-content:center">&#8250;</button>
       <span id="cc" style="position:absolute;top:8px;right:8px;background:rgba(0,0,0,.3);color:#fff;font-size:11px;padding:2px 8px;border-radius:9999px">1 / ${images.length}</span>
     </div>
     <div style="display:flex;justify-content:center;gap:6px">${dots}</div>
   </div>
   <script>
     (function(){
-      var cur=0,tot=${images.length},timer=setInterval(cNext,${intervalMs});
-      window.cGo=function(i){
-        document.querySelectorAll('[data-ci]').forEach(function(el){el.style.opacity=el.dataset.ci==i?1:0});
-        document.querySelectorAll('[data-cd]').forEach(function(el){el.style.width=el.dataset.cd==i?'16px':'8px';el.style.background=el.dataset.cd==i?'#A47864':'rgba(192,161,143,.5)'});
-        document.getElementById('cc').textContent=(i+1)+' / '+tot;
-        cur=i;clearInterval(timer);timer=setInterval(cNext,${intervalMs});
-      };
-      window.cNext=function(){cGo((cur+1)%tot)};
-      window.cPrev=function(){cGo((cur-1+tot)%tot)};
+      var cur = 0, tot = ${images.length}, interval = ${intervalMs}, timer;
+      function go(i) {
+        var next = (i % tot + tot) % tot;
+        document.querySelectorAll('.cimg').forEach(function(el) {
+          el.style.opacity = parseInt(el.dataset.idx) === next ? 1 : 0;
+        });
+        document.querySelectorAll('.cdot').forEach(function(el) {
+          var active = parseInt(el.dataset.idx) === next;
+          el.style.width = active ? '16px' : '8px';
+          el.style.background = active ? '#A47864' : 'rgba(192,161,143,.5)';
+        });
+        document.getElementById('cc').textContent = (next + 1) + ' / ' + tot;
+        cur = next;
+        clearInterval(timer);
+        timer = setInterval(function() { go(cur + 1); }, interval);
+      }
+      window.cGo = go;
+      window.cNext = function() { go(cur + 1); };
+      window.cPrev = function() { go(cur - 1); };
+      timer = setInterval(function() { go(cur + 1); }, interval);
     })();
   </script>`
 }
@@ -118,20 +131,6 @@ function carousel(images, intervalMs) {
 function buildHtml(event) {
   const heroSrc = event.couple_image_url ?? ''
   const mobileSrc = event.couple_mobile_image_url ?? heroSrc
-
-  const heroHtml = heroSrc
-    ? `<picture style="display:block;width:100%;height:100%">
-        <source media="(min-width:768px)" srcset="${heroSrc}"/>
-        <img src="${mobileSrc}" alt="Foto de la pareja" style="width:100%;height:100%;object-fit:cover;object-position:top"/>
-       </picture>`
-    : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:rgba(192,161,143,.5);font-size:12px;text-transform:uppercase;letter-spacing:.1em">Foto de la pareja</div>`
-
-  const musicHtml = event.song_url
-    ? `<div style="width:100%;display:flex;flex-direction:column;align-items:center;gap:8px;padding:16px 0">
-        <p style="font-size:11px;text-transform:uppercase;letter-spacing:.15em;color:rgba(255,241,233,.5);margin:0">Música</p>
-        <audio controls src="${event.song_url}" style="width:90%;max-width:340px;opacity:.85"></audio>
-       </div>`
-    : ''
 
   const parentsHtml = (event.partner1_parent1 || event.partner1_parent2 || event.partner2_parent1 || event.partner2_parent2)
     ? `<div style="width:100%;text-align:center;display:flex;flex-direction:column;align-items:center;gap:20px">
@@ -175,6 +174,13 @@ function buildHtml(event) {
        </div>`
     : ''
 
+  const musicHtml = event.song_url
+    ? `<div style="width:100%;display:flex;flex-direction:column;align-items:center;gap:8px;padding:16px 0">
+        <p style="font-size:11px;text-transform:uppercase;letter-spacing:.15em;color:rgba(255,241,233,.5);margin:0">Música</p>
+        <audio controls src="${event.song_url}" style="width:90%;max-width:340px;opacity:.85"></audio>
+       </div>`
+    : ''
+
   const mementoMsg = `<div style="text-align:center;padding:8px 0 4px">
     <p style="font-size:14px;color:rgba(65,45,38,.7);margin:0 0 6px">Este evento ha concluido.</p>
     <p style="font-size:14px;color:rgba(65,45,38,.7);margin:0">Gracias por acompañarnos en este momento tan especial. 💌</p>
@@ -189,41 +195,43 @@ function buildHtml(event) {
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400;1,600&family=Montserrat:wght@400;500;600&family=Pinyon+Script&display=swap" rel="stylesheet"/>
-  <style>*{box-sizing:border-box;margin:0;padding:0}body{background:#A47864;min-height:100vh;font-family:'Montserrat',sans-serif}</style>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: #A47864; min-height: 100vh; font-family: 'Montserrat', sans-serif; }
+    #hero { width: 100%; aspect-ratio: 4/5; overflow: hidden; background: rgba(192,161,143,.2); }
+    #hero img { width: 100%; height: 100%; object-fit: cover; object-position: top; }
+    #hero-mobile { display: block; width: 100%; height: 100%; }
+    #hero-desktop { display: none; width: 100%; height: 100%; }
+    @media (min-width: 768px) {
+      #hero { aspect-ratio: 10/6; }
+      #hero-mobile { display: none; }
+      #hero-desktop { display: block; }
+    }
+  </style>
 </head>
 <body>
 
-<div style="width:100%;aspect-ratio:4/5;background:#C0A18F20;overflow:hidden">
-  <div style="display:none" id="hero-mobile">${mobileSrc ? `<img src="${mobileSrc}" alt="Foto de la pareja" style="width:100%;height:100%;object-fit:cover;object-position:top"/>` : ''}</div>
-  <div id="hero-desktop" style="width:100%;height:100%">${heroSrc ? `<img src="${heroSrc}" alt="Foto de la pareja" style="width:100%;height:100%;object-fit:cover;object-position:top"/>` : heroHtml}</div>
+<div id="hero">
+  <div id="hero-mobile">${mobileSrc ? `<img src="${mobileSrc}" alt="Foto de la pareja"/>` : ''}</div>
+  <div id="hero-desktop">${heroSrc ? `<img src="${heroSrc}" alt="Foto de la pareja"/>` : ''}</div>
 </div>
-
-<script>
-  (function(){
-    var isMobile=window.innerWidth<768;
-    var m=document.getElementById('hero-mobile'),d=document.getElementById('hero-desktop');
-    if(isMobile&&m.innerHTML){d.style.display='none';m.style.display='block';m.style.width='100%';m.style.height='100%';}
-  })();
-</script>
 
 ${musicHtml}
 
 <div style="width:100%;height:1px;background:linear-gradient(to right,transparent,rgba(192,161,143,.6),transparent)"></div>
 
 <div style="width:100%;max-width:672px;margin:0 auto;padding:40px 16px">
-  <div style="display:flex;flex-direction:column;align-items:center;gap:40px;background:rgba(255,241,233,.92);backdrop-filter:blur(8px);border-radius:24px;box-shadow:0 20px 60px rgba(65,45,38,.12);border:1px solid rgba(192,161,143,.4);padding:48px 24px">
-
+  <div style="display:flex;flex-direction:column;align-items:center;gap:40px;background:rgba(255,241,233,.92);border-radius:24px;box-shadow:0 20px 60px rgba(65,45,38,.12);border:1px solid rgba(192,161,143,.4);padding:48px 24px">
     ${parentsHtml}
     ${coupleHtml}
     ${invCardHtml}
     ${ceremonies(event)}
-    ${event.carousel_images?.length ? carousel(event.carousel_images, (event.carousel_interval ?? 5) * 1000) : ''}
+    ${buildCarousel(event.carousel_images, (event.carousel_interval ?? 5) * 1000)}
     ${infoBlock('Vestimenta', event.dress_code, event.dress_code_image_url)}
     ${infoBlock('Regalo', event.gift_suggestion, event.gift_suggestion_image_url)}
     ${infoBlock('Recomendaciones', event.recommendations, event.recommendations_image_url)}
     ${noKidsHtml}
     ${mementoMsg}
-
   </div>
 </div>
 
