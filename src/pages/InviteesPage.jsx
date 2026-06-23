@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useMemo } from 'react'
 import * as XLSX from 'xlsx'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
@@ -159,11 +159,29 @@ export default function InviteesPage() {
   const [selectedIds, setSelectedIds] = useState(new Set())
   const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false)
 
-  const { data: invitees = [], isLoading } = useQuery({
-    queryKey: ['invitees', activeEvent?.id],
-    queryFn: () => api.get(`/events/${activeEvent.id}/invitees`).then((r) => r.data),
+  const { data: invitations = [], isLoading } = useQuery({
+    queryKey: ['invitations', activeEvent?.id],
+    queryFn: () => api.get(`/events/${activeEvent.id}/invitations`).then((r) => r.data),
     enabled: !!activeEvent?.id,
   })
+
+  // Flatten to same per-invitee shape used by filters, sort, export, and display
+  const invitees = useMemo(() =>
+    invitations.flatMap((inv) =>
+      inv.invitees.map((i) => ({
+        ...i,
+        name_on_invitation: inv.name_on_invitation,
+        phone:              inv.phone,
+        type:               inv.type,
+        invitation_sent:    inv.invitation_sent,
+        allowed_companions: inv.allowed_companions,
+        code:               inv.code,
+        notes:              inv.notes,
+        companions:         inv.companions,
+        tags:               inv.tags,
+      }))
+    ), [invitations]
+  )
 
   const { data: eventTags = [] } = useQuery({
     queryKey: ['tags', activeEvent?.id],
@@ -174,7 +192,7 @@ export default function InviteesPage() {
   const deleteMutation = useMutation({
     mutationFn: (invitationId) => api.delete(`/events/${activeEvent.id}/invitations/${invitationId}`),
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['invitees', activeEvent?.id] })
+      qc.invalidateQueries({ queryKey: ['invitations', activeEvent?.id] })
       toast.success('Invitación eliminada.')
       setDeleteTarget(null)
     },
@@ -184,7 +202,7 @@ export default function InviteesPage() {
   const deleteInviteeMutation = useMutation({
     mutationFn: (invitee) => api.delete(`/events/${activeEvent.id}/invitations/${invitee.invitation_id}/invitees/${invitee.id}`),
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['invitees', activeEvent?.id] })
+      qc.invalidateQueries({ queryKey: ['invitations', activeEvent?.id] })
       toast.success('Invitado eliminado.')
       setDeleteInviteeTarget(null)
     },
@@ -195,61 +213,64 @@ export default function InviteesPage() {
     mutationFn: ({ ids, data }) =>
       api.post(`/events/${activeEvent.id}/invitations/bulk-update`, { ids: [...ids], data }),
     onMutate: async ({ ids, data }) => {
-      await qc.cancelQueries({ queryKey: ['invitees', activeEvent?.id] })
-      const previous = qc.getQueryData(['invitees', activeEvent?.id])
-      qc.setQueryData(['invitees', activeEvent?.id], (old) =>
-        old?.map((i) => ids.has(i.invitation_id) ? { ...i, ...data } : i)
+      await qc.cancelQueries({ queryKey: ['invitations', activeEvent?.id] })
+      const previous = qc.getQueryData(['invitations', activeEvent?.id])
+      qc.setQueryData(['invitations', activeEvent?.id], (old) =>
+        old?.map((inv) => ids.has(inv.id) ? { ...inv, ...data } : inv)
       )
       return { previous }
     },
     onError: (_err, _vars, context) => {
-      qc.setQueryData(['invitees', activeEvent?.id], context.previous)
+      qc.setQueryData(['invitations', activeEvent?.id], context.previous)
       toast.error('No se pudieron actualizar los invitados.')
     },
-    onSettled: () => qc.invalidateQueries({ queryKey: ['invitees', activeEvent?.id] }),
+    onSettled: () => qc.invalidateQueries({ queryKey: ['invitations', activeEvent?.id] }),
   })
 
   const toggleSentMutation = useMutation({
     mutationFn: ({ invitationId, value }) =>
       api.put(`/events/${activeEvent.id}/invitations/${invitationId}`, { invitation_sent: value }),
     onMutate: async ({ invitationId, value }) => {
-      await qc.cancelQueries({ queryKey: ['invitees', activeEvent?.id] })
-      const previous = qc.getQueryData(['invitees', activeEvent?.id])
-      qc.setQueryData(['invitees', activeEvent?.id], (old) =>
-        old?.map((i) => i.invitation_id === invitationId ? { ...i, invitation_sent: value } : i)
+      await qc.cancelQueries({ queryKey: ['invitations', activeEvent?.id] })
+      const previous = qc.getQueryData(['invitations', activeEvent?.id])
+      qc.setQueryData(['invitations', activeEvent?.id], (old) =>
+        old?.map((inv) => inv.id === invitationId ? { ...inv, invitation_sent: value } : inv)
       )
       return { previous }
     },
     onError: (_err, _vars, context) => {
-      qc.setQueryData(['invitees', activeEvent?.id], context.previous)
+      qc.setQueryData(['invitations', activeEvent?.id], context.previous)
       toast.error('No se pudo actualizar el estado de la invitación.')
     },
-    onSettled: () => qc.invalidateQueries({ queryKey: ['invitees', activeEvent?.id] }),
+    onSettled: () => qc.invalidateQueries({ queryKey: ['invitations', activeEvent?.id] }),
   })
 
   const updateStatusMutation = useMutation({
     mutationFn: ({ invitee, status }) =>
       api.put(`/events/${activeEvent.id}/invitations/${invitee.invitation_id}/invitees/${invitee.id}`, { status }),
     onMutate: async ({ invitee, status }) => {
-      await qc.cancelQueries({ queryKey: ['invitees', activeEvent?.id] })
-      const previous = qc.getQueryData(['invitees', activeEvent?.id])
-      qc.setQueryData(['invitees', activeEvent?.id], (old) =>
-        old?.map((i) => i.id === invitee.id ? { ...i, status } : i)
+      await qc.cancelQueries({ queryKey: ['invitations', activeEvent?.id] })
+      const previous = qc.getQueryData(['invitations', activeEvent?.id])
+      qc.setQueryData(['invitations', activeEvent?.id], (old) =>
+        old?.map((inv) => ({
+          ...inv,
+          invitees: inv.invitees.map((i) => i.id === invitee.id ? { ...i, status } : i),
+        }))
       )
       return { previous }
     },
     onError: (_err, _vars, context) => {
-      qc.setQueryData(['invitees', activeEvent?.id], context.previous)
+      qc.setQueryData(['invitations', activeEvent?.id], context.previous)
       toast.error('No se pudo actualizar el estado.')
     },
-    onSettled: () => qc.invalidateQueries({ queryKey: ['invitees', activeEvent?.id] }),
+    onSettled: () => qc.invalidateQueries({ queryKey: ['invitations', activeEvent?.id] }),
   })
 
   const bulkDeleteMutation = useMutation({
     mutationFn: (invitationIds) =>
       api.post(`/events/${activeEvent.id}/invitations/bulk-destroy`, { ids: [...invitationIds] }),
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['invitees', activeEvent?.id] })
+      qc.invalidateQueries({ queryKey: ['invitations', activeEvent?.id] })
       toast.success('Invitaciones eliminadas.')
       setSelectedIds(new Set())
       setBulkDeleteOpen(false)
@@ -297,8 +318,8 @@ export default function InviteesPage() {
   }
 
   const lateCount = invitees.filter((i) => i.type === 'late').length
-  const sentCount = invitees.filter((i) => i.invitation_sent).length
-  const unsentCount = invitees.filter((i) => !i.invitation_sent).length
+  const sentCount = invitations.filter((inv) => inv.invitation_sent).length
+  const unsentCount = invitations.filter((inv) => !inv.invitation_sent).length
   const activeFilterCount = [filters.status !== 'all', filters.type !== 'all', filters.sent !== 'all', filters.tag !== null].filter(Boolean).length
 
   const filtered = invitees
@@ -371,12 +392,14 @@ export default function InviteesPage() {
   const TYPE_ES = { invitee: 'invitado', companion: 'acompañante' }
 
   const buildExportRows = () =>
-    filtered.flatMap((invitee) => [
-      { tipo: TYPE_ES.invitee, nombre: invitee.full_name, telefono: invitee.phone ?? '', estado: STATUS_ES[invitee.status] },
-      ...invitee.companions.map((c) => ({
-        tipo: TYPE_ES.companion, nombre: c.full_name, telefono: '', estado: STATUS_ES[invitee.status],
-      })),
-    ])
+    filtered.flatMap((invitee, idx) => {
+      const isLastInHousehold = filtered[idx + 1]?.invitation_id !== invitee.invitation_id
+      const inv = isLastInHousehold ? invitations.find((i) => i.id === invitee.invitation_id) : null
+      return [
+        { tipo: TYPE_ES.invitee, nombre: invitee.full_name, telefono: invitee.phone ?? '', estado: STATUS_ES[invitee.status] },
+        ...(inv?.companions ?? []).map((c) => ({ tipo: TYPE_ES.companion, nombre: c.full_name, telefono: '', estado: 'confirmado' })),
+      ]
+    })
 
   const handleExportCsv = () => {
     const data = buildExportRows()
@@ -631,7 +654,7 @@ export default function InviteesPage() {
                         </div>
                       )}
                       {/* Actions row */}
-                    <div className="flex items-center justify-between gap-3">
+                    <div className="flex items-center justify-between gap-3 mt-2">
                       <div className="flex flex-col gap-0.5 min-w-0">
                         {first.phone && <span className="text-xs text-muted-foreground">{first.phone}</span>}
                         <span className="text-xs text-muted-foreground">{first.companions.length}/{first.allowed_companions} acompañantes</span>

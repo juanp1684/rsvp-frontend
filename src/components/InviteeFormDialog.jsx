@@ -52,7 +52,7 @@ export default function InviteeFormDialog({ open, onOpenChange, invitee }) {
 
   const syncTagsMutation = useMutation({
     mutationFn: (tagIds) => api.put(`/events/${activeEvent.id}/invitations/${invitee.invitation_id}/tags`, { tag_ids: [...tagIds] }),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['invitees', activeEvent?.id] }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['invitations', activeEvent?.id] }),
     onError: () => toast.error('No se pudieron actualizar las etiquetas.'),
   })
 
@@ -65,9 +65,10 @@ export default function InviteeFormDialog({ open, onOpenChange, invitee }) {
         notes: invitee.notes ?? '',
         type: invitee.type ?? 'regular',
       })
-      // Pull all invitees for this invitation from the query cache
-      const allInvitees = qc.getQueryData(['invitees', activeEvent?.id]) ?? []
-      const siblings = allInvitees.filter((i) => i.invitation_id === invitee.invitation_id)
+      // Pull invitees for this invitation from the query cache
+      const allInvitations = qc.getQueryData(['invitations', activeEvent?.id]) ?? []
+      const matchingInv = allInvitations.find((inv) => inv.id === invitee.invitation_id)
+      const siblings = matchingInv?.invitees ?? []
       setLocalInvitees(siblings)
       setLocalCompanions(invitee.companions ?? [])
       setSelectedTagIds(new Set(invitee.tags?.map((t) => t.id) ?? []))
@@ -95,7 +96,7 @@ export default function InviteeFormDialog({ open, onOpenChange, invitee }) {
       api.post(`/events/${activeEvent.id}/invitations/${invitee.invitation_id}/invitees`, { full_name: name }),
     onSuccess: ({ data }) => {
       setLocalInvitees((prev) => [...prev, data])
-      qc.invalidateQueries({ queryKey: ['invitees', activeEvent?.id] })
+      qc.invalidateQueries({ queryKey: ['invitations', activeEvent?.id] })
       setIsAddingInvitee(false)
       setAddingInviteeName('')
     },
@@ -107,7 +108,7 @@ export default function InviteeFormDialog({ open, onOpenChange, invitee }) {
       api.delete(`/events/${activeEvent.id}/invitations/${invitee.invitation_id}/invitees/${inviteeId}`),
     onSuccess: (_, inviteeId) => {
       setLocalInvitees((prev) => prev.filter((i) => i.id !== inviteeId))
-      qc.invalidateQueries({ queryKey: ['invitees', activeEvent?.id] })
+      qc.invalidateQueries({ queryKey: ['invitations', activeEvent?.id] })
     },
     onError: (err) => toast.error(err?.response?.data?.message ?? 'No se pudo eliminar el invitado.'),
   })
@@ -154,7 +155,7 @@ export default function InviteeFormDialog({ open, onOpenChange, invitee }) {
       }
     },
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['invitees', activeEvent?.id] })
+      qc.invalidateQueries({ queryKey: ['invitations', activeEvent?.id] })
       toast.success(isEdit ? 'Invitación actualizada.' : 'Invitación creada.')
       onOpenChange(false)
     },
@@ -165,7 +166,7 @@ export default function InviteeFormDialog({ open, onOpenChange, invitee }) {
     mutationFn: (name) =>
       api.post(`/events/${activeEvent.id}/invitations/${invitee.invitation_id}/companions`, { full_name: name }),
     onSuccess: ({ data }) => {
-      qc.invalidateQueries({ queryKey: ['invitees', activeEvent?.id] })
+      qc.invalidateQueries({ queryKey: ['invitations', activeEvent?.id] })
       setLocalCompanions((prev) => [...prev, data])
       setIsAdding(false)
       setAddingName('')
@@ -177,7 +178,7 @@ export default function InviteeFormDialog({ open, onOpenChange, invitee }) {
     mutationFn: ({ id, name }) =>
       api.put(`/events/${activeEvent.id}/invitations/${invitee.invitation_id}/companions/${id}`, { full_name: name }),
     onSuccess: ({ data }) => {
-      qc.invalidateQueries({ queryKey: ['invitees', activeEvent?.id] })
+      qc.invalidateQueries({ queryKey: ['invitations', activeEvent?.id] })
       setLocalCompanions((prev) => prev.map((c) => c.id === data.id ? data : c))
       setEditingId(null)
     },
@@ -188,7 +189,7 @@ export default function InviteeFormDialog({ open, onOpenChange, invitee }) {
     mutationFn: (id) =>
       api.delete(`/events/${activeEvent.id}/invitations/${invitee.invitation_id}/companions/${id}`),
     onSuccess: (_, id) => {
-      qc.invalidateQueries({ queryKey: ['invitees', activeEvent?.id] })
+      qc.invalidateQueries({ queryKey: ['invitations', activeEvent?.id] })
       setLocalCompanions((prev) => prev.filter((c) => c.id !== id))
     },
     onError: () => toast.error('No se pudo eliminar el acompañante.'),

@@ -25,30 +25,35 @@ export default function DashboardPage() {
 
   const activeEvent = useAuthStore((s) => s.activeEvent)
 
-  const { data: invitees = [], isLoading } = useQuery({
-    queryKey: ['invitees', activeEvent?.id],
-    queryFn: () => api.get(`/events/${activeEvent.id}/invitees`).then((r) => r.data),
+  const { data: invitations = [], isLoading } = useQuery({
+    queryKey: ['invitations', activeEvent?.id],
+    queryFn: () => api.get(`/events/${activeEvent.id}/invitations`).then((r) => r.data),
     enabled: !!activeEvent?.id,
   })
 
-  // Companions belong to invitations — count once per invitation to avoid duplication
-  const companionsByInvitation = invitees.reduce((acc, i) => {
-    if (!acc[i.invitation_id]) acc[i.invitation_id] = { companions: i.companions?.length ?? 0, allowed: i.allowed_companions ?? 0 }
-    return acc
-  }, {})
-  const invGroups = Object.values(companionsByInvitation)
-  const totalCompanions  = invGroups.reduce((sum, g) => sum + g.companions, 0)
-  const allowedCompanions = invGroups.reduce((sum, g) => sum + g.allowed, 0)
-  const attendingInvIds  = new Set(invitees.filter((i) => i.status === 'attending').map((i) => i.invitation_id))
-  const attendingCompanions = [...attendingInvIds].reduce((sum, id) => sum + (companionsByInvitation[id]?.companions ?? 0), 0)
+  const invitees = invitations.flatMap((inv) => inv.invitees.map((i) => ({ ...i, type: inv.type })))
+
+  const invitationCount   = invitations.length
+  const allowedCompanions = invitations.reduce((sum, inv) => sum + (inv.allowed_companions ?? 0), 0)
+
+  let actualCompanions = 0
+  let declinedUnfilled = 0
+  let pendingUnfilled  = 0
+  for (const inv of invitations) {
+    const unfilled     = Math.max(0, (inv.allowed_companions ?? 0) - (inv.companions?.length ?? 0))
+    const hasResponded = inv.invitees.some((i) => i.status !== 'pending')
+    actualCompanions  += inv.companions?.length ?? 0
+    if (hasResponded) declinedUnfilled += unfilled
+    else              pendingUnfilled  += unfilled
+  }
 
   const total     = invitees.length + allowedCompanions
-  const attending = invitees.filter((i) => i.status === 'attending').length + attendingCompanions
-  const declined  = invitees.filter((i) => i.status === 'declined').length
-  const pending   = invitees.filter((i) => i.status === 'pending').length + allowedCompanions
+  const attending = invitees.filter((i) => i.status === 'attending').length + actualCompanions
+  const declined  = invitees.filter((i) => i.status === 'declined').length + declinedUnfilled
+  const pending   = invitees.filter((i) => i.status === 'pending').length + pendingUnfilled
   const responded    = invitees.filter((i) => i.status !== 'pending').length
   const responseRate = invitees.length > 0 ? Math.round((responded / invitees.length) * 100) : 0
-  const sentCount    = invitees.filter((i) => i.invitation_sent).length
+  const sentCount    = invitations.filter((inv) => inv.invitation_sent).length
   const lateCount    = invitees.filter((i) => i.type === 'late').length
 
   return (
@@ -63,9 +68,9 @@ export default function DashboardPage() {
           <StatCard label="Asistirá"              value={attending} />
           <StatCard label="Rechazó"               value={declined} />
           <StatCard label="Pendiente"             value={pending} />
-          <StatCard label="Invitaciones únicas"   value={invitees.length} sub="solo invitados, sin acompañantes" />
+          <StatCard label="Invitaciones únicas"   value={invitationCount} sub="solo invitados, sin acompañantes" />
           <StatCard label="Tasa de respuesta"     value={`${responseRate}%`} sub={`${responded} de ${invitees.length} respondieron`} />
-          <StatCard label="Invitaciones enviadas" value={`${sentCount} / ${invitees.length}`} />
+          <StatCard label="Invitaciones enviadas" value={`${sentCount} / ${invitationCount}`} />
           {lateCount > 0 && (
             <StatCard label="Invitados rezagados" value={lateCount} />
           )}

@@ -10,7 +10,7 @@ import { useAuthStore } from '@/store/authStore'
 
 const COLUMNS = [
   { col: 'nombre_invitacion', required: true,  hint: 'nombre que aparece en la invitación' },
-  { col: 'invitados',         required: false, hint: 'nombres separados por | (ej. Pedro|María)' },
+  { col: 'invitados',         required: false, hint: 'nombres separados por ; (ej. Pedro;María)' },
   { col: 'teléfono',          required: false },
   { col: 'acompañantes',      required: false },
   { col: 'notas',             required: false },
@@ -69,7 +69,7 @@ export default function ImportDialog({ open, onOpenChange }) {
   const handleTemplateDownload = () => {
     const csv = 'nombre_invitacion,invitados,teléfono,acompañantes,notas,tipo\n' +
       'Ana García,,70123456,0,,regular\n' +
-      'Sr. Pedro Vargas y Sra.,Pedro Vargas|María Vargas,65987654,0,,regular\n'
+      'Sr. Pedro Vargas y Sra.,Pedro Vargas;María Vargas,65987654,0,,regular\n'
     const blob = new Blob([csv], { type: 'text/csv' })
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
