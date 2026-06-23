@@ -1,6 +1,6 @@
 async function urlToBase64(url) {
   try {
-    const resp = await fetch(url)
+    const resp = await fetch(url, { cache: 'reload' })
     const blob = await resp.blob()
     return new Promise((resolve, reject) => {
       const reader = new FileReader()
