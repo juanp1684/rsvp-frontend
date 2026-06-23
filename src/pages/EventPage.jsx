@@ -6,7 +6,8 @@ import api from '@/lib/api'
 import { useAuthStore } from '@/store/authStore'
 import { Button } from '@/components/ui/button'
 import EventEditDialog from '@/components/EventEditDialog'
-import { Upload, Trash2, ImageIcon, Pencil, Music2, Plus, Check, X } from 'lucide-react'
+import { Upload, Trash2, ImageIcon, Pencil, Music2, Plus, Check, X, Download } from 'lucide-react'
+import { generateMemento } from '@/lib/generateMemento'
 import { TAG_COLORS, TagChip } from '@/lib/tagColors.jsx'
 import {
   DndContext,
@@ -49,6 +50,7 @@ export default function EventPage() {
   const [carouselUploading, setCarouselUploading] = useState(false)
   const [carouselInterval, setCarouselInterval] = useState(5)
   const [editOpen, setEditOpen] = useState(false)
+  const [generating, setGenerating] = useState(false)
   const fileRefs = useRef({})
   const carouselFileRef = useRef(null)
   const activeEvent = useAuthStore((s) => s.activeEvent)
@@ -181,12 +183,32 @@ export default function EventPage() {
       {/* Header */}
       <div className="flex items-center justify-between gap-2">
         <h1 className="text-xl font-semibold">Evento</h1>
-        {!isViewer && (
-          <Button variant="outline" size="sm" onClick={() => setEditOpen(true)}>
-            <Pencil className="h-4 w-4 mr-1" />
-            Editar
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={generating}
+            onClick={async () => {
+              setGenerating(true)
+              try {
+                await generateMemento(event)
+              } catch {
+                toast.error('No se pudo generar el recuerdo.')
+              } finally {
+                setGenerating(false)
+              }
+            }}
+          >
+            <Download className="h-4 w-4 mr-1" />
+            {generating ? 'Generando…' : 'Recuerdo'}
           </Button>
-        )}
+          {!isViewer && (
+            <Button variant="outline" size="sm" onClick={() => setEditOpen(true)}>
+              <Pencil className="h-4 w-4 mr-1" />
+              Editar
+            </Button>
+          )}
+        </div>
       </div>
 
       {/* Event details */}
